@@ -1,17 +1,17 @@
 @font-face {
-  font-family: "Poppins";
+  font-family: "Bebas Neue";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/static/fonts/poppins-400.woff2") format("woff2");
+  src: url("/static/fonts/bebas-neue-400.woff2") format("woff2");
 }
 
 @font-face {
-  font-family: "Poppins";
+  font-family: "Sora";
   font-style: normal;
-  font-weight: 600;
+  font-weight: 100 800;
   font-display: swap;
-  src: url("/static/fonts/poppins-600.woff2") format("woff2");
+  src: url("/static/fonts/sora-variable.woff2") format("woff2");
 }
 
 :root {
@@ -46,12 +46,17 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Sora", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
 }
 
 h1,
 h2,
+.numeric {
+  font-family: "Bebas Neue", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
 .btn,
 button,
 input[type="submit"],
@@ -209,6 +214,20 @@ td {
   padding: 0.5rem;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
+}
+
+td.numeric {
+  font-size: 1.2rem;
+}
+
+.gif-view {
+  text-align: center;
+}
+
+.gif-view img {
+  width: min(90vw, 480px);
+  height: auto;
+  border-radius: 0.75rem;
 }
 
 .chart {

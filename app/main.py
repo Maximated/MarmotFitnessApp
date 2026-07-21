@@ -1,3 +1,5 @@
+import mimetypes
+
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,6 +13,11 @@ from app.history import router as history_router
 from app.models import User
 from app.templates import templates
 from app.workouts import router as workouts_router
+
+# El Debian slim de la imagen base no trae .woff2 en /etc/mime.types, así que
+# StaticFiles lo serviría como application/octet-stream y el navegador
+# rechazaría la fuente silenciosamente.
+mimetypes.add_type("font/woff2", ".woff2")
 
 app = FastAPI(title="Marmot Fitness App")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)

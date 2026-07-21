@@ -3,7 +3,7 @@
 {% block content %}
   <p><a href="/exercises">« Volver al listado</a></p>
 
-  <a href="{{ exercise.gif_url }}" target="_blank" rel="noopener">
+  <a href="/exercises/{{ exercise.id }}/view" target="_blank" rel="noopener">
     <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
   </a>
   <h1>{{ exercise.name }}</h1>
@@ -61,8 +61,8 @@
           <tr>
             <td>{{ workout.date }}</td>
             <td>{{ workout_set.time.strftime("%H:%M") }}</td>
-            <td>{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
-            <td>{{ workout_set.reps }}</td>
+            <td class="numeric">{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
+            <td class="numeric">{{ workout_set.reps }}</td>
             <td>{{ workout_set.comment or "" }}</td>
             <td class="actions">
               <a href="/workout-sets/{{ workout_set.id }}/edit">Editar</a>

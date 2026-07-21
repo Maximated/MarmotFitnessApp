@@ -24,7 +24,7 @@
   <ul class="exercise-grid">
     {% for exercise in exercises %}
       <li>
-        <a href="{{ exercise.gif_url }}" target="_blank" rel="noopener">
+        <a href="/exercises/{{ exercise.id }}/view" target="_blank" rel="noopener">
           <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
         </a>
         <p>{{ exercise.name }}</p>

@@ -75,3 +75,19 @@ async def list_exercises(
             "filters_qs": urlencode(filters),
         },
     )
+
+
+@router.get("/exercises/{exercise_id}/view")
+async def view_exercise_gif(
+    exercise_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    exercise = db.get(Exercise, exercise_id)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="exercises/view.html",
+        context={"exercise": exercise},
+    )
