@@ -28,6 +28,10 @@ def get_or_create_workout(db: Session, user_id: int, workout_date: date_type) ->
     return workout
 
 
+def parse_optional_weight(raw: str) -> float | None:
+    return float(raw) if raw.strip() else None
+
+
 def get_own_workout_set(db: Session, set_id: int, user_id: int) -> WorkoutSet:
     workout_set = (
         db.query(WorkoutSet)
@@ -58,7 +62,7 @@ async def log_exercise_form(
     )
 
     chronological = list(reversed(sets))
-    weights = [ws.weight for ws, _ in chronological]
+    weights = [ws.weight for ws, _ in chronological if ws.weight is not None]
     reps = [ws.reps for ws, _ in chronological]
 
     now = datetime.now()
@@ -71,6 +75,7 @@ async def log_exercise_form(
             "today": now.date().isoformat(),
             "now_time": now.time().isoformat(timespec="minutes"),
             "has_progress": len(chronological) >= 2,
+            "has_weight_progress": len(weights) >= 2,
             "weight_points": scale_points(weights),
             "weight_line": polyline_points(scale_points(weights)),
             "weight_min": min(weights) if weights else None,
@@ -90,7 +95,7 @@ async def log_exercise_submit(
     exercise_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
-    weight: float = Form(...),
+    weight: str = Form(""),
     reps: int = Form(...),
     workout_date: date_type = Form(..., alias="date"),
     set_time: time_type = Form(..., alias="time"),
@@ -106,7 +111,7 @@ async def log_exercise_submit(
         WorkoutSet(
             workout_id=workout.id,
             exercise_id=exercise_id,
-            weight=weight,
+            weight=parse_optional_weight(weight),
             reps=reps,
             time=set_time,
             comment=comment or None,
@@ -145,7 +150,7 @@ async def edit_workout_set_submit(
     set_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
-    weight: float = Form(...),
+    weight: str = Form(""),
     reps: int = Form(...),
     workout_date: date_type = Form(..., alias="date"),
     set_time: time_type = Form(..., alias="time"),
@@ -164,7 +169,7 @@ async def edit_workout_set_submit(
             + 1
         )
 
-    workout_set.weight = weight
+    workout_set.weight = parse_optional_weight(weight)
     workout_set.reps = reps
     workout_set.time = set_time
     workout_set.comment = comment or None

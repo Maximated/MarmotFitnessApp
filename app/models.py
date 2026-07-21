@@ -60,7 +60,7 @@ class WorkoutSet(Base):
     exercise_id: Mapped[int] = mapped_column(
         ForeignKey("exercises.id"), index=True
     )
-    weight: Mapped[float] = mapped_column(Float)
+    weight: Mapped[float | None] = mapped_column(Float)
     reps: Mapped[int] = mapped_column(Integer)
     time: Mapped[time] = mapped_column(Time)
     comment: Mapped[str | None] = mapped_column(Text)

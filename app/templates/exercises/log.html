@@ -8,7 +8,7 @@
   <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
 
   <form method="post" action="/exercises/{{ exercise.id }}/log">
-    <label>Peso (kg) <input type="number" step="0.5" name="weight" required /></label>
+    <label>Peso (kg) <input type="number" step="0.5" name="weight" /></label>
     <label>Repeticiones <input type="number" name="reps" required /></label>
     <label>Fecha <input type="date" name="date" value="{{ today }}" required /></label>
     <label>Hora <input type="time" name="time" value="{{ now_time }}" required /></label>
@@ -20,13 +20,17 @@
     <h2>Progreso</h2>
     <p>{{ progress_from }} → {{ progress_to }}</p>
 
-    <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
-    <svg width="600" height="200" viewBox="0 0 600 200">
-      <polyline fill="none" stroke="black" stroke-width="2" points="{{ weight_line }}" />
-      {% for x, y in weight_points %}
-        <circle cx="{{ x }}" cy="{{ y }}" r="3" />
-      {% endfor %}
-    </svg>
+    {% if has_weight_progress %}
+      <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
+      <svg width="600" height="200" viewBox="0 0 600 200">
+        <polyline fill="none" stroke="black" stroke-width="2" points="{{ weight_line }}" />
+        {% for x, y in weight_points %}
+          <circle cx="{{ x }}" cy="{{ y }}" r="3" />
+        {% endfor %}
+      </svg>
+    {% else %}
+      <p>Sin datos de peso para este ejercicio.</p>
+    {% endif %}
 
     <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
     <svg width="600" height="200" viewBox="0 0 600 200">
@@ -54,7 +58,7 @@
         <tr>
           <td>{{ workout.date }}</td>
           <td>{{ workout_set.time.strftime("%H:%M") }}</td>
-          <td>{{ workout_set.weight }}</td>
+          <td>{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
           <td>{{ workout_set.reps }}</td>
           <td>{{ workout_set.comment or "" }}</td>
           <td>
