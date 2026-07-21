@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p><a href="/exercises">« Volver al listado</a></p>
+  <p><a href="{{ next }}">« Volver al listado</a></p>
 
   <div class="gif-view">
     <h1>{{ exercise.name }}</h1>

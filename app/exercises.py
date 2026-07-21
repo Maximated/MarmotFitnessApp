@@ -83,11 +83,12 @@ async def view_exercise_gif(
     request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
+    next: str | None = None,
 ):
     exercise = db.get(Exercise, exercise_id)
 
     return templates.TemplateResponse(
         request=request,
         name="exercises/view.html",
-        context={"exercise": exercise},
+        context={"exercise": exercise, "next": next or "/exercises"},
     )
