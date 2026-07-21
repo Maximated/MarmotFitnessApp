@@ -129,6 +129,7 @@ async def edit_workout_set_form(
     request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
+    next: str | None = None,
 ):
     workout_set = get_own_workout_set(db, set_id, user.id)
     workout = db.get(Workout, workout_set.workout_id)
@@ -141,6 +142,7 @@ async def edit_workout_set_form(
             "exercise": exercise,
             "workout_set": workout_set,
             "date": workout.date.isoformat(),
+            "next": next or f"/exercises/{exercise.id}/log",
         },
     )
 
@@ -155,6 +157,7 @@ async def edit_workout_set_submit(
     workout_date: date_type = Form(..., alias="date"),
     set_time: time_type = Form(..., alias="time"),
     comment: str | None = Form(None),
+    next: str = Form(...),
 ):
     workout_set = get_own_workout_set(db, set_id, user.id)
     workout = db.get(Workout, workout_set.workout_id)
@@ -175,9 +178,7 @@ async def edit_workout_set_submit(
     workout_set.comment = comment or None
     db.commit()
 
-    return RedirectResponse(
-        url=f"/exercises/{workout_set.exercise_id}/log", status_code=303
-    )
+    return RedirectResponse(url=next, status_code=303)
 
 
 @router.post("/workout-sets/{set_id}/delete")
@@ -185,9 +186,9 @@ async def delete_workout_set(
     set_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
+    next: str = Form(...),
 ):
     workout_set = get_own_workout_set(db, set_id, user.id)
-    exercise_id = workout_set.exercise_id
     workout_id = workout_set.workout_id
 
     db.delete(workout_set)
@@ -201,4 +202,4 @@ async def delete_workout_set(
 
     db.commit()
 
-    return RedirectResponse(url=f"/exercises/{exercise_id}/log", status_code=303)
+    return RedirectResponse(url=next, status_code=303)

@@ -65,8 +65,9 @@
             <td class="numeric">{{ workout_set.reps }}</td>
             <td>{{ workout_set.comment or "" }}</td>
             <td class="actions">
-              <a href="/workout-sets/{{ workout_set.id }}/edit">Editar</a>
+              <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ ('/exercises/' ~ exercise.id ~ '/log') | urlencode }}">Editar</a>
               <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form">
+                <input type="hidden" name="next" value="/exercises/{{ exercise.id }}/log" />
                 <button type="submit" class="btn-danger">Eliminar</button>
               </form>
             </td>

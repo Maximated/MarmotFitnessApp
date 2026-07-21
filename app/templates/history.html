@@ -10,6 +10,7 @@
     <button type="submit">Filtrar</button>
   </form>
 
+  {% set return_to = "/history?" ~ filters_qs ~ ('&' if filters_qs else '') ~ "page=" ~ page %}
   {% for day, sets in days %}
     <h2>{{ day }}</h2>
     <div class="table-wrap">
@@ -33,8 +34,9 @@
               <td>{{ workout_set.time.strftime("%H:%M") }}</td>
               <td>{{ workout_set.comment or "" }}</td>
               <td class="actions">
-                <a href="/workout-sets/{{ workout_set.id }}/edit">Editar</a>
+                <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ return_to | urlencode }}">Editar</a>
                 <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form">
+                  <input type="hidden" name="next" value="{{ return_to }}" />
                   <button type="submit" class="btn-danger">Eliminar</button>
                 </form>
               </td>

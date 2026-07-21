@@ -14,8 +14,9 @@
     <label>Fecha <input type="date" name="date" value="{{ date }}" required /></label>
     <label>Hora <input type="time" name="time" value="{{ workout_set.time.strftime('%H:%M') }}" required /></label>
     <label>Notas <textarea name="comment">{{ workout_set.comment or "" }}</textarea></label>
+    <input type="hidden" name="next" value="{{ next }}" />
     <button type="submit">Guardar cambios</button>
   </form>
 
-  <a href="/exercises/{{ exercise.id }}/log">Cancelar</a>
+  <a href="{{ next }}">Cancelar</a>
 {% endblock %}

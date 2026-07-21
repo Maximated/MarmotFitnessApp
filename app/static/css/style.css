@@ -261,3 +261,8 @@ td.numeric {
   gap: 0.5rem;
   align-items: center;
 }
+
+.actions form {
+  display: inline-flex;
+  margin: 0;
+}
