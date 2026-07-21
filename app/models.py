@@ -1,6 +1,16 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import (
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Time,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -52,5 +62,6 @@ class WorkoutSet(Base):
     )
     weight: Mapped[float] = mapped_column(Float)
     reps: Mapped[int] = mapped_column(Integer)
+    time: Mapped[time] = mapped_column(Time)
     comment: Mapped[str | None] = mapped_column(Text)
     order: Mapped[int] = mapped_column(Integer)

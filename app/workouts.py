@@ -1,4 +1,6 @@
 from datetime import date as date_type
+from datetime import datetime
+from datetime import time as time_type
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
@@ -42,13 +44,15 @@ async def log_exercise_form(
         .all()
     )
 
+    now = datetime.now()
     return templates.TemplateResponse(
         request=request,
         name="exercises/log.html",
         context={
             "exercise": exercise,
             "sets": sets,
-            "today": date_type.today().isoformat(),
+            "today": now.date().isoformat(),
+            "now_time": now.time().isoformat(timespec="minutes"),
         },
     )
 
@@ -61,6 +65,7 @@ async def log_exercise_submit(
     weight: float = Form(...),
     reps: int = Form(...),
     workout_date: date_type = Form(..., alias="date"),
+    set_time: time_type = Form(..., alias="time"),
     comment: str | None = Form(None),
 ):
     workout = get_or_create_workout(db, user.id, workout_date)
@@ -75,6 +80,7 @@ async def log_exercise_submit(
             exercise_id=exercise_id,
             weight=weight,
             reps=reps,
+            time=set_time,
             comment=comment or None,
             order=next_order,
         )
