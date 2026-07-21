@@ -21,7 +21,7 @@
     <button type="submit">Buscar</button>
   </form>
 
-  <ul>
+  <ul class="exercise-grid">
     {% for exercise in exercises %}
       <li>
         <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
@@ -34,7 +34,7 @@
     {% endfor %}
   </ul>
 
-  <p>
+  <p class="pagination">
     {% if page > 1 %}
       <a href="/exercises?{{ filters_qs }}{{ '&' if filters_qs }}page={{ page - 1 }}">« Anterior</a>
     {% endif %}

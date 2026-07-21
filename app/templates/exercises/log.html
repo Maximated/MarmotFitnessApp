@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <a href="/exercises">« Volver al listado</a>
+  <p><a href="/exercises">« Volver al listado</a></p>
 
   <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
   <h1>{{ exercise.name }}</h1>
@@ -22,10 +22,10 @@
 
     {% if has_weight_progress %}
       <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
-      <svg width="600" height="200" viewBox="0 0 600 200">
-        <polyline fill="none" stroke="black" stroke-width="2" points="{{ weight_line }}" />
+      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ weight_line }}" />
         {% for x, y in weight_points %}
-          <circle cx="{{ x }}" cy="{{ y }}" r="3" />
+          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
         {% endfor %}
       </svg>
     {% else %}
@@ -33,44 +33,46 @@
     {% endif %}
 
     <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
-    <svg width="600" height="200" viewBox="0 0 600 200">
-      <polyline fill="none" stroke="black" stroke-width="2" points="{{ reps_line }}" />
+    <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+      <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ reps_line }}" />
       {% for x, y in reps_points %}
-        <circle cx="{{ x }}" cy="{{ y }}" r="3" />
+        <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
       {% endfor %}
     </svg>
   {% endif %}
 
   <h2>Tus series de este ejercicio</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Hora</th>
-        <th>Peso (kg)</th>
-        <th>Reps</th>
-        <th>Notas</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for workout_set, workout in sets %}
+  <div class="table-wrap">
+    <table>
+      <thead>
         <tr>
-          <td>{{ workout.date }}</td>
-          <td>{{ workout_set.time.strftime("%H:%M") }}</td>
-          <td>{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
-          <td>{{ workout_set.reps }}</td>
-          <td>{{ workout_set.comment or "" }}</td>
-          <td>
-            <a href="/workout-sets/{{ workout_set.id }}/edit">Editar</a>
-            <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" style="display:inline">
-              <button type="submit">Eliminar</button>
-            </form>
-          </td>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Peso (kg)</th>
+          <th>Reps</th>
+          <th>Notas</th>
+          <th></th>
         </tr>
-      {% else %}
-        <tr><td colspan="6">Todavía no has registrado ninguna serie.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for workout_set, workout in sets %}
+          <tr>
+            <td>{{ workout.date }}</td>
+            <td>{{ workout_set.time.strftime("%H:%M") }}</td>
+            <td>{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
+            <td>{{ workout_set.reps }}</td>
+            <td>{{ workout_set.comment or "" }}</td>
+            <td class="actions">
+              <a href="/workout-sets/{{ workout_set.id }}/edit">Editar</a>
+              <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form">
+                <button type="submit" class="btn-danger">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6">Todavía no has registrado ninguna serie.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}
