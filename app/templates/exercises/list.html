@@ -27,6 +27,7 @@
         <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
         <p>{{ exercise.name }}</p>
         <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
+        <a href="/exercises/{{ exercise.id }}/log">Registrar serie</a>
       </li>
     {% else %}
       <li>No se encontraron ejercicios.</li>

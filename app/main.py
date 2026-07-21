@@ -8,11 +8,13 @@ from app.dependencies import get_current_user
 from app.exercises import router as exercises_router
 from app.models import User
 from app.templates import templates
+from app.workouts import router as workouts_router
 
 app = FastAPI(title="Marmot Fitness App")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
 app.include_router(auth_router)
 app.include_router(exercises_router)
+app.include_router(workouts_router)
 app.mount("/media", StaticFiles(directory="media"), name="media")
 
 
