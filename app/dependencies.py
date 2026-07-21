@@ -1,4 +1,4 @@
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -10,3 +10,9 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | 
     if user_id is None:
         return None
     return db.get(User, user_id)
+
+
+def require_user(user: User | None = Depends(get_current_user)) -> User:
+    if user is None:
+        raise HTTPException(status_code=303, headers={"Location": "/"})
+    return user

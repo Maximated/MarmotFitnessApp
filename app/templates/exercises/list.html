@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <form method="get" action="/exercises">
+    <input type="text" name="q" placeholder="Buscar por nombre" value="{{ q }}" />
+
+    <select name="category">
+      <option value="">Todas las categorías</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="equipment">
+      <option value="">Todo el equipo</option>
+      {% for e in equipments %}
+        <option value="{{ e }}" {% if e == equipment %}selected{% endif %}>{{ e }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit">Buscar</button>
+  </form>
+
+  <ul>
+    {% for exercise in exercises %}
+      <li>
+        <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
+        <p>{{ exercise.name }}</p>
+        <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
+      </li>
+    {% else %}
+      <li>No se encontraron ejercicios.</li>
+    {% endfor %}
+  </ul>
+
+  <p>
+    {% if page > 1 %}
+      <a href="/exercises?{{ filters_qs }}{{ '&' if filters_qs }}page={{ page - 1 }}">« Anterior</a>
+    {% endif %}
+    Página {{ page }} de {{ total_pages }}
+    {% if page < total_pages %}
+      <a href="/exercises?{{ filters_qs }}{{ '&' if filters_qs }}page={{ page + 1 }}">Siguiente »</a>
+    {% endif %}
+  </p>
+{% endblock %}

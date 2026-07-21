@@ -1,19 +1,19 @@
 from fastapi import Depends, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth import router as auth_router
 from app.config import settings
 from app.dependencies import get_current_user
+from app.exercises import router as exercises_router
 from app.models import User
+from app.templates import templates
 
 app = FastAPI(title="Marmot Fitness App")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
 app.include_router(auth_router)
+app.include_router(exercises_router)
 app.mount("/media", StaticFiles(directory="media"), name="media")
-
-templates = Jinja2Templates(directory="app/templates")
 
 
 @app.get("/")

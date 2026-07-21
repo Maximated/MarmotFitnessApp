@@ -3,6 +3,7 @@
 {% block content %}
   {% if user %}
     <p>Hola, {{ user.name }}</p>
+    <a href="/exercises">Ver ejercicios</a>
     <a href="/logout">Cerrar sesión</a>
   {% else %}
     <a href="/login">Login con Google</a>
