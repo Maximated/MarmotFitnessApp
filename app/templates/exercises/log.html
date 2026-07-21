@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <a href="/exercises">« Volver al listado</a>
+
   <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
   <h1>{{ exercise.name }}</h1>
   <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
