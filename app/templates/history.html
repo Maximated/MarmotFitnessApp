@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Historial de entrenamientos</h1>
+
+  <form method="get" action="/history">
+    <label>Desde <input type="date" name="date_from" value="{{ date_from }}" /></label>
+    <label>Hasta <input type="date" name="date_to" value="{{ date_to }}" /></label>
+    <label>Ejercicio <input type="text" name="q" placeholder="Nombre del ejercicio" value="{{ q }}" /></label>
+    <button type="submit">Filtrar</button>
+  </form>
+
+  {% for day, sets in days %}
+    <h2>{{ day }}</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Ejercicio</th>
+          <th>Peso (kg)</th>
+          <th>Reps</th>
+          <th>Hora</th>
+          <th>Notas</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for workout_set, workout, exercise in sets %}
+          <tr>
+            <td><a href="/exercises/{{ exercise.id }}/log">{{ exercise.name }}</a></td>
+            <td>{{ workout_set.weight }}</td>
+            <td>{{ workout_set.reps }}</td>
+            <td>{{ workout_set.time.strftime("%H:%M") }}</td>
+            <td>{{ workout_set.comment or "" }}</td>
+            <td>
+              <a href="/workout-sets/{{ workout_set.id }}/edit">Editar</a>
+              <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" style="display:inline">
+                <button type="submit">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No hay entrenamientos en este periodo.</p>
+  {% endfor %}
+
+  <p>
+    {% if page > 1 %}
+      <a href="/history?{{ filters_qs }}{{ '&' if filters_qs }}page={{ page - 1 }}">« Anterior</a>
+    {% endif %}
+    Página {{ page }} de {{ total_pages }}
+    {% if page < total_pages %}
+      <a href="/history?{{ filters_qs }}{{ '&' if filters_qs }}page={{ page + 1 }}">Siguiente »</a>
+    {% endif %}
+  </p>
+{% endblock %}

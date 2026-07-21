@@ -6,6 +6,7 @@ from app.auth import router as auth_router
 from app.config import settings
 from app.dependencies import get_current_user
 from app.exercises import router as exercises_router
+from app.history import router as history_router
 from app.models import User
 from app.templates import templates
 from app.workouts import router as workouts_router
@@ -15,6 +16,7 @@ app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
 app.include_router(auth_router)
 app.include_router(exercises_router)
 app.include_router(workouts_router)
+app.include_router(history_router)
 app.mount("/media", StaticFiles(directory="media"), name="media")
 
 
