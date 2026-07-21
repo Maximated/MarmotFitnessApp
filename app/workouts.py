@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
+from app.charts import polyline_points, scale_points
 from app.database import get_db
 from app.dependencies import require_user
 from app.models import Exercise, User, Workout, WorkoutSet
@@ -56,6 +57,10 @@ async def log_exercise_form(
         .all()
     )
 
+    chronological = list(reversed(sets))
+    weights = [ws.weight for ws, _ in chronological]
+    reps = [ws.reps for ws, _ in chronological]
+
     now = datetime.now()
     return templates.TemplateResponse(
         request=request,
@@ -65,6 +70,17 @@ async def log_exercise_form(
             "sets": sets,
             "today": now.date().isoformat(),
             "now_time": now.time().isoformat(timespec="minutes"),
+            "has_progress": len(chronological) >= 2,
+            "weight_points": scale_points(weights),
+            "weight_line": polyline_points(scale_points(weights)),
+            "weight_min": min(weights) if weights else None,
+            "weight_max": max(weights) if weights else None,
+            "reps_points": scale_points(reps),
+            "reps_line": polyline_points(scale_points(reps)),
+            "reps_min": min(reps) if reps else None,
+            "reps_max": max(reps) if reps else None,
+            "progress_from": chronological[0][1].date if chronological else None,
+            "progress_to": chronological[-1][1].date if chronological else None,
         },
     )
 

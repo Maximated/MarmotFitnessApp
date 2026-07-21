@@ -16,6 +16,27 @@
     <button type="submit">Guardar serie</button>
   </form>
 
+  {% if has_progress %}
+    <h2>Progreso</h2>
+    <p>{{ progress_from }} → {{ progress_to }}</p>
+
+    <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
+    <svg width="600" height="200" viewBox="0 0 600 200">
+      <polyline fill="none" stroke="black" stroke-width="2" points="{{ weight_line }}" />
+      {% for x, y in weight_points %}
+        <circle cx="{{ x }}" cy="{{ y }}" r="3" />
+      {% endfor %}
+    </svg>
+
+    <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
+    <svg width="600" height="200" viewBox="0 0 600 200">
+      <polyline fill="none" stroke="black" stroke-width="2" points="{{ reps_line }}" />
+      {% for x, y in reps_points %}
+        <circle cx="{{ x }}" cy="{{ y }}" r="3" />
+      {% endfor %}
+    </svg>
+  {% endif %}
+
   <h2>Tus series de este ejercicio</h2>
   <table>
     <thead>
