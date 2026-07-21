@@ -1,8 +1,24 @@
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/fonts/poppins-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/static/fonts/poppins-600.woff2") format("woff2");
+}
+
 :root {
   --bg: #ffffff;
   --text: #1a1a1a;
   --muted: #6b7280;
-  --primary: #0f766e;
+  --primary: #f97316;
   --primary-text: #ffffff;
   --danger: #b91c1c;
   --border: #e5e7eb;
@@ -11,14 +27,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111827;
+    --bg: #18181b;
     --text: #f3f4f6;
-    --muted: #9ca3af;
-    --primary: #14b8a6;
-    --primary-text: #05221f;
+    --muted: #a1a1aa;
+    --primary: #fb923c;
+    --primary-text: #431407;
     --danger: #f87171;
-    --border: #2d3748;
-    --card-bg: #1f2937;
+    --border: #3f3f46;
+    --card-bg: #27272a;
   }
 }
 
@@ -30,8 +46,17 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
+}
+
+h1,
+h2,
+.btn,
+button,
+input[type="submit"],
+.nav a {
+  font-weight: 600;
 }
 
 a {
@@ -51,6 +76,28 @@ a {
   gap: 1rem;
   padding: 0.75rem 1rem;
   overflow-x: auto;
+  align-items: center;
+}
+
+.nav .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.4rem;
+}
+
+.logo-large {
+  width: 96px;
+  height: 96px;
+  border-radius: 1.25rem;
+  display: block;
+  margin-bottom: 1rem;
 }
 
 .nav a {

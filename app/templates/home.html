@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <img src="/static/icons/icon-512.png" alt="Marmot Fitness App" class="logo-large" />
   {% if user %}
     <p>Hola, {{ user.name }}</p>
     <a href="/exercises">Ver ejercicios</a>

@@ -13,10 +13,18 @@ from app.models import Exercise
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MEDIA_DIR = PROJECT_ROOT / "media" / "exercises"
+TRANSLATIONS_PATH = PROJECT_ROOT / "data" / "translations_es.json"
+
+
+def load_translations() -> dict:
+    if not TRANSLATIONS_PATH.exists():
+        return {"category": {}, "equipment": {}, "target_muscle": {}, "name": {}}
+    return json.loads(TRANSLATIONS_PATH.read_text())
 
 
 def main(source: Path) -> None:
     exercises = json.loads((source / "data" / "exercises.json").read_text())
+    translations = load_translations()
 
     MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -32,10 +40,16 @@ def main(source: Path) -> None:
                 shutil.copyfile(src_gif, dst_gif)
 
             values = {
-                "name": item["name"],
-                "category": item["category"],
-                "target_muscle": item["target"],
-                "equipment": item["equipment"],
+                "name": translations["name"].get(item["id"], item["name"]),
+                "category": translations["category"].get(
+                    item["category"], item["category"]
+                ),
+                "target_muscle": translations["target_muscle"].get(
+                    item["target"], item["target"]
+                ),
+                "equipment": translations["equipment"].get(
+                    item["equipment"], item["equipment"]
+                ),
                 "gif_url": f"/media/exercises/{gif_filename}",
                 "instructions": item["instructions"]["es"],
             }
