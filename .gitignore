@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 .venv/
+/data/exercises-dataset-src/
+/media/
+.DS_Store

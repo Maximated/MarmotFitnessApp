@@ -24,6 +24,7 @@ services:
     volumes:
       - ./app:/code/app
       - ./migrations:/code/migrations
+      - ./media:/code/media
     ports:
       - "8000:8000"
     command: >
