@@ -10,11 +10,9 @@ from app.dependencies import require_user
 from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout
 from app.programs import get_own_program
 from app.templates import templates
-from app.workouts import get_or_create_workout
+from app.workouts import SCHEDULE_INTERVAL_DAYS, get_or_create_workout, recompute_schedule
 
 router = APIRouter()
-
-SCHEDULE_INTERVAL_DAYS = 2
 
 
 def get_day_content(db: Session, day_template_id: int):
@@ -210,24 +208,6 @@ def build_calendar_weeks(db: Session, program, year: int, month: int):
             week = []
 
     return weeks, first_day, last_day
-
-
-def recompute_schedule(db: Session, program) -> None:
-    last_workout = (
-        db.query(Workout)
-        .filter(Workout.program_id == program.id)
-        .order_by(Workout.date.desc())
-        .first()
-    )
-    if last_workout is None:
-        program.current_day_number = None
-        program.next_due_date = None
-        return
-
-    last_day_template = db.get(DayTemplate, last_workout.day_template_id)
-    last_day_number = last_day_template.day_number if last_day_template else 0
-    program.current_day_number = (last_day_number % program.cycle_days) + 1
-    program.next_due_date = last_workout.date + timedelta(days=SCHEDULE_INTERVAL_DAYS)
 
 
 def get_next_two_sessions(program):

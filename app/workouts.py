@@ -1,6 +1,7 @@
 from datetime import date as date_type
 from datetime import datetime
 from datetime import time as time_type
+from datetime import timedelta
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -14,6 +15,42 @@ from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, Use
 from app.templates import templates
 
 router = APIRouter()
+
+SCHEDULE_INTERVAL_DAYS = 2
+
+
+def recompute_schedule(db: Session, program: Program) -> None:
+    last_workout = (
+        db.query(Workout)
+        .filter(Workout.program_id == program.id)
+        .order_by(Workout.date.desc())
+        .first()
+    )
+    if last_workout is None:
+        program.current_day_number = None
+        program.next_due_date = None
+        return
+
+    last_day_template = db.get(DayTemplate, last_workout.day_template_id)
+    last_day_number = last_day_template.day_number if last_day_template else 0
+    program.current_day_number = (last_day_number % program.cycle_days) + 1
+    program.next_due_date = last_workout.date + timedelta(days=SCHEDULE_INTERVAL_DAYS)
+
+
+def delete_workout_if_empty(db: Session, workout_id: int) -> None:
+    workout = db.get(Workout, workout_id)
+    if workout is None:
+        return
+    remaining = db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout_id).count()
+    if remaining > 0:
+        return
+    program_id = workout.program_id
+    db.delete(workout)
+    db.flush()
+    if program_id is not None:
+        program = db.get(Program, program_id)
+        if program is not None:
+            recompute_schedule(db, program)
 
 
 def get_or_create_workout(db: Session, user_id: int, workout_date: date_type) -> Workout:
@@ -234,6 +271,8 @@ async def edit_workout_set_submit(
     workout_set = get_own_workout_set(db, set_id, user.id)
     workout = db.get(Workout, workout_set.workout_id)
 
+    old_workout_id = workout.id
+
     if workout.date != workout_date:
         new_workout = get_or_create_workout(db, user.id, workout_date)
         workout_set.workout_id = new_workout.id
@@ -248,6 +287,11 @@ async def edit_workout_set_submit(
     workout_set.reps = reps
     workout_set.time = set_time
     workout_set.comment = comment or None
+    db.flush()
+
+    if workout.date != workout_date:
+        delete_workout_if_empty(db, old_workout_id)
+
     db.commit()
 
     return RedirectResponse(url=next, status_code=303)
@@ -266,11 +310,7 @@ async def delete_workout_set(
     db.delete(workout_set)
     db.flush()
 
-    remaining = (
-        db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout_id).count()
-    )
-    if remaining == 0:
-        db.query(Workout).filter(Workout.id == workout_id).delete()
+    delete_workout_if_empty(db, workout_id)
 
     db.commit()
 
