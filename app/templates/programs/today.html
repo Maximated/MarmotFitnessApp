@@ -35,6 +35,10 @@
             <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" class="exercise-row">
               <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
               <span>{{ exercise.name }}</span>
+              {% if block.num_sets %}
+                {% set done = sets_completed_by_exercise.get(exercise.id, 0) %}
+                <span class="exercise-row-progress">{{ done }}/{{ block.num_sets }} {{ (done / block.num_sets * 100) | round | int }}%</span>
+              {% endif %}
             </a>
           </li>
         {% else %}

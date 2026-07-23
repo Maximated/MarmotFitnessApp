@@ -3,11 +3,12 @@ from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_user
-from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout
+from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout, WorkoutSet
 from app.programs import get_own_program
 from app.templates import templates
 from app.workouts import SCHEDULE_INTERVAL_DAYS, get_or_create_workout, recompute_schedule
@@ -64,6 +65,15 @@ async def program_today(
     if todays_workout is not None:
         day_template = db.get(DayTemplate, todays_workout.day_template_id)
         blocks, exercises_by_block = get_day_content(db, day_template.id)
+
+        sets_completed_by_exercise = {
+            row[0]: row[1]
+            for row in db.query(WorkoutSet.exercise_id, func.count(WorkoutSet.id))
+            .filter(WorkoutSet.workout_id == todays_workout.id)
+            .group_by(WorkoutSet.exercise_id)
+            .all()
+        }
+
         return templates.TemplateResponse(
             request=request,
             name="programs/today.html",
@@ -73,6 +83,7 @@ async def program_today(
                 "day_template": day_template,
                 "blocks": blocks,
                 "exercises_by_block": exercises_by_block,
+                "sets_completed_by_exercise": sets_completed_by_exercise,
                 "finished": todays_workout.finished_at is not None,
             },
         )

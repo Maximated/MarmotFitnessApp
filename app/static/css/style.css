@@ -553,6 +553,15 @@ td.numeric {
   font-weight: 600;
 }
 
+.exercise-row span.exercise-row-progress {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .actions {
   display: flex;
   gap: 0.5rem;
