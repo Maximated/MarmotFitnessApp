@@ -490,6 +490,38 @@ td.numeric {
   color: var(--danger);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: 0.35s ease-in-out both slide-out-exercise;
+  }
+
+  ::view-transition-new(root) {
+    animation: 0.35s ease-in-out both slide-in-exercise;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@keyframes slide-out-exercise {
+  to {
+    transform: translateX(-32px);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-exercise {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+}
+
 .history-day-header {
   background: var(--card-bg);
   padding: 0.5rem 0.75rem;
@@ -553,8 +585,13 @@ td.numeric {
   font-weight: 600;
 }
 
-.exercise-row span.exercise-row-progress {
+.exercise-row-progress-group {
+  display: flex;
+  gap: 0.5rem;
   margin-left: auto;
+}
+
+.exercise-row span.exercise-row-progress {
   font-weight: 400;
   font-size: 0.8rem;
   color: var(--muted);

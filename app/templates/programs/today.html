@@ -35,9 +35,19 @@
             <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" class="exercise-row">
               <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
               <span>{{ exercise.name }}</span>
-              {% if block.num_sets %}
-                {% set done = sets_completed_by_exercise.get(exercise.id, 0) %}
-                <span class="exercise-row-progress">{{ done }}/{{ block.num_sets }} {{ (done / block.num_sets * 100) | round | int }}%</span>
+              {% if block.num_sets or block_exercise.target_weight %}
+                <span class="exercise-row-progress-group">
+                  {% if block.num_sets %}
+                    {% set done = sets_completed_by_exercise.get(exercise.id, 0) %}
+                    {% set pct = (done / block.num_sets * 100) | round | int %}
+                    <span class="exercise-row-progress" style="color: hsl({{ ([pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ done }}/{{ block.num_sets }} {{ pct }}%</span>
+                  {% endif %}
+                  {% if block_exercise.target_weight %}
+                    {% set avg_weight = avg_weight_by_exercise.get(exercise.id, 0) %}
+                    {% set weight_pct = (avg_weight / block_exercise.target_weight * 100) | round | int %}
+                    <span class="exercise-row-progress" style="color: hsl({{ ([weight_pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ weight_pct }}% peso</span>
+                  {% endif %}
+                </span>
               {% endif %}
             </a>
           </li>

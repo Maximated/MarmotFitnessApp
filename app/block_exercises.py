@@ -162,10 +162,12 @@ async def edit_block_exercise_submit(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     reps: str = Form(""),
+    target_weight: str = Form(""),
     is_superset_with_next: bool = Form(False),
 ):
     block_exercise = get_own_block_exercise(db, block_exercise_id, user.id)
     block_exercise.reps = int(reps) if reps.strip() else None
+    block_exercise.target_weight = float(target_weight) if target_weight.strip() else None
     block_exercise.is_superset_with_next = is_superset_with_next
     db.commit()
 

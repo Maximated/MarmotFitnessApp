@@ -128,4 +128,5 @@ class BlockExercise(Base):
     exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"), index=True)
     position: Mapped[int] = mapped_column(Integer)
     reps: Mapped[int | None] = mapped_column(Integer)
+    target_weight: Mapped[float | None] = mapped_column(Float)
     is_superset_with_next: Mapped[bool] = mapped_column(Boolean, default=False)

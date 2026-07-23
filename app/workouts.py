@@ -125,12 +125,42 @@ async def log_exercise_form(
                     )
                     .count()
                 )
+            def build_nav_url(neighbor: BlockExercise) -> str:
+                nav_params = {"block_exercise_id": neighbor.id}
+                if next is not None:
+                    nav_params["next"] = next
+                return f"/exercises/{neighbor.exercise_id}/log?{urlencode(nav_params)}"
+
+            superset_partner = None
+            if block_exercise.is_superset_with_next:
+                superset_partner = (
+                    db.query(BlockExercise)
+                    .filter(
+                        BlockExercise.block_id == block_exercise.block_id,
+                        BlockExercise.position == block_exercise.position + 1,
+                    )
+                    .first()
+                )
+            else:
+                prev_in_block = (
+                    db.query(BlockExercise)
+                    .filter(
+                        BlockExercise.block_id == block_exercise.block_id,
+                        BlockExercise.position == block_exercise.position - 1,
+                    )
+                    .first()
+                )
+                if prev_in_block is not None and prev_in_block.is_superset_with_next:
+                    superset_partner = prev_in_block
+
             training = {
                 "reps_target": block_exercise.reps,
+                "weight_target": block_exercise.target_weight,
                 "rest_seconds": block.rest_seconds,
                 "no_rest": block_exercise.is_superset_with_next,
                 "sets_completed": sets_completed_today,
                 "sets_target": block.num_sets,
+                "superset_partner_url": build_nav_url(superset_partner) if superset_partner is not None else None,
             }
 
             day_exercises = (
@@ -146,12 +176,6 @@ async def log_exercise_form(
                     index = i
                     break
             if index is not None:
-                def build_nav_url(neighbor: BlockExercise) -> str:
-                    nav_params = {"block_exercise_id": neighbor.id}
-                    if next is not None:
-                        nav_params["next"] = next
-                    return f"/exercises/{neighbor.exercise_id}/log?{urlencode(nav_params)}"
-
                 if index > 0:
                     prev_url = build_nav_url(day_exercises[index - 1])
                 if index < len(day_exercises) - 1:

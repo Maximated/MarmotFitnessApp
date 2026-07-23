@@ -74,6 +74,14 @@ async def program_today(
             .all()
         }
 
+        avg_weight_by_exercise = {
+            row[0]: row[1]
+            for row in db.query(WorkoutSet.exercise_id, func.avg(WorkoutSet.weight))
+            .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.weight.isnot(None))
+            .group_by(WorkoutSet.exercise_id)
+            .all()
+        }
+
         return templates.TemplateResponse(
             request=request,
             name="programs/today.html",
@@ -84,6 +92,7 @@ async def program_today(
                 "blocks": blocks,
                 "exercises_by_block": exercises_by_block,
                 "sets_completed_by_exercise": sets_completed_by_exercise,
+                "avg_weight_by_exercise": avg_weight_by_exercise,
                 "finished": todays_workout.finished_at is not None,
             },
         )
