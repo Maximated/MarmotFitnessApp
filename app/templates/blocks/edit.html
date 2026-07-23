@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/days/{{ block.day_template_id }}">« Volver al día</a></p>
+
+  <h1>Editar bloque</h1>
+
+  <form method="post" action="/blocks/{{ block.id }}/edit">
+    <label>Tipo
+      <select name="type" required>
+        {% for t in block_types %}
+          <option value="{{ t }}" {% if t == block.type %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Grupo muscular (si aplica)
+      <select name="muscle_group">
+        <option value="">-</option>
+        {% for g in muscle_groups %}
+          <option value="{{ g }}" {% if g == block.muscle_group %}selected{% endif %}>{{ g }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Número de ejercicios distintos en este bloque (no repeticiones)
+      <input type="number" name="num_exercises" min="1" value="{{ block.num_exercises }}" required />
+    </label>
+    <label>Número de series (para todos los ejercicios del bloque)
+      <input type="number" name="num_sets" min="1" value="{{ block.num_sets if block.num_sets is not none else '' }}" />
+    </label>
+    <label>Descanso (segundos)
+      <select name="rest_seconds_select" id="rest-seconds-select">
+        {% for seconds in rest_seconds_choices %}
+          <option value="{{ seconds }}" {% if rest_seconds_select == seconds|string %}selected{% endif %}>{{ seconds }}</option>
+        {% endfor %}
+        <option value="other" {% if rest_seconds_select == "other" %}selected{% endif %}>Otro</option>
+      </select>
+    </label>
+    <label id="rest-seconds-custom-wrap" class="{% if rest_seconds_select != 'other' %}hidden{% endif %}">Descanso personalizado (segundos)
+      <input type="number" name="rest_seconds_custom" id="rest-seconds-custom" min="0" value="{% if rest_seconds_select == 'other' %}{{ block.rest_seconds }}{% endif %}" />
+    </label>
+    <button type="submit">Guardar cambios</button>
+  </form>
+
+  <script>
+    (function () {
+      const select = document.getElementById("rest-seconds-select");
+      const wrap = document.getElementById("rest-seconds-custom-wrap");
+      const toggle = () => wrap.classList.toggle("hidden", select.value !== "other");
+      select.addEventListener("change", toggle);
+      toggle();
+    })();
+  </script>
+{% endblock %}

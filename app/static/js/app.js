@@ -1,6 +1,7 @@
-document.querySelectorAll("form.delete-form").forEach((form) => {
+document.querySelectorAll("form.delete-form, form[data-confirm]").forEach((form) => {
   form.addEventListener("submit", (event) => {
-    if (!confirm("¿Seguro que quieres eliminar esta serie?")) {
+    const message = form.dataset.confirm || "¿Seguro que quieres eliminar esto?";
+    if (!confirm(message)) {
       event.preventDefault();
     }
   });

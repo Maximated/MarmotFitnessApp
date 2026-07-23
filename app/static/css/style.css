@@ -21,6 +21,8 @@
   --primary: #f97316;
   --primary-text: #ffffff;
   --danger: #b91c1c;
+  --success: #16a34a;
+  --success-text: #ffffff;
   --border: #e5e7eb;
   --card-bg: #f9fafb;
 }
@@ -33,6 +35,8 @@
     --primary: #fb923c;
     --primary-text: #431407;
     --danger: #f87171;
+    --success: #4ade80;
+    --success-text: #052e16;
     --border: #3f3f46;
     --card-bg: #27272a;
   }
@@ -106,6 +110,18 @@ a {
   margin-bottom: 1rem;
 }
 
+.program-banner {
+  width: 100%;
+  background: var(--primary);
+  color: var(--primary-text);
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.program-banner h1 {
+  margin: 0;
+}
+
 .nav a {
   text-decoration: none;
   font-weight: 600;
@@ -151,6 +167,29 @@ form select {
 textarea {
   min-height: 4rem;
   resize: vertical;
+}
+
+form input[type="checkbox"] {
+  display: inline-block;
+  width: auto;
+  margin: 0 0.4rem 0 0;
+  vertical-align: middle;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+}
+
+.hidden {
+  display: none;
+}
+
+form input[type="range"] {
+  border: none;
+  background: transparent;
+  padding: 0;
+  accent-color: var(--primary);
 }
 
 .btn,
@@ -201,15 +240,80 @@ input[type="submit"] {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  align-items: stretch;
   gap: 1rem;
 }
 
 .exercise-grid li {
+  position: relative;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   padding: 0.75rem;
+  padding-bottom: 3rem;
   text-align: center;
+}
+
+.exercise-grid li .actions {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  justify-content: center;
+}
+
+.exercise-grid li.block-card {
+  padding-bottom: 5.5rem;
+}
+
+.exercise-grid li .card-footer {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.exercise-grid li .card-footer .actions {
+  position: static;
+}
+
+.exercise-grid li.superset-card {
+  grid-column: 1 / -1;
+  padding-bottom: 0.75rem;
+}
+
+.superset-exercises {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.superset-exercise {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 3rem;
+  text-align: center;
+}
+
+.day-summary {
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.day-summary.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
 }
 
 .exercise-grid img {
@@ -262,6 +366,191 @@ td.numeric {
   gap: 1rem;
   align-items: center;
   color: var(--muted);
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-table th,
+.calendar-table td {
+  padding: 0.5rem 0.25rem;
+}
+
+.calendar-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.calendar-table td a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.calendar-table td span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+.calendar-table td.cal-done span {
+  background: var(--success);
+  color: var(--success-text);
+  font-weight: 600;
+}
+
+.calendar-table td.cal-due span {
+  background: var(--danger);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.training-header {
+  text-align: center;
+}
+
+.training-gif {
+  width: min(90vw, 420px);
+  height: auto;
+  border-radius: 0.75rem;
+}
+
+.training-stats {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.stat-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  padding: 0.25rem;
+  cursor: default;
+}
+
+.stat-circle-danger {
+  border-color: var(--danger);
+  cursor: pointer;
+}
+
+#reps-target-circle {
+  cursor: pointer;
+}
+
+.training-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.training-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.3rem;
+  padding: 0.9rem;
+  text-align: center;
+}
+
+.btn-add {
+  flex-shrink: 0;
+  width: 3.5rem;
+  font-size: 1.8rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.stat-value {
+  font-family: "Bebas Neue", system-ui, sans-serif;
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.rest-icon {
+  display: flex;
+  color: var(--danger);
+}
+
+.history-day-header {
+  background: var(--card-bg);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.history-row {
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-row-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.history-number {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.history-time {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.history-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.25rem 0;
+}
+
+.exercise-row-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+
+.exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.exercise-row img {
+  width: 72px;
+  height: 72px;
+  border-radius: 0.5rem;
+  object-fit: contain;
+  background: var(--card-bg);
+  flex-shrink: 0;
+}
+
+.exercise-row span {
+  font-weight: 600;
 }
 
 .actions {

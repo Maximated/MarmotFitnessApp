@@ -35,7 +35,7 @@
               <td>{{ workout_set.comment or "" }}</td>
               <td class="actions">
                 <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ return_to | urlencode }}">Editar</a>
-                <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form">
+                <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar esta serie?">
                   <input type="hidden" name="next" value="{{ return_to }}" />
                   <button type="submit" class="btn-danger">Eliminar</button>
                 </form>

@@ -7,4 +7,6 @@
     <h1>{{ exercise.name }}</h1>
     <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
   </div>
+
+  {% include "exercises/_history.html" %}
 {% endblock %}

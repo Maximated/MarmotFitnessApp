@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/blocks/{{ block_exercise.block_id }}/exercises">« Volver a ejercicios del bloque</a></p>
+
+  <h1>{{ exercise.name }}</h1>
+
+  <form method="post" action="/block-exercises/{{ block_exercise.id }}/edit">
+    <label>Repeticiones: <output id="reps-value">{{ block_exercise.reps or 10 }}</output>
+      <input type="range" name="reps" id="reps-slider" min="1" max="30" value="{{ block_exercise.reps or 10 }}" />
+    </label>
+    <label class="checkbox-label"><input type="checkbox" name="is_superset_with_next" value="true" {% if block_exercise.is_superset_with_next %}checked{% endif %} /> Es superserie con el siguiente ejercicio</label>
+    <button type="submit">Guardar cambios</button>
+  </form>
+
+  <script>
+    (function () {
+      const slider = document.getElementById("reps-slider");
+      const output = document.getElementById("reps-value");
+      slider.addEventListener("input", () => { output.textContent = slider.value; });
+    })();
+  </script>
+{% endblock %}

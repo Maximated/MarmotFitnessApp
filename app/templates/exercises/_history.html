@@ -1,0 +1,50 @@
+  <h2>Tus series de este ejercicio</h2>
+  {% for group in day_groups %}
+    <h3 class="history-day-header">{{ group.header }}</h3>
+    {% for number, workout_set in group.sets %}
+      <div class="history-row">
+        <div class="history-row-main">
+          <span class="history-number">#{{ number }}</span>
+          <span>{{ workout_set.weight if workout_set.weight is not none else "-" }} kg x {{ workout_set.reps }} reps</span>
+          <span class="history-time">{{ workout_set.time.strftime("%H:%M") }}</span>
+        </div>
+        {% if workout_set.comment %}
+          <p class="history-note">{{ workout_set.comment }}</p>
+        {% endif %}
+        <div class="actions">
+          <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ self_url | urlencode }}">Editar</a>
+          <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar esta serie?">
+            <input type="hidden" name="next" value="{{ self_url }}" />
+            <button type="submit" class="btn-danger">Eliminar</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>Todavía no has registrado ninguna serie.</p>
+  {% endfor %}
+
+  {% if has_progress %}
+    <h2>Progreso</h2>
+    <p>{{ progress_from }} → {{ progress_to }}</p>
+
+    {% if has_weight_progress %}
+      <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
+      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ weight_line }}" />
+        {% for x, y in weight_points %}
+          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
+        {% endfor %}
+      </svg>
+    {% else %}
+      <p>Sin datos de peso para este ejercicio.</p>
+    {% endif %}
+
+    <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
+    <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+      <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ reps_line }}" />
+      {% for x, y in reps_points %}
+        <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
+      {% endfor %}
+    </svg>
+  {% endif %}

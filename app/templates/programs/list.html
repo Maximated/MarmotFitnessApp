@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Programas</h1>
+  <p><a href="/programs/new" class="btn">Nuevo programa</a></p>
+
+  <ul class="exercise-grid">
+    {% for program in programs %}
+      <li>
+        <p><a href="/programs/{{ program.id }}">{{ program.name }}</a>{% if program.is_active %} · Activo{% endif %}</p>
+        <p>{{ program.cycle_days }} días de ciclo</p>
+        <div class="actions">
+          <form method="post" action="/programs/{{ program.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar el programa &quot;{{ program.name }}&quot;? Se perderán también sus días y bloques.">
+            <button type="submit" class="btn-danger">Eliminar</button>
+          </form>
+        </div>
+      </li>
+    {% else %}
+      <li>Todavía no has creado ningún programa.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

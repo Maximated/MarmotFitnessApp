@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/programs/{{ program.id }}/calendar">« Volver al calendario</a></p>
+
+  <h1>{{ program.name }}</h1>
+  <p>
+    {{ session_date }}{% if day_template %} — Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}{% endif %}
+    {% if finished %} · Finalizado{% endif %}
+  </p>
+
+  {% for block in blocks %}
+    <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
+    <ul class="exercise-row-list">
+      {% for block_exercise, exercise in exercises_by_block.get(block.id, []) %}
+        <li>
+          <a href="/exercises/{{ exercise.id }}/log" class="exercise-row">
+            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
+            <span>{{ exercise.name }}</span>
+          </a>
+        </li>
+      {% else %}
+        <li>Este bloque no tenía ejercicios.</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Este día no tiene bloques.</p>
+  {% endfor %}
+
+  <form method="post" action="/programs/{{ program.id }}/sessions/{{ session_date.isoformat() }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento del {{ session_date }}? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
+    <button type="submit" class="btn-danger">Eliminar este entrenamiento</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/days/{{ block.day_template_id }}">« Volver al día</a></p>
+
+  <h1>Ejercicios del bloque</h1>
+  <p>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %} · {{ attached|length }} de {{ block.num_exercises }} ejercicios{% if block.num_sets %} · {{ block.num_sets }} series{% endif %}</p>
+
+  <ul class="exercise-grid">
+    {% for group in groups %}
+      {% if group|length == 2 %}
+        <li class="superset-card">
+          <p><strong>Superserie</strong></p>
+          <div class="superset-exercises">
+            {% for block_exercise, exercise in group %}
+              <div class="superset-exercise">
+                <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="90" height="90" />
+                <p>{{ exercise.name }}</p>
+                <p>{% if block_exercise.reps %}{{ block_exercise.reps }} reps{% else %}Reps sin definir{% endif %}</p>
+                <div class="actions">
+                  <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
+                  <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
+                    <button type="submit" class="btn-danger">Eliminar</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </li>
+      {% else %}
+        {% set block_exercise, exercise = group[0] %}
+        <li>
+          <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="120" height="120" />
+          <p>{{ exercise.name }}</p>
+          <p>{% if block_exercise.reps %}{{ block_exercise.reps }} reps{% else %}Reps sin definir{% endif %}</p>
+          <div class="actions">
+            <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
+            <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
+              <button type="submit" class="btn-danger">Eliminar</button>
+            </form>
+          </div>
+        </li>
+      {% endif %}
+    {% else %}
+      <li>Todavía no hay ejercicios en este bloque.</li>
+    {% endfor %}
+  </ul>
+
+  {% if is_full %}
+    <p>Bloque completo — ya tiene los {{ block.num_exercises }} ejercicios declarados.</p>
+  {% else %}
+    <h2>Añadir ejercicio</h2>
+    <form method="get" action="/blocks/{{ block.id }}/exercises">
+      <label>Nombre <input type="text" name="q" placeholder="Buscar por nombre" value="{{ q }}" /></label>
+      <label>Categoría
+        <select name="category">
+          <option value="">Todas</option>
+          {% for c in categories %}
+            <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Equipo
+        <select name="equipment">
+          <option value="">Todos</option>
+          {% for e in equipments %}
+            <option value="{{ e }}" {% if e == equipment %}selected{% endif %}>{{ e }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Buscar</button>
+    </form>
+
+    {% if searched %}
+      <ul class="exercise-grid">
+        {% for exercise in results %}
+          <li>
+            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="120" height="120" />
+            <p>{{ exercise.name }}</p>
+            <p>{{ exercise.category }} · {{ exercise.equipment }}</p>
+            <form method="post" action="/blocks/{{ block.id }}/exercises" class="add-exercise-form">
+              <input type="hidden" name="exercise_id" value="{{ exercise.id }}" />
+              <input type="hidden" name="filters_qs" value="{{ filters_qs }}" />
+              <label>Reps: <output class="reps-value">10</output>
+                <input type="range" name="reps" class="reps-slider" min="1" max="30" value="10" />
+              </label>
+              <button type="submit">Añadir</button>
+            </form>
+          </li>
+        {% else %}
+          <li>No se encontraron ejercicios.</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+
+  <script>
+    document.querySelectorAll(".add-exercise-form").forEach((form) => {
+      const slider = form.querySelector(".reps-slider");
+      const output = form.querySelector(".reps-value");
+      slider.addEventListener("input", () => { output.textContent = slider.value; });
+    });
+  </script>
+{% endblock %}

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_user
+from app.exercise_history import build_exercise_history
 from app.models import Exercise, User
 from app.templates import templates
 
@@ -86,9 +87,17 @@ async def view_exercise_gif(
     next: str | None = None,
 ):
     exercise = db.get(Exercise, exercise_id)
+    history = build_exercise_history(db, user.id, exercise_id)
+
+    self_url = f"/exercises/{exercise_id}/view"
+    if next:
+        self_url += f"?{urlencode({'next': next})}"
+
+    context = {"exercise": exercise, "next": next or "/exercises", "self_url": self_url}
+    context.update(history)
 
     return templates.TemplateResponse(
         request=request,
         name="exercises/view.html",
-        context={"exercise": exercise, "next": next or "/exercises"},
+        context=context,
     )

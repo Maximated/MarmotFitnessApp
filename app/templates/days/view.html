@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/programs/{{ program.id }}">« Volver a {{ program.name }}</a></p>
+
+  <h1>Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %} — {{ program.name }}</h1>
+
+  <form method="post" action="/days/{{ day_template.id }}/subtitle">
+    <label>Subtítulo del día (ej. "Pecho")
+      <input type="text" name="subtitle" value="{{ day_template.subtitle or '' }}" placeholder="Sin subtítulo" />
+    </label>
+    <button type="submit">Guardar subtítulo</button>
+  </form>
+
+  <ul class="exercise-grid">
+    {% for block in blocks %}
+      <li class="block-card">
+        <p>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</p>
+        <p>{% if block.num_sets %}{{ block.num_sets }} series · {% endif %}descanso {{ block.rest_seconds }}s</p>
+        <div class="card-footer">
+          <p><a href="/blocks/{{ block.id }}/exercises">Ejercicios ({{ exercise_counts.get(block.id, 0) }}/{{ block.num_exercises }})</a></p>
+          <div class="actions">
+            <a href="/blocks/{{ block.id }}/edit">Editar</a>
+            <form method="post" action="/blocks/{{ block.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar este bloque?">
+              <button type="submit" class="btn-danger">Eliminar</button>
+            </form>
+          </div>
+        </div>
+      </li>
+    {% else %}
+      <li>Todavía no tiene bloques.</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Añadir bloque</h2>
+  <form method="post" action="/days/{{ day_template.id }}/blocks">
+    <label>Tipo
+      <select name="type" required>
+        {% for t in block_types %}
+          <option value="{{ t }}">{{ t }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Grupo muscular (si aplica)
+      <select name="muscle_group">
+        <option value="">-</option>
+        {% for g in muscle_groups %}
+          <option value="{{ g }}">{{ g }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Número de ejercicios distintos en este bloque (no repeticiones)
+      <input type="number" name="num_exercises" min="1" required />
+    </label>
+    <label>Número de series (para todos los ejercicios del bloque)
+      <input type="number" name="num_sets" min="1" />
+    </label>
+    <label>Descanso (segundos)
+      <select name="rest_seconds_select" id="rest-seconds-select">
+        {% for seconds in rest_seconds_choices %}
+          <option value="{{ seconds }}">{{ seconds }}</option>
+        {% endfor %}
+        <option value="other">Otro</option>
+      </select>
+    </label>
+    <label id="rest-seconds-custom-wrap" class="hidden">Descanso personalizado (segundos)
+      <input type="number" name="rest_seconds_custom" id="rest-seconds-custom" min="0" />
+    </label>
+    <button type="submit">Añadir bloque</button>
+  </form>
+
+  <script>
+    (function () {
+      const select = document.getElementById("rest-seconds-select");
+      const wrap = document.getElementById("rest-seconds-custom-wrap");
+      const toggle = () => wrap.classList.toggle("hidden", select.value !== "other");
+      select.addEventListener("change", toggle);
+      toggle();
+    })();
+  </script>
+{% endblock %}

@@ -1,12 +1,74 @@
 {% extends "base.html" %}
 
+{% block full_width %}
+  {% if user and active_program %}
+    <div class="program-banner">
+      <h1>{{ active_program.name }}</h1>
+    </div>
+  {% endif %}
+{% endblock %}
+
 {% block content %}
-  <img src="/static/icons/icon-512.png" alt="Marmot Fitness App" class="logo-large" />
-  {% if user %}
-    <p>Hola, {{ user.name }}</p>
-    <a href="/exercises">Ver ejercicios</a>
-    <a href="/logout">Cerrar sesión</a>
-  {% else %}
+  {% if not user %}
+    <img src="/static/icons/icon-512.png" alt="Marmot Fitness App" class="logo-large" />
     <a href="/login">Login con Google</a>
+  {% else %}
+    {% if active_program %}
+      <h2>Siguiente entrenamiento</h2>
+      {% if last_session %}
+        <p>Último realizado: {{ last_session.date }}{% if last_session.day_template %} — Día {{ last_session.day_template.day_number }}{% if last_session.day_template.subtitle %} · {{ last_session.day_template.subtitle }}{% endif %}{% endif %}</p>
+      {% else %}
+        <p>Todavía no has realizado ningún entrenamiento de este programa.</p>
+      {% endif %}
+
+      {% if next_sessions %}
+        <p>
+          <a href="/programs/{{ active_program.id }}/today" class="btn">
+            Siguiente: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
+          </a>
+        </p>
+        {% if next_sessions|length > 1 %}
+          <p>Después: {{ next_sessions[1].date }}{% if next_sessions[1].day_template %} — Día {{ next_sessions[1].day_template.day_number }}{% if next_sessions[1].day_template.subtitle %} · {{ next_sessions[1].day_template.subtitle }}{% endif %}{% endif %}</p>
+        {% endif %}
+      {% else %}
+        <p>Todavía no has empezado este programa. <a href="/programs/{{ active_program.id }}/today">Empezar</a></p>
+      {% endif %}
+
+      <h2>Horario de entrenamiento</h2>
+      <p>{{ calendar_month_name }}</p>
+      <table class="calendar-table">
+        <thead>
+          <tr>
+            <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for week in calendar_weeks %}
+            <tr>
+              {% for day in week %}
+                {% if day %}
+                  <td class="{% if day.status == 'done' %}cal-done{% elif day.status == 'due' %}cal-due{% endif %}">
+                    {% if day.status == 'done' %}
+                      <a href="/programs/{{ active_program.id }}/sessions/{{ day.date.isoformat() }}"><span>{{ day.date.day }}</span></a>
+                    {% else %}
+                      <span>{{ day.date.day }}</span>
+                    {% endif %}
+                  </td>
+                {% else %}
+                  <td></td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p><a href="/programs/{{ active_program.id }}/calendar">Ver calendario completo</a></p>
+
+    {% else %}
+      <p>No tienes ningún programa activo.</p>
+      <p><a href="/programs">Ver programas</a></p>
+    {% endif %}
+
+    <p><a href="/logout">Cerrar sesión</a></p>
   {% endif %}
 {% endblock %}

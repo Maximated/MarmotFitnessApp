@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/programs/{{ program.id }}">« Volver al programa</a></p>
+
+  <h1>Editar programa</h1>
+
+  <form method="post" action="/programs/{{ program.id }}/edit">
+    <label>Nombre <input type="text" name="name" value="{{ program.name }}" required /></label>
+    <label>Días de ciclo <input type="number" name="cycle_days" value="{{ program.cycle_days }}" min="1" required /></label>
+    <button type="submit">Guardar cambios</button>
+  </form>
+{% endblock %}

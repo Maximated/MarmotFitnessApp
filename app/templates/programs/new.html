@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/programs">« Volver a programas</a></p>
+
+  <h1>Nuevo programa</h1>
+
+  <form method="post" action="/programs">
+    <label>Nombre <input type="text" name="name" required /></label>
+    <label>Días de ciclo <input type="number" name="cycle_days" min="1" required /></label>
+    <button type="submit">Crear programa</button>
+  </form>
+{% endblock %}

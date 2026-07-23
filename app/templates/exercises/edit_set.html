@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p><a href="/exercises">« Volver al listado</a></p>
+  <p><a href="{{ next }}">« Volver</a></p>
 
   <a href="/exercises/{{ exercise.id }}/view?next={{ next | urlencode }}" target="_blank" rel="noopener">
     <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />

@@ -1,15 +1,16 @@
 from datetime import date as date_type
 from datetime import datetime
 from datetime import time as time_type
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
-from app.charts import polyline_points, scale_points
 from app.database import get_db
 from app.dependencies import require_user
-from app.models import Exercise, User, Workout, WorkoutSet
+from app.exercise_history import build_exercise_history
+from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, User, Workout, WorkoutSet
 from app.templates import templates
 
 router = APIRouter()
@@ -50,43 +51,102 @@ async def log_exercise_form(
     request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
+    block_exercise_id: int | None = None,
+    next: str | None = None,
+    logged: bool = False,
 ):
     exercise = db.get(Exercise, exercise_id)
+    history = build_exercise_history(db, user.id, exercise_id)
 
-    sets = (
-        db.query(WorkoutSet, Workout)
-        .join(Workout, WorkoutSet.workout_id == Workout.id)
-        .filter(Workout.user_id == user.id, WorkoutSet.exercise_id == exercise_id)
-        .order_by(Workout.date.desc(), WorkoutSet.order.desc())
-        .all()
-    )
+    training = None
+    prev_url = None
+    next_exercise_url = None
+    if block_exercise_id is not None:
+        block_exercise = (
+            db.query(BlockExercise)
+            .join(Block, BlockExercise.block_id == Block.id)
+            .join(DayTemplate, Block.day_template_id == DayTemplate.id)
+            .join(Program, DayTemplate.program_id == Program.id)
+            .filter(BlockExercise.id == block_exercise_id, Program.user_id == user.id)
+            .first()
+        )
+        if block_exercise is not None:
+            block = db.get(Block, block_exercise.block_id)
+            today = date_type.today()
+            todays_workout = (
+                db.query(Workout)
+                .filter(Workout.user_id == user.id, Workout.date == today)
+                .first()
+            )
+            sets_completed_today = 0
+            if todays_workout is not None:
+                sets_completed_today = (
+                    db.query(WorkoutSet)
+                    .filter(
+                        WorkoutSet.workout_id == todays_workout.id,
+                        WorkoutSet.exercise_id == exercise_id,
+                    )
+                    .count()
+                )
+            training = {
+                "reps_target": block_exercise.reps,
+                "rest_seconds": block.rest_seconds,
+                "no_rest": block_exercise.is_superset_with_next,
+                "sets_completed": sets_completed_today,
+                "sets_target": block.num_sets,
+            }
 
-    chronological = list(reversed(sets))
-    weights = [ws.weight for ws, _ in chronological if ws.weight is not None]
-    reps = [ws.reps for ws, _ in chronological]
+            day_exercises = (
+                db.query(BlockExercise)
+                .join(Block, BlockExercise.block_id == Block.id)
+                .filter(Block.day_template_id == block.day_template_id)
+                .order_by(Block.position, BlockExercise.position)
+                .all()
+            )
+            index = None
+            for i, day_exercise in enumerate(day_exercises):
+                if day_exercise.id == block_exercise.id:
+                    index = i
+                    break
+            if index is not None:
+                def build_nav_url(neighbor: BlockExercise) -> str:
+                    nav_params = {"block_exercise_id": neighbor.id}
+                    if next is not None:
+                        nav_params["next"] = next
+                    return f"/exercises/{neighbor.exercise_id}/log?{urlencode(nav_params)}"
+
+                if index > 0:
+                    prev_url = build_nav_url(day_exercises[index - 1])
+                if index < len(day_exercises) - 1:
+                    next_exercise_url = build_nav_url(day_exercises[index + 1])
+
+    self_params = {}
+    if block_exercise_id is not None:
+        self_params["block_exercise_id"] = block_exercise_id
+    if next is not None:
+        self_params["next"] = next
+    self_url = f"/exercises/{exercise_id}/log"
+    if self_params:
+        self_url += f"?{urlencode(self_params)}"
 
     now = datetime.now()
+    context = {
+        "exercise": exercise,
+        "self_url": self_url,
+        "today": now.date().isoformat(),
+        "now_time": now.time().isoformat(timespec="minutes"),
+        "training": training,
+        "next": next,
+        "block_exercise_id": block_exercise_id,
+        "prev_url": prev_url,
+        "next_exercise_url": next_exercise_url,
+        "logged": logged,
+    }
+    context.update(history)
     return templates.TemplateResponse(
         request=request,
         name="exercises/log.html",
-        context={
-            "exercise": exercise,
-            "sets": sets,
-            "today": now.date().isoformat(),
-            "now_time": now.time().isoformat(timespec="minutes"),
-            "has_progress": len(chronological) >= 2,
-            "has_weight_progress": len(weights) >= 2,
-            "weight_points": scale_points(weights),
-            "weight_line": polyline_points(scale_points(weights)),
-            "weight_min": min(weights) if weights else None,
-            "weight_max": max(weights) if weights else None,
-            "reps_points": scale_points(reps),
-            "reps_line": polyline_points(scale_points(reps)),
-            "reps_min": min(reps) if reps else None,
-            "reps_max": max(reps) if reps else None,
-            "progress_from": chronological[0][1].date if chronological else None,
-            "progress_to": chronological[-1][1].date if chronological else None,
-        },
+        context=context,
     )
 
 
@@ -97,11 +157,15 @@ async def log_exercise_submit(
     user: User = Depends(require_user),
     weight: str = Form(""),
     reps: int = Form(...),
-    workout_date: date_type = Form(..., alias="date"),
-    set_time: time_type = Form(..., alias="time"),
+    workout_date: date_type | None = Form(None, alias="date"),
+    set_time: time_type | None = Form(None, alias="time"),
     comment: str | None = Form(None),
+    block_exercise_id: int | None = Form(None),
+    next: str | None = Form(None),
 ):
-    workout = get_or_create_workout(db, user.id, workout_date)
+    now = datetime.now()
+    workout = get_or_create_workout(db, user.id, workout_date or now.date())
+    set_time = set_time or now.time().replace(microsecond=0)
 
     next_order = (
         db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).count() + 1
@@ -120,7 +184,15 @@ async def log_exercise_submit(
     )
     db.commit()
 
-    return RedirectResponse(url=f"/exercises/{exercise_id}/log", status_code=303)
+    redirect_url = f"/exercises/{exercise_id}/log"
+    params = {"logged": "1"}
+    if block_exercise_id is not None:
+        params["block_exercise_id"] = block_exercise_id
+    if next is not None:
+        params["next"] = next
+    redirect_url += f"?{urlencode(params)}"
+
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 @router.get("/workout-sets/{set_id}/edit")

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/programs/{{ program.id }}">« Volver a {{ program.name }}</a></p>
+  <p><a href="/programs/{{ program.id }}/calendar">Ver calendario</a></p>
+
+  <h1>{{ program.name }}</h1>
+
+  {% if state == "not_started" %}
+    <p>Todavía no has empezado este programa.</p>
+    <form method="post" action="/programs/{{ program.id }}/start">
+      <button type="submit">Empezar programa</button>
+    </form>
+
+  {% elif state == "ready" %}
+    <p>
+      {% if is_due %}Hoy toca{% else %}Sugerido a partir del {{ next_due_date }}{% endif %}:
+      Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
+    </p>
+    <p>Puedes empezar cuando quieras — la fecha es solo una sugerencia.</p>
+    <form method="post" action="/programs/{{ program.id }}/today/start">
+      <button type="submit">Iniciar entrenamiento</button>
+    </form>
+
+  {% elif state == "started" %}
+    <p>
+      Entrenamiento de hoy — Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %} (ya iniciado)
+      {% if finished %} · Finalizado{% endif %}
+    </p>
+    {% for block in blocks %}
+      <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
+      <ul class="exercise-row-list">
+        {% for block_exercise, exercise in exercises_by_block.get(block.id, []) %}
+          <li>
+            <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" class="exercise-row">
+              <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
+              <span>{{ exercise.name }}</span>
+            </a>
+          </li>
+        {% else %}
+          <li>Este bloque no tiene ejercicios todavía.</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Este día no tiene bloques todavía.</p>
+    {% endfor %}
+
+    {% if finished %}
+      <p>Entrenamiento finalizado. Puedes seguir revisando y editando tus series desde el histórico de cada ejercicio.</p>
+    {% else %}
+      <form method="post" action="/programs/{{ program.id }}/today/finish" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
+        <button type="submit">Finalizar entrenamiento</button>
+      </form>
+    {% endif %}
+  {% endif %}
+{% endblock %}

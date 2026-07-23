@@ -1,81 +1,199 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p><a href="/exercises">« Volver al listado</a></p>
+  <p><a href="{{ next or '/exercises' }}">« Volver{% if not next %} al listado{% endif %}</a></p>
 
-  <a href="/exercises/{{ exercise.id }}/view?next={{ ('/exercises/' ~ exercise.id ~ '/log') | urlencode }}" target="_blank" rel="noopener">
-    <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
-  </a>
-  <h1>{{ exercise.name }}</h1>
-  <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
-
-  <form method="post" action="/exercises/{{ exercise.id }}/log">
-    <label>Peso (kg) <input type="number" step="0.5" name="weight" /></label>
-    <label>Repeticiones <input type="number" name="reps" required /></label>
-    <label>Fecha <input type="date" name="date" value="{{ today }}" required /></label>
-    <label>Hora <input type="time" name="time" value="{{ now_time }}" required /></label>
-    <label>Notas <textarea name="comment"></textarea></label>
-    <button type="submit">Guardar serie</button>
-  </form>
-
-  {% if has_progress %}
-    <h2>Progreso</h2>
-    <p>{{ progress_from }} → {{ progress_to }}</p>
-
-    {% if has_weight_progress %}
-      <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
-      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
-        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ weight_line }}" />
-        {% for x, y in weight_points %}
-          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
-        {% endfor %}
-      </svg>
-    {% else %}
-      <p>Sin datos de peso para este ejercicio.</p>
+  {% if training %}
+    {% if prev_url or next_exercise_url %}
+      <p class="pagination">
+        {% if prev_url %}<a href="{{ prev_url }}">« Anterior</a>{% endif %}
+        {% if next_exercise_url %}<a href="{{ next_exercise_url }}">Siguiente »</a>{% endif %}
+      </p>
     {% endif %}
 
-    <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
-    <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
-      <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ reps_line }}" />
-      {% for x, y in reps_points %}
-        <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
-      {% endfor %}
-    </svg>
+    <div class="training-header" id="training-swipe-area">
+      <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+      <h1>{{ exercise.name }}</h1>
+      <div class="training-stats">
+        <div class="stat-circle" id="reps-target-circle" data-reps="{{ training.reps_target or '' }}">
+          <span class="stat-value">{{ training.reps_target or "-" }}</span>
+          <span class="stat-label">Repeticiones necesarias</span>
+        </div>
+        {% if training.no_rest %}
+          <div class="stat-circle stat-circle-danger">
+            <span class="stat-value">Superserie</span>
+            <span class="stat-label">Sin descanso</span>
+          </div>
+        {% else %}
+          <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-seconds="{{ training.rest_seconds }}">
+            <span class="rest-icon" id="rest-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+            <span class="stat-value" id="rest-value">{{ training.rest_seconds }}s</span>
+            <span class="stat-label">Descanso</span>
+          </div>
+        {% endif %}
+        <div class="stat-circle">
+          <span class="stat-value">{{ training.sets_completed }}/{{ training.sets_target or "-" }}</span>
+          <span class="stat-label">Series completadas</span>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" action="/exercises/{{ exercise.id }}/log" class="training-log-form">
+      <div class="training-inputs">
+        <input type="number" step="0.5" name="weight" placeholder="Kilogramos" class="training-input" />
+        <input type="number" name="reps" id="reps-input" value="{{ training.reps_target or '' }}" placeholder="Repeticiones" required class="training-input" />
+        <button type="submit" class="btn-add" aria-label="Añadir serie">+</button>
+      </div>
+      <label>Notas <textarea name="comment"></textarea></label>
+      <input type="hidden" name="block_exercise_id" value="{{ block_exercise_id }}" />
+      {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
+    </form>
+
+    <script>
+      (function () {
+        const repsCircle = document.getElementById("reps-target-circle");
+        const repsInput = document.getElementById("reps-input");
+        if (repsCircle.dataset.reps) {
+          repsCircle.addEventListener("click", () => {
+            repsInput.value = repsCircle.dataset.reps;
+          });
+        }
+      })();
+    </script>
+
+    {% if not training.no_rest %}
+      <script>
+        (function () {
+          const circle = document.getElementById("rest-circle");
+          const valueEl = document.getElementById("rest-value");
+          const iconEl = document.getElementById("rest-icon");
+          const totalSeconds = parseInt(circle.dataset.restSeconds, 10);
+          let remaining = totalSeconds;
+          let intervalId = null;
+          let clickTimer = null;
+
+          const PLAY_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+          const PAUSE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+
+          function render() {
+            valueEl.textContent = remaining + "s";
+          }
+
+          function tick() {
+            remaining -= 1;
+            if (remaining <= 0) {
+              clearInterval(intervalId);
+              intervalId = null;
+              valueEl.textContent = "¡Listo!";
+              iconEl.innerHTML = PLAY_ICON;
+              if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Descanso terminado");
+              }
+              return;
+            }
+            render();
+          }
+
+          function start() {
+            if (intervalId !== null) return;
+            if ("Notification" in window && Notification.permission === "default") {
+              Notification.requestPermission();
+            }
+            intervalId = setInterval(tick, 1000);
+            iconEl.innerHTML = PAUSE_ICON;
+          }
+
+          function pause() {
+            if (intervalId === null) return;
+            clearInterval(intervalId);
+            intervalId = null;
+            iconEl.innerHTML = PLAY_ICON;
+          }
+
+          function stop() {
+            if (intervalId !== null) {
+              clearInterval(intervalId);
+              intervalId = null;
+            }
+            remaining = totalSeconds;
+            render();
+            iconEl.innerHTML = PLAY_ICON;
+          }
+
+          circle.addEventListener("click", () => {
+            if (clickTimer !== null) {
+              clearTimeout(clickTimer);
+              clickTimer = null;
+              stop();
+              return;
+            }
+            clickTimer = setTimeout(() => {
+              clickTimer = null;
+              if (intervalId !== null) {
+                pause();
+              } else {
+                start();
+              }
+            }, 300);
+          });
+
+          {% if logged %}
+            start();
+          {% endif %}
+        })();
+      </script>
+    {% endif %}
+
+    {% if prev_url or next_exercise_url %}
+      <script>
+        (function () {
+          const area = document.getElementById("training-swipe-area");
+          const prevUrl = {{ prev_url | tojson }};
+          const nextUrl = {{ next_exercise_url | tojson }};
+          let startX = null;
+          let startY = null;
+
+          area.addEventListener("touchstart", (event) => {
+            startX = event.touches[0].clientX;
+            startY = event.touches[0].clientY;
+          });
+
+          area.addEventListener("touchend", (event) => {
+            if (startX === null) return;
+            const dx = event.changedTouches[0].clientX - startX;
+            const dy = event.changedTouches[0].clientY - startY;
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
+              if (dx < 0 && nextUrl) {
+                window.location = nextUrl;
+              } else if (dx > 0 && prevUrl) {
+                window.location = prevUrl;
+              }
+            }
+            startX = null;
+            startY = null;
+          });
+        })();
+      </script>
+    {% endif %}
+
+  {% else %}
+    <a href="/exercises/{{ exercise.id }}/view?next={{ ('/exercises/' ~ exercise.id ~ '/log') | urlencode }}" target="_blank" rel="noopener">
+      <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
+    </a>
+    <h1>{{ exercise.name }}</h1>
+    <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
+
+    <form method="post" action="/exercises/{{ exercise.id }}/log">
+      <label>Peso (kg) <input type="number" step="0.5" name="weight" /></label>
+      <label>Repeticiones <input type="number" name="reps" required /></label>
+      <label>Fecha <input type="date" name="date" value="{{ today }}" required /></label>
+      <label>Hora <input type="time" name="time" value="{{ now_time }}" required /></label>
+      <label>Notas <textarea name="comment"></textarea></label>
+      <button type="submit">Guardar serie</button>
+    </form>
   {% endif %}
 
-  <h2>Tus series de este ejercicio</h2>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>Peso (kg)</th>
-          <th>Reps</th>
-          <th>Notas</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for workout_set, workout in sets %}
-          <tr>
-            <td>{{ workout.date }}</td>
-            <td>{{ workout_set.time.strftime("%H:%M") }}</td>
-            <td class="numeric">{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
-            <td class="numeric">{{ workout_set.reps }}</td>
-            <td>{{ workout_set.comment or "" }}</td>
-            <td class="actions">
-              <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ ('/exercises/' ~ exercise.id ~ '/log') | urlencode }}">Editar</a>
-              <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form">
-                <input type="hidden" name="next" value="/exercises/{{ exercise.id }}/log" />
-                <button type="submit" class="btn-danger">Eliminar</button>
-              </form>
-            </td>
-          </tr>
-        {% else %}
-          <tr><td colspan="6">Todavía no has registrado ninguna serie.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  {% include "exercises/_history.html" %}
 {% endblock %}
