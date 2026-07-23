@@ -58,9 +58,25 @@ async def home(
         context["active_program"] = active_program
 
         if active_program is not None:
+            today = date.today()
+
+            today_workout = (
+                db.query(Workout)
+                .filter(Workout.program_id == active_program.id, Workout.date == today)
+                .first()
+            )
+            today_session = None
+            if today_workout is not None:
+                today_day_template = db.get(DayTemplate, today_workout.day_template_id)
+                today_session = {
+                    "day_template": today_day_template,
+                    "finished": today_workout.finished_at is not None,
+                }
+            context["today_session"] = today_session
+
             last_workout = (
                 db.query(Workout)
-                .filter(Workout.program_id == active_program.id)
+                .filter(Workout.program_id == active_program.id, Workout.date < today)
                 .order_by(Workout.date.desc())
                 .first()
             )
@@ -83,7 +99,6 @@ async def home(
                 next_sessions.append({"date": due_date, "day_template": day_template})
             context["next_sessions"] = next_sessions
 
-            today = date.today()
             weeks, _, _ = build_calendar_weeks(db, active_program, today.year, today.month)
             context["calendar_weeks"] = weeks
             context["calendar_month_name"] = today.strftime("%B %Y")

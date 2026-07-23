@@ -15,13 +15,18 @@
   {% else %}
     {% if active_program %}
       <h2>Siguiente entrenamiento</h2>
-      {% if last_session %}
-        <p>Último realizado: {{ last_session.date }}{% if last_session.day_template %} — Día {{ last_session.day_template.day_number }}{% if last_session.day_template.subtitle %} · {{ last_session.day_template.subtitle }}{% endif %}{% endif %}</p>
-      {% else %}
-        <p>Todavía no has realizado ningún entrenamiento de este programa.</p>
-      {% endif %}
 
-      {% if next_sessions %}
+      {% if today_session %}
+        <p>
+          <a href="/programs/{{ active_program.id }}/today" class="btn">
+            Entrenamiento de hoy{% if today_session.day_template %} — Día {{ today_session.day_template.day_number }}{% if today_session.day_template.subtitle %} · {{ today_session.day_template.subtitle }}{% endif %}{% endif %}
+            {% if today_session.finished %}(finalizado){% else %}(en curso){% endif %}
+          </a>
+        </p>
+        {% if next_sessions %}
+          <p>Después: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}</p>
+        {% endif %}
+      {% elif next_sessions %}
         <p>
           <a href="/programs/{{ active_program.id }}/today" class="btn">
             Siguiente: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
@@ -32,6 +37,10 @@
         {% endif %}
       {% else %}
         <p>Todavía no has empezado este programa. <a href="/programs/{{ active_program.id }}/today">Empezar</a></p>
+      {% endif %}
+
+      {% if last_session %}
+        <p>Último realizado: {{ last_session.date }}{% if last_session.day_template %} — Día {{ last_session.day_template.day_number }}{% if last_session.day_template.subtitle %} · {{ last_session.day_template.subtitle }}{% endif %}{% endif %}</p>
       {% endif %}
 
       <h2>Horario de entrenamiento</h2>
