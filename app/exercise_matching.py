@@ -25,10 +25,13 @@ class ExerciseMatcher:
         }
         self.db = db
 
-    def resolve(self, id_dataset: str | None, nombre: str) -> tuple[int | None, str, float | None]:
+    def resolve(
+        self, id_dataset: str | int | None, nombre: str
+    ) -> tuple[int | None, str, float | None]:
         if id_dataset:
+            normalized_id = str(id_dataset).strip().zfill(4)
             exercise = (
-                self.db.query(Exercise).filter(Exercise.external_id == id_dataset).first()
+                self.db.query(Exercise).filter(Exercise.external_id == normalized_id).first()
             )
             if exercise is not None:
                 return exercise.id, "id", None
