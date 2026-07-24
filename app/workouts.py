@@ -154,6 +154,20 @@ async def log_exercise_form(
                 if prev_in_block is not None and prev_in_block.is_superset_with_next:
                     superset_partner = prev_in_block
 
+            superset_partner_exercise = None
+            partner_sets_completed_today = 0
+            if superset_partner is not None:
+                superset_partner_exercise = db.get(Exercise, superset_partner.exercise_id)
+                if todays_workout is not None:
+                    partner_sets_completed_today = (
+                        db.query(WorkoutSet)
+                        .filter(
+                            WorkoutSet.workout_id == todays_workout.id,
+                            WorkoutSet.exercise_id == superset_partner.exercise_id,
+                        )
+                        .count()
+                    )
+
             training = {
                 "modo_registro": block_exercise.modo_registro,
                 "reps_min": block_exercise.reps_min,
@@ -166,6 +180,12 @@ async def log_exercise_form(
                 "sets_target": block.num_sets,
                 "is_warmup": block.type == "Calentamiento",
                 "program_id": day_template.program_id,
+                "is_superset": superset_partner is not None,
+                "superset_is_first": block_exercise.is_superset_with_next,
+                "superset_partner_gif_url": superset_partner_exercise.gif_url if superset_partner_exercise else None,
+                "superset_partner_name": superset_partner_exercise.name if superset_partner_exercise else None,
+                "superset_partner_sets_completed": partner_sets_completed_today,
+                "superset_partner_url": build_nav_url(superset_partner) if superset_partner is not None else None,
             }
 
             day_exercises = (
@@ -265,7 +285,9 @@ async def log_exercise_submit(
 
     if block_exercise_id is not None:
         block_exercise = db.get(BlockExercise, block_exercise_id)
-        if block_exercise is not None and block_exercise.modo_registro != "tiempo" and not block_exercise.is_superset_with_next:
+        if block_exercise is not None and block_exercise.modo_registro == "tiempo":
+            workout.rest_until = None
+        elif block_exercise is not None and not block_exercise.is_superset_with_next:
             block = db.get(Block, block_exercise.block_id)
             workout.rest_until = now + timedelta(seconds=block.rest_seconds)
 

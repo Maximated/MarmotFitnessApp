@@ -96,9 +96,18 @@ a {
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   background: var(--bg);
   padding-left: 0.5rem;
+  view-transition-name: global-timer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(global-timer),
+  ::view-transition-old(global-timer),
+  ::view-transition-new(global-timer) {
+    animation: none;
+  }
 }
 
 .global-timer {
@@ -110,6 +119,22 @@ a {
 
 .global-timer-sep {
   color: var(--muted);
+}
+
+.global-timer-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  border: 2px solid var(--danger);
+  background: var(--bg);
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .nav .brand {
@@ -473,6 +498,52 @@ td.numeric {
   width: min(90vw, 420px);
   height: auto;
   border-radius: 0.75rem;
+}
+
+.superset-badge {
+  display: inline-block;
+  margin: 0 0 0.5rem;
+  padding: 0.2rem 0.6rem;
+  background: var(--primary);
+  color: var(--primary-text);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  border-radius: 0.4rem;
+}
+
+.training-gif-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.training-gif-row .training-gif {
+  width: min(70vw, 320px);
+}
+
+.training-gif-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.superset-arrow {
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+
+.training-gif-thumb-link {
+  flex-shrink: 0;
+}
+
+.training-gif-thumb {
+  display: block;
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 2px solid var(--primary);
 }
 
 .training-stats {

@@ -28,8 +28,7 @@
             <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
           {% endif %}
           {% if active_session_rest_until and not suppress_header_timer %}
-            {% if active_session_started_at %}<span class="global-timer-sep">/</span>{% endif %}
-            <span id="global-rest-timer" class="global-timer" data-rest-until="{{ active_session_rest_until }}"></span>
+            <span id="global-rest-timer" class="global-timer-circle" data-rest-until="{{ active_session_rest_until }}"></span>
           {% endif %}
         </div>
       {% endif %}

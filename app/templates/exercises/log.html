@@ -16,7 +16,18 @@
     {% endif %}
 
     <div class="training-header" id="training-swipe-area">
-      <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+      {% if training.is_superset %}<p class="superset-badge">SUPERSET</p>{% endif %}
+      {% if training.is_superset and training.superset_partner_gif_url %}
+        <div class="training-gif-row{% if not training.superset_is_first %} training-gif-row-reverse{% endif %}">
+          <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+          <span class="superset-arrow">{% if training.superset_is_first %}→{% else %}←{% endif %}</span>
+          <a href="{{ training.superset_partner_url }}" class="training-gif-thumb-link">
+            <img src="{{ training.superset_partner_gif_url }}" alt="{{ training.superset_partner_name }}" class="training-gif-thumb" />
+          </a>
+        </div>
+      {% else %}
+        <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+      {% endif %}
       <h1>{{ exercise.name }}</h1>
       <div class="training-stats">
         {% if training.modo_registro == "tiempo" %}
@@ -53,18 +64,18 @@
           </div>
         {% endif %}
         {% if training.modo_registro != "tiempo" %}
-          {% if active_session_rest_until %}
+          {% if training.no_rest %}
+            <div class="stat-circle stat-circle-danger">
+              <span class="stat-value">Superserie</span>
+              <span class="stat-label">Sin descanso</span>
+            </div>
+          {% elif active_session_rest_until %}
             <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-until="{{ active_session_rest_until }}">
               <span class="rest-icon" id="rest-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               </span>
               <span class="stat-value" id="rest-value">--:--</span>
               <span class="stat-label">Descanso</span>
-            </div>
-          {% elif training.no_rest %}
-            <div class="stat-circle stat-circle-danger">
-              <span class="stat-value">Superserie</span>
-              <span class="stat-label">Sin descanso</span>
             </div>
           {% else %}
             <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-seconds="{{ training.rest_seconds }}">
@@ -85,7 +96,10 @@
       </div>
     </div>
 
-    <form method="post" action="/exercises/{{ exercise.id }}/log" class="training-log-form" data-preserve-scroll>
+    <form method="post" action="/exercises/{{ exercise.id }}/log" class="training-log-form" data-preserve-scroll
+      {% if training.is_superset %}
+      data-superset-warn="1" data-sets-completed="{{ training.sets_completed }}" data-partner-sets-completed="{{ training.superset_partner_sets_completed }}"
+      {% endif %}>
       <div class="training-inputs">
         <input type="number" step="0.5" name="weight" id="weight-input" placeholder="Kilogramos" class="training-input" />
         {% if training.modo_registro == "tiempo" %}
@@ -99,6 +113,22 @@
       <input type="hidden" name="block_exercise_id" value="{{ block_exercise_id }}" />
       {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
     </form>
+
+    {% if training.is_superset %}
+      <script>
+        (function () {
+          const form = document.querySelector(".training-log-form[data-superset-warn]");
+          const setsCompleted = parseInt(form.dataset.setsCompleted, 10);
+          const partnerSetsCompleted = parseInt(form.dataset.partnerSetsCompleted, 10);
+          if (setsCompleted > partnerSetsCompleted) {
+            form.addEventListener("submit", (event) => {
+              const ok = confirm("Todavía no has hecho una serie del otro ejercicio de la superserie. ¿Registrar esta de todos modos?");
+              if (!ok) event.preventDefault();
+            });
+          }
+        })();
+      </script>
+    {% endif %}
 
     {% if training.modo_registro != "tiempo" %}
       <script>
@@ -227,7 +257,7 @@
         }
       </script>
 
-    {% if training.modo_registro != "tiempo" and active_session_rest_until %}
+    {% if training.modo_registro != "tiempo" and not training.no_rest and active_session_rest_until %}
       <script>
         (function () {
           const circle = document.getElementById("rest-circle");
