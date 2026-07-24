@@ -1,4 +1,5 @@
 from datetime import date as date_type
+from datetime import datetime as datetime_type
 from itertools import groupby
 from math import ceil
 from urllib.parse import urlencode
@@ -14,6 +15,11 @@ from app.templates import templates
 router = APIRouter()
 
 PER_PAGE_DAYS = 5
+
+
+def format_duration(seconds: int) -> str:
+    minutes, secs = divmod(max(0, int(seconds)), 60)
+    return f"{minutes}:{secs:02d}"
 
 
 @router.get("/history")
@@ -59,9 +65,26 @@ async def history(
             sets_query = sets_query.filter(Exercise.name.ilike(f"%{q}%"))
         rows = sets_query.order_by(Workout.date.desc(), WorkoutSet.order.asc()).all()
 
+        prev_time_by_workout: dict[int, object] = {}
+        enriched_rows = []
+        for workout_set, workout, exercise in rows:
+            if workout_set.duration_seconds is not None:
+                elapsed_display = format_duration(workout_set.duration_seconds)
+            else:
+                prev_time = prev_time_by_workout.get(workout.id)
+                if prev_time is not None:
+                    delta = datetime_type.combine(date_type.min, workout_set.time) - datetime_type.combine(
+                        date_type.min, prev_time
+                    )
+                    elapsed_display = format_duration(delta.seconds) if delta.total_seconds() >= 0 else "-"
+                else:
+                    elapsed_display = "-"
+            prev_time_by_workout[workout.id] = workout_set.time
+            enriched_rows.append((workout_set, workout, exercise, elapsed_display))
+
         days = [
             (day, list(items))
-            for day, items in groupby(rows, key=lambda row: row[1].date)
+            for day, items in groupby(enriched_rows, key=lambda row: row[1].date)
         ]
 
     filters = {

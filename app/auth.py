@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
+from app.dependencies import get_current_user
 from app.models import User
+from app.templates import templates
 
 router = APIRouter()
 
@@ -49,3 +51,12 @@ async def auth_callback(request: Request, db: Session = Depends(get_db)):
 async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/")
+
+
+@router.get("/profile")
+async def profile_page(request: Request, user: User | None = Depends(get_current_user)):
+    return templates.TemplateResponse(
+        request=request,
+        name="profile.html",
+        context={"user": user},
+    )

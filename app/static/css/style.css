@@ -150,11 +150,9 @@ a {
   z-index: 1;
 }
 
-.nav .brand {
+.nav .brand-icon {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--text);
 }
 
 .logo {

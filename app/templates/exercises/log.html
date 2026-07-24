@@ -451,9 +451,17 @@
 
   <script>
     (function () {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       document.querySelectorAll("form[data-preserve-scroll]").forEach((form) => {
-        form.addEventListener("submit", () => {
+        form.addEventListener("submit", (event) => {
           sessionStorage.setItem("exerciseLogScrollY", String(window.scrollY));
+          const area = document.getElementById("training-swipe-area");
+          if (area && !reducedMotion && !form.dataset.sweeping) {
+            event.preventDefault();
+            form.dataset.sweeping = "1";
+            area.classList.add("sweep-out-left");
+            setTimeout(() => { form.submit(); }, 150);
+          }
         });
       });
 

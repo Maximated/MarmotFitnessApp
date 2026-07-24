@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Perfil</h1>
+
+  {% if user %}
+    <p>{{ user.name }} · {{ user.email }}</p>
+    <p><a href="/logout">Cerrar sesión</a></p>
+    <h2>Próximamente</h2>
+    <p>Foto de perfil, ajustes y otras opciones de la cuenta.</p>
+  {% else %}
+    <p><a href="/login">Login con Google</a></p>
+  {% endif %}
+{% endblock %}

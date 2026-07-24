@@ -73,13 +73,10 @@
           {% endfor %}
         </tbody>
       </table>
-      <p><a href="/programs/{{ active_program.id }}/calendar">Ver calendario completo</a></p>
 
     {% else %}
       <p>No tienes ningún programa activo.</p>
       <p><a href="/programs">Ver programas</a></p>
     {% endif %}
-
-    <p><a href="/logout">Cerrar sesión</a></p>
   {% endif %}
 {% endblock %}

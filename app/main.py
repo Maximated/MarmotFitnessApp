@@ -2,7 +2,7 @@ import mimetypes
 from datetime import date
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
@@ -106,6 +106,23 @@ async def home(
             context["calendar_month_name"] = today.strftime("%B %Y")
 
     return templates.TemplateResponse(request=request, name="home.html", context=context)
+
+
+@app.get("/calendar")
+async def general_calendar(
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user),
+):
+    if user is None:
+        return RedirectResponse(url="/")
+    active_program = (
+        db.query(Program)
+        .filter(Program.user_id == user.id, Program.is_active == True)  # noqa: E712
+        .first()
+    )
+    if active_program is None:
+        return RedirectResponse(url="/programs")
+    return RedirectResponse(url=f"/programs/{active_program.id}/calendar")
 
 
 @app.get("/sw.js")

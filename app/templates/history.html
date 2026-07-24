@@ -20,17 +20,19 @@
             <th>Ejercicio</th>
             <th>Peso (kg)</th>
             <th>Reps</th>
+            <th>Tiempo</th>
             <th>Hora</th>
             <th>Notas</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          {% for workout_set, workout, exercise in sets %}
+          {% for workout_set, workout, exercise, elapsed in sets %}
             <tr>
               <td><a href="/exercises/{{ exercise.id }}/log">{{ exercise.name }}</a></td>
               <td class="numeric">{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
-              <td class="numeric">{{ workout_set.reps }}</td>
+              <td class="numeric">{{ workout_set.reps if workout_set.reps is not none else "-" }}</td>
+              <td class="numeric">{{ elapsed }}</td>
               <td>{{ workout_set.time.strftime("%H:%M") }}</td>
               <td>{{ workout_set.comment or "" }}</td>
               <td class="actions">

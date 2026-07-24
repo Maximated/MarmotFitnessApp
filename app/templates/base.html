@@ -14,13 +14,14 @@
   <body>
     <header class="site-header">
       <nav class="nav">
-        <a href="/" class="brand">
-          <img src="/static/icons/icon-512.png" alt="Marmot" class="logo" />
-          Inicio
+        <a href="/profile" class="brand-icon">
+          <img src="/static/icons/icon-512.png" alt="Perfil" class="logo" />
         </a>
+        <a href="/">Inicio</a>
         <a href="/exercises">Ejercicios</a>
         <a href="/history">Historial</a>
         <a href="/programs">Programas</a>
+        <a href="/calendar">Calendario</a>
       </nav>
       {% if active_session_started_at or (active_session_rest_until and not suppress_header_timer) %}
         <div class="global-timer-group">
