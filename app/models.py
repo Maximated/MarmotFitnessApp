@@ -141,6 +141,22 @@ class BlockExercise(Base):
     is_superset_with_next: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
+class WorkoutSubstitution(Base):
+    __tablename__ = "workout_substitutions"
+    __table_args__ = (
+        UniqueConstraint("workout_id", "block_exercise_id", name="uq_workout_substitution"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workout_id: Mapped[int] = mapped_column(
+        ForeignKey("workouts.id", ondelete="CASCADE"), index=True
+    )
+    block_exercise_id: Mapped[int] = mapped_column(
+        ForeignKey("block_exercises.id", ondelete="CASCADE")
+    )
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
+
+
 class ExerciseAlias(Base):
     __tablename__ = "exercise_aliases"
 

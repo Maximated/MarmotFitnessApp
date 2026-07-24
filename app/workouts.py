@@ -12,6 +12,7 @@ from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
 from app.exercise_ratings import get_next_similar_exercise, get_similar_exercises, get_user_rating
+from app.workout_substitutions import get_substitution_map, set_substitution
 from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, User, Workout, WorkoutSet
 from app.templates import templates
 
@@ -92,6 +93,7 @@ async def log_exercise_form(
     block_exercise_id: int | None = None,
     next: str | None = None,
     logged: bool = False,
+    substitute: bool = False,
 ):
     exercise = db.get(Exercise, exercise_id)
     history = build_exercise_history(db, user.id, exercise_id)
@@ -117,6 +119,33 @@ async def log_exercise_form(
                 .filter(Workout.user_id == user.id, Workout.date == today)
                 .first()
             )
+
+            if substitute and todays_workout is not None:
+                set_substitution(db, todays_workout.id, block_exercise.id, exercise_id)
+                db.commit()
+                redirect_params = {"block_exercise_id": block_exercise_id}
+                if next is not None:
+                    redirect_params["next"] = next
+                return RedirectResponse(
+                    url=f"/exercises/{exercise_id}/log?{urlencode(redirect_params)}",
+                    status_code=303,
+                )
+
+            substitution_map = get_substitution_map(
+                db, todays_workout.id if todays_workout is not None else None
+            )
+            effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
+            if effective_exercise_id is not None and effective_exercise_id != exercise_id:
+                redirect_params = {"block_exercise_id": block_exercise_id}
+                if next is not None:
+                    redirect_params["next"] = next
+                if logged:
+                    redirect_params["logged"] = "1"
+                return RedirectResponse(
+                    url=f"/exercises/{effective_exercise_id}/log?{urlencode(redirect_params)}",
+                    status_code=303,
+                )
+
             sets_completed_today = 0
             if todays_workout is not None:
                 sets_completed_today = (
@@ -131,10 +160,11 @@ async def log_exercise_form(
                 nav_params = {"block_exercise_id": neighbor.id}
                 if next is not None:
                     nav_params["next"] = next
-                return f"/exercises/{neighbor.exercise_id}/log?{urlencode(nav_params)}"
+                neighbor_exercise_id = substitution_map.get(neighbor.id, neighbor.exercise_id)
+                return f"/exercises/{neighbor_exercise_id}/log?{urlencode(nav_params)}"
 
             def build_recycle_url(candidate_exercise_id: int) -> str:
-                nav_params = {"block_exercise_id": block_exercise.id}
+                nav_params = {"block_exercise_id": block_exercise.id, "substitute": "1"}
                 if next is not None:
                     nav_params["next"] = next
                 return f"/exercises/{candidate_exercise_id}/log?{urlencode(nav_params)}"
@@ -167,13 +197,14 @@ async def log_exercise_form(
             superset_partner_exercise = None
             partner_sets_completed_today = 0
             if superset_partner is not None:
-                superset_partner_exercise = db.get(Exercise, superset_partner.exercise_id)
+                partner_exercise_id = substitution_map.get(superset_partner.id, superset_partner.exercise_id)
+                superset_partner_exercise = db.get(Exercise, partner_exercise_id)
                 if todays_workout is not None:
                     partner_sets_completed_today = (
                         db.query(WorkoutSet)
                         .filter(
                             WorkoutSet.workout_id == todays_workout.id,
-                            WorkoutSet.exercise_id == superset_partner.exercise_id,
+                            WorkoutSet.exercise_id == partner_exercise_id,
                         )
                         .count()
                     )

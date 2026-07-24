@@ -11,6 +11,7 @@ from app.block_exercises import group_by_superset
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_ratings import get_user_ratings_map
+from app.workout_substitutions import apply_substitutions, get_substitution_map
 from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout, WorkoutSet
 from app.programs import get_own_program
 from app.templates import templates
@@ -163,6 +164,9 @@ async def program_today(
     if todays_workout is not None:
         day_template = db.get(DayTemplate, todays_workout.day_template_id)
         blocks, exercises_by_block = get_day_content(db, day_template.id)
+        exercises_by_block = apply_substitutions(
+            db, exercises_by_block, get_substitution_map(db, todays_workout.id)
+        )
 
         sets_completed_by_exercise = {
             row[0]: row[1]
@@ -495,6 +499,9 @@ async def view_session(
 
     day_template = db.get(DayTemplate, workout.day_template_id)
     blocks, exercises_by_block = get_day_content(db, day_template.id) if day_template else ([], {})
+    exercises_by_block = apply_substitutions(
+        db, exercises_by_block, get_substitution_map(db, workout.id)
+    )
 
     exercise_ids = [
         exercise.id
