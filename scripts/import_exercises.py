@@ -2,6 +2,11 @@
 
 Uso:
     uv run python scripts/import_exercises.py --source data/exercises-dataset-src
+
+Este script solo copia los .gif originales. `gif_url` apunta al .webp
+correspondiente en media/exercises/webp/, así que tras importar hace falta
+ejecutar además media/exercises/proc_gif.py para generar esos .webp con
+transparencia a partir de los .gif recién copiados.
 """
 import argparse
 import json
@@ -50,7 +55,7 @@ def main(source: Path) -> None:
                 "equipment": translations["equipment"].get(
                     item["equipment"], item["equipment"]
                 ),
-                "gif_url": f"/media/exercises/{gif_filename}",
+                "gif_url": f"/media/exercises/webp/{Path(gif_filename).stem}.webp",
                 "instructions": item["instructions"]["es"],
             }
 

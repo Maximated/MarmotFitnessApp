@@ -437,15 +437,7 @@
     <h1>{{ exercise.name }}</h1>
     <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
 
-    <div class="star-rating">
-      {% for i in range(1, 6) %}
-        <form method="post" action="/exercises/{{ exercise.id }}/rate" class="star-form">
-          <input type="hidden" name="rating" value="{{ i }}" />
-          <input type="hidden" name="next" value="{{ self_url }}" />
-          <button type="submit" class="star-btn{% if user_rating and i <= user_rating %} star-filled{% endif %}" aria-label="{{ i }} estrellas">★</button>
-        </form>
-      {% endfor %}
-    </div>
+    {% include "exercises/_rating_similar.html" %}
 
     <form method="post" action="/exercises/{{ exercise.id }}/log" data-preserve-scroll>
       <label>Peso (kg) <input type="number" step="0.5" name="weight" id="weight-input" /></label>
@@ -455,20 +447,6 @@
       <label>Notas <textarea name="comment"></textarea></label>
       <button type="submit">Guardar serie</button>
     </form>
-
-    {% if similar_exercises %}
-      <h2>Ejercicios similares</h2>
-      <ul class="exercise-row-list">
-        {% for similar in similar_exercises %}
-          <li>
-            <a href="/exercises/{{ similar.id }}/log" class="exercise-row">
-              <img src="{{ similar.gif_url }}" alt="{{ similar.name }}" />
-              <span>{{ similar.name }}</span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
   {% endif %}
 
   {% include "exercises/_history.html" %}
