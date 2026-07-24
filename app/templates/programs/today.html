@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "programs/_stat_ring.html" import stat_ring %}
+{% from "exercises/_star_rating_macro.html" import star_rating %}
 
 {% block content %}
   <p><a href="/">« Volver a inicio</a></p>
@@ -64,6 +65,7 @@
                     </span>
                   {% endif %}
                 </a>
+                {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url) }}
               {% else %}
                 <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }} (<a href="/block-exercises/{{ block_exercise.id }}/resolve">resolver</a>)</span>
               {% endif %}

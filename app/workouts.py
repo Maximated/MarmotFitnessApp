@@ -245,11 +245,8 @@ async def log_exercise_form(
     if self_params:
         self_url += f"?{urlencode(self_params)}"
 
-    user_rating = None
-    similar_exercises = []
-    if block_exercise_id is None:
-        user_rating = get_user_rating(db, user.id, exercise_id)
-        similar_exercises = get_similar_exercises(db, user.id, exercise_id)
+    user_rating = get_user_rating(db, user.id, exercise_id)
+    similar_exercises = get_similar_exercises(db, user.id, exercise_id)
 
     now = datetime.now()
     context = {

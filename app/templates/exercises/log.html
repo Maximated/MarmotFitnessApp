@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "exercises/_star_rating_macro.html" import star_rating %}
 
 {% macro timer_ring(ring_id) %}
   <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
@@ -37,6 +38,13 @@
 
     <div class="training-header{% if logged %} fade-in{% endif %}" id="training-swipe-area">
       {% if training.is_superset %}<p class="superset-badge">SUPERSET</p>{% endif %}
+      <div class="training-gif-toolbar">
+        <button type="button" class="similar-toggle-btn" id="similar-toggle-btn" aria-label="Ver ejercicios similares" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+          </svg>
+        </button>
+      </div>
       {% if training.is_superset and training.superset_partner_gif_url %}
         <div class="training-gif-row{% if not training.superset_is_first %} training-gif-row-reverse{% endif %}">
           <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
@@ -49,6 +57,24 @@
         <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
       {% endif %}
       <h1>{{ exercise.name }}</h1>
+      {{ star_rating(exercise.id, user_rating, self_url) }}
+
+      {% if similar_exercises %}
+        <div class="similar-panel" id="similar-panel" hidden>
+          <h2>Ejercicios similares</h2>
+          <ul class="exercise-row-list">
+            {% for similar in similar_exercises %}
+              <li>
+                <a href="/exercises/{{ similar.id }}/log" class="exercise-row">
+                  <img src="{{ similar.gif_url }}" alt="{{ similar.name }}" />
+                  <span>{{ similar.name }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
       <div class="training-stats">
         {% if training.modo_registro == "tiempo" %}
           {% if active_session_rest_until %}
@@ -127,6 +153,20 @@
         {% endif %}
       </div>
     </div>
+
+    {% if similar_exercises %}
+      <script>
+        (function () {
+          const btn = document.getElementById("similar-toggle-btn");
+          const panel = document.getElementById("similar-panel");
+          btn.addEventListener("click", () => {
+            panel.hidden = !panel.hidden;
+            btn.classList.toggle("active", !panel.hidden);
+            btn.setAttribute("aria-expanded", String(!panel.hidden));
+          });
+        })();
+      </script>
+    {% endif %}
 
     <form method="post" action="/exercises/{{ exercise.id }}/log" class="training-log-form" data-preserve-scroll
       {% if training.is_superset %}

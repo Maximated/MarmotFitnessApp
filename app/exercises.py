@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
-from app.exercise_ratings import get_similar_exercises, get_user_rating
+from app.exercise_ratings import get_similar_exercises, get_user_rating, get_user_ratings_map
 from app.models import Exercise, User
 from app.templates import templates
 
@@ -61,12 +61,16 @@ async def list_exercises(
         for k, v in {"q": q, "category": category, "equipment": equipment}.items()
         if v
     }
+    filters_qs = urlencode(filters)
+    current_list_url = f"/exercises?{filters_qs}{'&' if filters_qs else ''}page={page}"
 
     return templates.TemplateResponse(
         request=request,
         name="exercises/list.html",
         context={
             "exercises": exercises,
+            "ratings": get_user_ratings_map(db, user.id, [e.id for e in exercises]),
+            "current_list_url": current_list_url,
             "categories": categories,
             "equipments": equipments,
             "q": q or "",
@@ -74,7 +78,7 @@ async def list_exercises(
             "equipment": equipment or "",
             "page": page,
             "total_pages": total_pages,
-            "filters_qs": urlencode(filters),
+            "filters_qs": filters_qs,
         },
     )
 

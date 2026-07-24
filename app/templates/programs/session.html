@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "exercises/_star_rating_macro.html" import star_rating %}
 
 {% block content %}
   <p><a href="/programs/{{ program.id }}/calendar">« Volver al calendario</a></p>
@@ -22,6 +23,7 @@
               <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
               <span>{{ exercise.name }}</span>
             </a>
+            {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url) }}
           {% else %}
             <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }}</span>
           {% endif %}

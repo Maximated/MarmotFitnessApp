@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.block_exercises import group_by_superset
 from app.database import get_db
 from app.dependencies import require_user
+from app.exercise_ratings import get_user_ratings_map
 from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout, WorkoutSet
 from app.programs import get_own_program
 from app.templates import templates
@@ -192,6 +193,13 @@ async def program_today(
             for block_id, attached in exercises_by_block.items()
         }
 
+        exercise_ids = [
+            exercise.id
+            for attached in exercises_by_block.values()
+            for _, exercise in attached
+            if exercise is not None
+        ]
+
         finished = todays_workout.finished_at is not None
         stats = compute_session_stats(db, todays_workout, day_template.id) if finished else None
 
@@ -207,6 +215,8 @@ async def program_today(
                 "sets_completed_by_exercise": sets_completed_by_exercise,
                 "avg_weight_by_exercise": avg_weight_by_exercise,
                 "avg_duration_by_exercise": avg_duration_by_exercise,
+                "ratings": get_user_ratings_map(db, user.id, exercise_ids),
+                "current_page_url": f"/programs/{program.id}/today",
                 "finished": finished,
                 "stats": stats,
             },
@@ -486,6 +496,13 @@ async def view_session(
     day_template = db.get(DayTemplate, workout.day_template_id)
     blocks, exercises_by_block = get_day_content(db, day_template.id) if day_template else ([], {})
 
+    exercise_ids = [
+        exercise.id
+        for attached in exercises_by_block.values()
+        for _, exercise in attached
+        if exercise is not None
+    ]
+
     return templates.TemplateResponse(
         request=request,
         name="programs/session.html",
@@ -495,6 +512,8 @@ async def view_session(
             "day_template": day_template,
             "blocks": blocks,
             "exercises_by_block": exercises_by_block,
+            "ratings": get_user_ratings_map(db, user.id, exercise_ids),
+            "current_page_url": f"/programs/{program.id}/sessions/{session_date.isoformat()}/detail",
             "finished": workout.finished_at is not None,
         },
     )

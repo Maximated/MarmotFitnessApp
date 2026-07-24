@@ -598,6 +598,30 @@ td.numeric {
   border-radius: 0.4rem;
 }
 
+.training-gif-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.similar-toggle-btn {
+  display: flex;
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  border-radius: 50%;
+  color: var(--success);
+  cursor: pointer;
+}
+
+.similar-toggle-btn.active {
+  background: var(--card-bg);
+}
+
+.similar-panel {
+  text-align: left;
+  margin: 0.5rem 0 1rem;
+}
+
 .training-gif-row {
   display: flex;
   align-items: center;

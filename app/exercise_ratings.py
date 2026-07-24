@@ -36,6 +36,17 @@ def get_user_rating(db: Session, user_id: int, exercise_id: int) -> int | None:
     return rating.rating if rating else None
 
 
+def get_user_ratings_map(db: Session, user_id: int, exercise_ids: list[int]) -> dict[int, int]:
+    if not exercise_ids:
+        return {}
+    rows = (
+        db.query(ExerciseRating.exercise_id, ExerciseRating.rating)
+        .filter(ExerciseRating.user_id == user_id, ExerciseRating.exercise_id.in_(exercise_ids))
+        .all()
+    )
+    return dict(rows)
+
+
 def get_similar_exercises(db: Session, user_id: int, exercise_id: int, limit: int = 8):
     exercise = db.get(Exercise, exercise_id)
     if exercise is None:

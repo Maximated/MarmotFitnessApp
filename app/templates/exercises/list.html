@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "exercises/_star_rating_macro.html" import star_rating %}
 
 {% block content %}
   <form method="get" action="/exercises">
@@ -21,7 +22,6 @@
     <button type="submit">Buscar</button>
   </form>
 
-  {% set current_list_url = "/exercises?" ~ filters_qs ~ ('&' if filters_qs else '') ~ "page=" ~ page %}
   <ul class="exercise-grid">
     {% for exercise in exercises %}
       <li>
@@ -30,6 +30,7 @@
         </a>
         <p>{{ exercise.name }}</p>
         <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
+        {{ star_rating(exercise.id, ratings.get(exercise.id), current_list_url) }}
         <a href="/exercises/{{ exercise.id }}/log">Registrar serie</a>
       </li>
     {% else %}
