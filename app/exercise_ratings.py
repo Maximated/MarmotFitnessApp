@@ -68,6 +68,35 @@ def get_similar_exercises(db: Session, user_id: int, exercise_id: int, limit: in
     )
 
 
+def get_next_similar_exercise(db: Session, user_id: int, exercise_id: int) -> Exercise | None:
+    """Cycle to the next exercise in the same target_muscle group, ranked by
+    the user's rating (best first). The group forms a loop: cycling past the
+    last one wraps back to the exercise the user started from."""
+    exercise = db.get(Exercise, exercise_id)
+    if exercise is None:
+        return None
+
+    ranked = (
+        db.query(Exercise)
+        .outerjoin(
+            ExerciseRating,
+            and_(
+                ExerciseRating.exercise_id == Exercise.id,
+                ExerciseRating.user_id == user_id,
+            ),
+        )
+        .filter(Exercise.target_muscle == exercise.target_muscle)
+        .order_by(rating_order_case(), Exercise.name)
+        .all()
+    )
+    if len(ranked) <= 1:
+        return None
+
+    ids = [e.id for e in ranked]
+    current_index = ids.index(exercise_id)
+    return ranked[(current_index + 1) % len(ranked)]
+
+
 @router.post("/exercises/{exercise_id}/rate")
 async def rate_exercise(
     exercise_id: int,

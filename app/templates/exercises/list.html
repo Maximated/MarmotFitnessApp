@@ -30,7 +30,7 @@
         </a>
         <p>{{ exercise.name }}</p>
         <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
-        {{ star_rating(exercise.id, ratings.get(exercise.id), current_list_url) }}
+        {{ star_rating(exercise.id, ratings.get(exercise.id), current_list_url, "sm") }}
         <a href="/exercises/{{ exercise.id }}/log">Registrar serie</a>
       </li>
     {% else %}

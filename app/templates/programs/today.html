@@ -65,7 +65,7 @@
                     </span>
                   {% endif %}
                 </a>
-                {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url) }}
+                {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url, "sm") }}
               {% else %}
                 <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }} (<a href="/block-exercises/{{ block_exercise.id }}/resolve">resolver</a>)</span>
               {% endif %}

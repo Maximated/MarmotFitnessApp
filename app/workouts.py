@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
-from app.exercise_ratings import get_similar_exercises, get_user_rating
+from app.exercise_ratings import get_next_similar_exercise, get_similar_exercises, get_user_rating
 from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, User, Workout, WorkoutSet
 from app.templates import templates
 
@@ -133,6 +133,15 @@ async def log_exercise_form(
                     nav_params["next"] = next
                 return f"/exercises/{neighbor.exercise_id}/log?{urlencode(nav_params)}"
 
+            def build_recycle_url(candidate_exercise_id: int) -> str:
+                nav_params = {"block_exercise_id": block_exercise.id}
+                if next is not None:
+                    nav_params["next"] = next
+                return f"/exercises/{candidate_exercise_id}/log?{urlencode(nav_params)}"
+
+            next_similar = get_next_similar_exercise(db, user.id, exercise_id)
+            recycle_url = build_recycle_url(next_similar.id) if next_similar is not None else None
+
             superset_partner = None
             if block_exercise.is_superset_with_next:
                 superset_partner = (
@@ -187,6 +196,7 @@ async def log_exercise_form(
                 "superset_partner_name": superset_partner_exercise.name if superset_partner_exercise else None,
                 "superset_partner_sets_completed": partner_sets_completed_today,
                 "superset_partner_url": build_nav_url(superset_partner) if superset_partner is not None else None,
+                "recycle_url": recycle_url,
             }
 
             day_exercises = (

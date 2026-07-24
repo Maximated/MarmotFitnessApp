@@ -605,21 +605,12 @@ td.numeric {
 
 .similar-toggle-btn {
   display: flex;
-  background: none;
+  background: var(--card-bg);
   border: none;
-  padding: 0.4rem;
+  padding: 0.6rem;
   border-radius: 50%;
   color: var(--success);
-  cursor: pointer;
-}
-
-.similar-toggle-btn.active {
-  background: var(--card-bg);
-}
-
-.similar-panel {
-  text-align: left;
-  margin: 0.5rem 0 1rem;
+  text-decoration: none;
 }
 
 .training-gif-row {
@@ -931,10 +922,15 @@ td.numeric {
 }
 
 .star-rating {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.15rem;
   margin-bottom: 1.5rem;
+}
+
+.star-rating-sm {
+  gap: 0.05rem;
+  margin-bottom: 0.35rem;
 }
 
 .star-form {
@@ -949,6 +945,10 @@ td.numeric {
   line-height: 1;
   color: var(--border);
   cursor: pointer;
+}
+
+.star-rating-sm .star-btn {
+  font-size: 0.9rem;
 }
 
 .star-btn.star-filled {
