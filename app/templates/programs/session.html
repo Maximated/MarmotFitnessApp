@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p><a href="/programs/{{ program.id }}/calendar">« Volver al calendario</a></p>
+  <p><a href="/programs/{{ program.id }}/sessions/{{ session_date.isoformat() }}">« Volver</a></p>
 
   <h1>{{ program.name }}</h1>
   <p>
@@ -34,8 +34,4 @@
   {% else %}
     <p>Este día no tiene bloques.</p>
   {% endfor %}
-
-  <form method="post" action="/programs/{{ program.id }}/sessions/{{ session_date.isoformat() }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento del {{ session_date }}? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
-    <button type="submit" class="btn-danger">Eliminar este entrenamiento</button>
-  </form>
 {% endblock %}

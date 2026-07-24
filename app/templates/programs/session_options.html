@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/programs/{{ program.id }}/calendar">« Volver al calendario</a></p>
+
+  <h1>{{ program.name }}</h1>
+  <p>
+    {{ session_date }}{% if day_template %} — Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}{% endif %}
+    {% if finished %} · Finalizado{% endif %}
+  </p>
+
+  <p><a href="/programs/{{ program.id }}/sessions/{{ session_date.isoformat() }}/detail" class="btn">Editar</a></p>
+
+  <form method="post" action="/programs/{{ program.id }}/sessions/{{ session_date.isoformat() }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento del {{ session_date }}? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
+    <button type="submit" class="btn-danger">Eliminar este entrenamiento</button>
+  </form>
+{% endblock %}

@@ -458,6 +458,42 @@ async def program_calendar(
 
 
 @router.get("/programs/{program_id}/sessions/{session_date}")
+async def session_options(
+    program_id: int,
+    session_date: date,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    program = get_own_program(db, program_id, user.id)
+
+    workout = (
+        db.query(Workout)
+        .filter(
+            Workout.user_id == user.id,
+            Workout.date == session_date,
+            Workout.program_id == program.id,
+        )
+        .first()
+    )
+    if workout is None:
+        raise HTTPException(status_code=404)
+
+    day_template = db.get(DayTemplate, workout.day_template_id)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="programs/session_options.html",
+        context={
+            "program": program,
+            "session_date": session_date,
+            "day_template": day_template,
+            "finished": workout.finished_at is not None,
+        },
+    )
+
+
+@router.get("/programs/{program_id}/sessions/{session_date}/detail")
 async def view_session(
     program_id: int,
     session_date: date,

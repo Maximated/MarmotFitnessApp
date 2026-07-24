@@ -511,12 +511,20 @@ td.numeric {
     animation: sweep-in-left 0.3s ease-out both;
   }
 
+  #training-swipe-area.fade-in {
+    animation: fade-in-quick 0.2s ease-out both;
+  }
+
   #training-swipe-area.sweep-out-left {
     animation: sweep-out-left 0.22s ease-in forwards;
   }
 
   #training-swipe-area.sweep-out-right {
     animation: sweep-out-right 0.22s ease-in forwards;
+  }
+
+  #training-swipe-area.fade-out {
+    animation: fade-out-quick 0.15s ease-in forwards;
   }
 }
 
@@ -537,6 +545,18 @@ td.numeric {
 @keyframes sweep-out-right {
   to {
     transform: translateX(28px);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in-quick {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out-quick {
+  to {
     opacity: 0;
   }
 }

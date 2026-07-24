@@ -35,7 +35,7 @@
       }
     </script>
 
-    <div class="training-header" id="training-swipe-area">
+    <div class="training-header{% if logged %} fade-in{% endif %}" id="training-swipe-area">
       {% if training.is_superset %}<p class="superset-badge">SUPERSET</p>{% endif %}
       {% if training.is_superset and training.superset_partner_gif_url %}
         <div class="training-gif-row{% if not training.superset_is_first %} training-gif-row-reverse{% endif %}">
@@ -459,7 +459,7 @@
           if (area && !reducedMotion && !form.dataset.sweeping) {
             event.preventDefault();
             form.dataset.sweeping = "1";
-            area.classList.add("sweep-out-left");
+            area.classList.add("fade-out");
             setTimeout(() => { form.submit(); }, 150);
           }
         });
