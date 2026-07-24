@@ -8,7 +8,11 @@ from app.models import Workout
 
 
 def session_timer_processor(request: Request) -> dict:
-    empty = {"active_session_started_at": None, "active_session_rest_until": None}
+    empty = {
+        "active_session_started_at": None,
+        "active_session_rest_until": None,
+        "active_session_rest_total_seconds": None,
+    }
     user_id = request.session.get("user_id")
     if user_id is None:
         return empty
@@ -30,6 +34,7 @@ def session_timer_processor(request: Request) -> dict:
         return {
             "active_session_started_at": workout.started_at.isoformat(),
             "active_session_rest_until": workout.rest_until.isoformat() if workout.rest_until else None,
+            "active_session_rest_total_seconds": workout.rest_total_seconds,
         }
     finally:
         db.close()

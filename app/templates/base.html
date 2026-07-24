@@ -28,7 +28,13 @@
             <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
           {% endif %}
           {% if active_session_rest_until and not suppress_header_timer %}
-            <span id="global-rest-timer" class="global-timer-circle" data-rest-until="{{ active_session_rest_until }}"></span>
+            <span id="global-rest-timer" class="global-timer-circle" data-rest-until="{{ active_session_rest_until }}" data-total-seconds="{{ active_session_rest_total_seconds or '' }}">
+              <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
+                <circle class="timer-ring-progress" id="global-rest-ring" cx="50" cy="50" r="44"></circle>
+              </svg>
+              <span class="global-timer-circle-value" id="global-rest-value"></span>
+            </span>
           {% endif %}
         </div>
       {% endif %}
@@ -62,13 +68,22 @@
       <script>
         (function () {
           const el = document.getElementById("global-rest-timer");
+          const valueEl = document.getElementById("global-rest-value");
+          const ringEl = document.getElementById("global-rest-ring");
           const restUntil = new Date(el.dataset.restUntil).getTime();
+          const initialRemaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
+          const totalSeconds = parseInt(el.dataset.totalSeconds, 10) || initialRemaining;
+          const RING_CIRCUMFERENCE = 2 * Math.PI * 44;
+          ringEl.style.strokeDasharray = String(RING_CIRCUMFERENCE);
 
           function render() {
             const remaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
             const m = Math.floor(remaining / 60);
             const s = remaining % 60;
-            el.textContent = String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+            valueEl.textContent = String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+            const pct = totalSeconds > 0 ? Math.max(0, Math.min(1, remaining / totalSeconds)) : 0;
+            ringEl.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - pct));
+            ringEl.style.stroke = `hsl(${Math.round(120 * pct)}, 80%, 45%)`;
           }
 
           render();

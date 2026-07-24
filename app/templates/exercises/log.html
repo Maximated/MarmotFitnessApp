@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 
+{% macro timer_ring(ring_id) %}
+  <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+    <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
+    <circle class="timer-ring-progress" id="{{ ring_id }}" cx="50" cy="50" r="44"></circle>
+  </svg>
+{% endmacro %}
+
 {% block head_extra %}
   {% if training %}<meta name="view-transition" content="same-origin" />{% endif %}
 {% endblock %}
@@ -10,10 +17,23 @@
   {% if training %}
     {% if prev_url or next_exercise_url %}
       <p class="pagination">
-        {% if prev_url %}<a href="{{ prev_url }}">« Anterior</a>{% endif %}
-        {% if next_exercise_url %}<a href="{{ next_exercise_url }}">Siguiente »</a>{% endif %}
+        {% if prev_url %}<a href="{{ prev_url }}" id="prev-exercise-link">« Anterior</a>{% endif %}
+        {% if next_exercise_url %}<a href="{{ next_exercise_url }}" id="next-exercise-link">Siguiente »</a>{% endif %}
       </p>
     {% endif %}
+
+    <script>
+      function navigateWithSweep(url, direction) {
+        const area = document.getElementById("training-swipe-area");
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!area || reducedMotion) {
+          window.location = url;
+          return;
+        }
+        area.classList.add(direction === "right" ? "sweep-out-right" : "sweep-out-left");
+        setTimeout(() => { window.location = url; }, 220);
+      }
+    </script>
 
     <div class="training-header" id="training-swipe-area">
       {% if training.is_superset %}<p class="superset-badge">SUPERSET</p>{% endif %}
@@ -32,22 +52,28 @@
       <div class="training-stats">
         {% if training.modo_registro == "tiempo" %}
           {% if active_session_rest_until %}
-            <div class="stat-circle stat-circle-danger" id="duration-target-circle" data-rest-until="{{ active_session_rest_until }}">
-              <span class="rest-icon" id="duration-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </span>
-              <span class="stat-value" id="duration-value">--:--</span>
-              <span class="stat-label">Duración objetivo</span>
-              {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
+            <div class="stat-circle stat-circle-danger stat-circle-timer" id="duration-target-circle" data-rest-until="{{ active_session_rest_until }}" data-total-seconds="{{ active_session_rest_total_seconds or '' }}">
+              {{ timer_ring("duration-ring") }}
+              <div class="stat-circle-content">
+                <span class="rest-icon" id="duration-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span class="stat-value" id="duration-value">--:--</span>
+                <span class="stat-label">Duración objetivo</span>
+                {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
+              </div>
             </div>
           {% else %}
-            <div class="stat-circle stat-circle-danger" id="duration-target-circle" data-duration-seconds="{{ training.duracion_segundos or 0 }}">
-              <span class="rest-icon" id="duration-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </span>
-              <span class="stat-value" id="duration-value">{{ training.duracion_segundos or 0 }}s</span>
-              <span class="stat-label">Duración objetivo</span>
-              {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
+            <div class="stat-circle stat-circle-danger stat-circle-timer" id="duration-target-circle" data-duration-seconds="{{ training.duracion_segundos or 0 }}">
+              {{ timer_ring("duration-ring") }}
+              <div class="stat-circle-content">
+                <span class="rest-icon" id="duration-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span class="stat-value" id="duration-value">{{ training.duracion_segundos or 0 }}s</span>
+                <span class="stat-label">Duración objetivo</span>
+                {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
+              </div>
             </div>
           {% endif %}
         {% else %}
@@ -70,20 +96,26 @@
               <span class="stat-label">Sin descanso</span>
             </div>
           {% elif active_session_rest_until %}
-            <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-until="{{ active_session_rest_until }}">
-              <span class="rest-icon" id="rest-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </span>
-              <span class="stat-value" id="rest-value">--:--</span>
-              <span class="stat-label">Descanso</span>
+            <div class="stat-circle stat-circle-danger stat-circle-timer" id="rest-circle" data-rest-until="{{ active_session_rest_until }}" data-total-seconds="{{ active_session_rest_total_seconds or '' }}">
+              {{ timer_ring("rest-ring") }}
+              <div class="stat-circle-content">
+                <span class="rest-icon" id="rest-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span class="stat-value" id="rest-value">--:--</span>
+                <span class="stat-label">Descanso</span>
+              </div>
             </div>
           {% else %}
-            <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-seconds="{{ training.rest_seconds }}">
-              <span class="rest-icon" id="rest-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </span>
-              <span class="stat-value" id="rest-value">{{ training.rest_seconds }}s</span>
-              <span class="stat-label">Descanso</span>
+            <div class="stat-circle stat-circle-danger stat-circle-timer" id="rest-circle" data-rest-seconds="{{ training.rest_seconds }}">
+              {{ timer_ring("rest-ring") }}
+              <div class="stat-circle-content">
+                <span class="rest-icon" id="rest-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span class="stat-value" id="rest-value">{{ training.rest_seconds }}s</span>
+                <span class="stat-label">Descanso</span>
+              </div>
             </div>
           {% endif %}
         {% endif %}
@@ -152,7 +184,7 @@
       <script>
         (function () {
           const nextUrl = {{ training.auto_advance_url | tojson }};
-          setTimeout(() => { window.location = nextUrl; }, 2000);
+          setTimeout(() => { navigateWithSweep(nextUrl, "left"); }, 2000);
         })();
       </script>
     {% elif logged and training.prompt_finish %}
@@ -170,10 +202,13 @@
     {% endif %}
 
     <script>
-        function createCountdownTimer({ circle, valueEl, iconEl, totalSeconds, autoStart, notifyText, onSettle, onStart }) {
-          let remaining = totalSeconds;
+        function createCountdownTimer({ circle, valueEl, iconEl, ringEl, totalSeconds, initialRemaining, autoStart, notifyText, onSettle, onStart }) {
+          let remaining = initialRemaining !== undefined ? initialRemaining : totalSeconds;
           let intervalId = null;
           let clickTimer = null;
+
+          const RING_CIRCUMFERENCE = 2 * Math.PI * 44;
+          if (ringEl) ringEl.style.strokeDasharray = String(RING_CIRCUMFERENCE);
 
           const PLAY_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
           const PAUSE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
@@ -184,8 +219,16 @@
             return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
           }
 
+          function renderRing() {
+            if (!ringEl) return;
+            const pct = totalSeconds > 0 ? Math.max(0, Math.min(1, remaining / totalSeconds)) : 0;
+            ringEl.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - pct));
+            ringEl.style.stroke = `hsl(${Math.round(120 * pct)}, 80%, 45%)`;
+          }
+
           function render() {
             valueEl.textContent = formatTime(remaining);
+            renderRing();
           }
 
           function tick() {
@@ -263,11 +306,14 @@
           const circle = document.getElementById("rest-circle");
           const restUntil = new Date({{ active_session_rest_until | tojson }}).getTime();
           const remaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
+          const totalSeconds = parseInt(circle.dataset.totalSeconds, 10) || remaining;
           window.__restTimer = createCountdownTimer({
             circle: circle,
             valueEl: document.getElementById("rest-value"),
             iconEl: document.getElementById("rest-icon"),
-            totalSeconds: remaining,
+            ringEl: document.getElementById("rest-ring"),
+            totalSeconds: totalSeconds,
+            initialRemaining: remaining,
             autoStart: true,
             notifyText: "Descanso terminado",
           });
@@ -281,6 +327,7 @@
             circle: circle,
             valueEl: document.getElementById("rest-value"),
             iconEl: document.getElementById("rest-icon"),
+            ringEl: document.getElementById("rest-ring"),
             totalSeconds: parseInt(circle.dataset.restSeconds, 10),
             autoStart: false,
             notifyText: "Descanso terminado",
@@ -296,11 +343,14 @@
           const durationInput = document.getElementById("duration-input");
           const restUntil = new Date({{ active_session_rest_until | tojson }}).getTime();
           const remaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
+          const totalSeconds = parseInt(circle.dataset.totalSeconds, 10) || remaining;
           window.__restTimer = createCountdownTimer({
             circle: circle,
             valueEl: document.getElementById("duration-value"),
             iconEl: document.getElementById("duration-icon"),
-            totalSeconds: remaining,
+            ringEl: document.getElementById("duration-ring"),
+            totalSeconds: totalSeconds,
+            initialRemaining: remaining,
             autoStart: true,
             notifyText: "Ejercicio completado",
             onSettle: (elapsedSeconds) => { durationInput.value = elapsedSeconds; },
@@ -316,6 +366,7 @@
             circle: circle,
             valueEl: document.getElementById("duration-value"),
             iconEl: document.getElementById("duration-icon"),
+            ringEl: document.getElementById("duration-ring"),
             totalSeconds: parseInt(circle.dataset.durationSeconds, 10),
             autoStart: false,
             notifyText: "Ejercicio completado",
@@ -335,6 +386,21 @@
     {% if prev_url or next_exercise_url %}
       <script>
         (function () {
+          const prevLink = document.getElementById("prev-exercise-link");
+          const nextLink = document.getElementById("next-exercise-link");
+          if (prevLink) {
+            prevLink.addEventListener("click", (event) => {
+              event.preventDefault();
+              navigateWithSweep(prevLink.getAttribute("href"), "right");
+            });
+          }
+          if (nextLink) {
+            nextLink.addEventListener("click", (event) => {
+              event.preventDefault();
+              navigateWithSweep(nextLink.getAttribute("href"), "left");
+            });
+          }
+
           const area = document.getElementById("training-swipe-area");
           const prevUrl = {{ prev_url | tojson }};
           const nextUrl = {{ next_exercise_url | tojson }};
@@ -352,9 +418,9 @@
             const dy = event.changedTouches[0].clientY - startY;
             if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
               if (dx < 0 && nextUrl) {
-                window.location = nextUrl;
+                navigateWithSweep(nextUrl, "left");
               } else if (dx > 0 && prevUrl) {
-                window.location = prevUrl;
+                navigateWithSweep(prevUrl, "right");
               }
             }
             startX = null;

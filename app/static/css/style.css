@@ -122,6 +122,7 @@ a {
 }
 
 .global-timer-circle {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -129,12 +130,24 @@ a {
   width: 2.2rem;
   height: 2.2rem;
   border-radius: 50%;
-  border: 2px solid var(--danger);
   background: var(--bg);
   color: var(--danger);
   font-weight: 700;
   font-size: 0.6rem;
   font-variant-numeric: tabular-nums;
+}
+
+.global-timer-circle .timer-ring-progress {
+  stroke-width: 10;
+}
+
+.global-timer-circle .timer-ring-track {
+  stroke-width: 10;
+}
+
+.global-timer-circle-value {
+  position: relative;
+  z-index: 1;
 }
 
 .nav .brand {
@@ -494,6 +507,41 @@ td.numeric {
   text-align: center;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  #training-swipe-area {
+    animation: sweep-in-left 0.3s ease-out both;
+  }
+
+  #training-swipe-area.sweep-out-left {
+    animation: sweep-out-left 0.22s ease-in forwards;
+  }
+
+  #training-swipe-area.sweep-out-right {
+    animation: sweep-out-right 0.22s ease-in forwards;
+  }
+}
+
+@keyframes sweep-in-left {
+  from {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweep-out-left {
+  to {
+    transform: translateX(-28px);
+    opacity: 0;
+  }
+}
+
+@keyframes sweep-out-right {
+  to {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+}
+
 .training-gif {
   width: min(90vw, 420px);
   height: auto;
@@ -554,6 +602,7 @@ td.numeric {
 }
 
 .stat-circle {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -564,6 +613,42 @@ td.numeric {
   border: 3px solid var(--primary);
   padding: 0.25rem;
   cursor: default;
+}
+
+.stat-circle.stat-circle-timer {
+  border: none;
+}
+
+.timer-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 6;
+}
+
+.timer-ring-progress {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear, stroke 1s linear;
+}
+
+.stat-circle-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .stat-circle-danger {

@@ -320,6 +320,7 @@ async def start_rest_timer(
     )
     if workout is not None:
         workout.rest_until = datetime.now() + timedelta(seconds=seconds)
+        workout.rest_total_seconds = seconds
         db.commit()
 
     return Response(status_code=204)

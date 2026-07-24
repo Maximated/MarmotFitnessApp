@@ -196,14 +196,23 @@ async def log_exercise_form(
                 .all()
             )
             index = None
+            partner_index = None
             for i, day_exercise in enumerate(day_exercises):
                 if day_exercise.id == block_exercise.id:
                     index = i
-                    break
+                if superset_partner is not None and day_exercise.id == superset_partner.id:
+                    partner_index = i
+
+            superset_done = (
+                superset_partner is not None
+                and block.num_sets is not None
+                and sets_completed_today >= block.num_sets
+                and partner_sets_completed_today >= block.num_sets
+            )
 
             auto_advance_url = None
             prompt_finish = False
-            if superset_partner is not None:
+            if superset_partner is not None and not superset_done:
                 auto_advance_url = build_nav_url(superset_partner)
             elif block_exercise.modo_registro == "tiempo":
                 if index is not None:
@@ -211,9 +220,10 @@ async def log_exercise_form(
                         auto_advance_url = build_nav_url(day_exercises[index + 1])
                     else:
                         prompt_finish = True
-            elif block.num_sets and sets_completed_today >= block.num_sets and index is not None:
-                if index < len(day_exercises) - 1:
-                    auto_advance_url = build_nav_url(day_exercises[index + 1])
+            elif superset_done or (block.num_sets and sets_completed_today >= block.num_sets and index is not None):
+                exit_index = max(index, partner_index) if partner_index is not None else index
+                if exit_index < len(day_exercises) - 1:
+                    auto_advance_url = build_nav_url(day_exercises[exit_index + 1])
                 else:
                     prompt_finish = True
             training["auto_advance_url"] = auto_advance_url
@@ -287,9 +297,11 @@ async def log_exercise_submit(
         block_exercise = db.get(BlockExercise, block_exercise_id)
         if block_exercise is not None and block_exercise.modo_registro == "tiempo":
             workout.rest_until = None
+            workout.rest_total_seconds = None
         elif block_exercise is not None and not block_exercise.is_superset_with_next:
             block = db.get(Block, block_exercise.block_id)
             workout.rest_until = now + timedelta(seconds=block.rest_seconds)
+            workout.rest_total_seconds = block.rest_seconds
 
     db.add(
         WorkoutSet(
