@@ -1,14 +1,13 @@
 services:
   db:
     image: postgres:16
+    restart: unless-stopped
     environment:
       POSTGRES_USER: marmot
       POSTGRES_PASSWORD: marmot
       POSTGRES_DB: marmot
     volumes:
       - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U marmot -d marmot"]
       interval: 5s
@@ -17,6 +16,7 @@ services:
 
   web:
     build: .
+    restart: unless-stopped
     env_file: .env
     depends_on:
       db:

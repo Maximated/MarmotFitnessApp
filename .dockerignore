@@ -1,0 +1,8 @@
+.git
+.env
+.env.example
+__pycache__/
+*.pyc
+.venv/
+/media/
+/data/exercises-dataset-src/
