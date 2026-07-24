@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_calendar_table.html" import calendar_table %}
 
 {% block full_width %}
   {% if user and active_program %}
@@ -47,32 +48,7 @@
 
       <h2>Horario de entrenamiento</h2>
       <p>{{ calendar_month_name }}</p>
-      <table class="calendar-table">
-        <thead>
-          <tr>
-            <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for week in calendar_weeks %}
-            <tr>
-              {% for day in week %}
-                {% if day %}
-                  <td class="{% if day.status == 'done' %}cal-done{% elif day.status == 'due' %}cal-due{% endif %}">
-                    {% if day.status == 'done' %}
-                      <a href="/programs/{{ active_program.id }}/sessions/{{ day.date.isoformat() }}"><span>{{ day.date.day }}</span></a>
-                    {% else %}
-                      <span>{{ day.date.day }}</span>
-                    {% endif %}
-                  </td>
-                {% else %}
-                  <td></td>
-                {% endif %}
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      {{ calendar_table(calendar_weeks, active_program.id) }}
 
     {% else %}
       <p>No tienes ningún programa activo.</p>

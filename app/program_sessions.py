@@ -385,11 +385,15 @@ def build_calendar_weeks(db: Session, program, year: int, month: int):
         .all()
     }
 
-    is_due_today = (
-        program.next_due_date is not None
-        and program.next_due_date <= today
-        and today not in completed_dates
-    )
+    due_dates = set()
+    if program.next_due_date is not None:
+        is_overdue = program.next_due_date <= today and today not in completed_dates
+        anchor = today if is_overdue else program.next_due_date
+        candidate = anchor
+        while candidate <= last_day:
+            if candidate >= first_day and candidate not in completed_dates:
+                due_dates.add(candidate)
+            candidate += timedelta(days=SCHEDULE_INTERVAL_DAYS)
 
     weeks = []
     cal = calendar.Calendar(firstweekday=0)
@@ -401,7 +405,7 @@ def build_calendar_weeks(db: Session, program, year: int, month: int):
             status = None
             if day in completed_dates:
                 status = "done"
-            elif day == today and is_due_today:
+            elif day in due_dates:
                 status = "due"
             week.append({"date": day, "status": status})
         if len(week) == 7:
@@ -453,42 +457,6 @@ async def program_calendar(
             "prev_month": prev_month.month,
             "next_year": next_month.year,
             "next_month": next_month.month,
-        },
-    )
-
-
-@router.get("/programs/{program_id}/sessions/{session_date}")
-async def session_options(
-    program_id: int,
-    session_date: date,
-    request: Request,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user),
-):
-    program = get_own_program(db, program_id, user.id)
-
-    workout = (
-        db.query(Workout)
-        .filter(
-            Workout.user_id == user.id,
-            Workout.date == session_date,
-            Workout.program_id == program.id,
-        )
-        .first()
-    )
-    if workout is None:
-        raise HTTPException(status_code=404)
-
-    day_template = db.get(DayTemplate, workout.day_template_id)
-
-    return templates.TemplateResponse(
-        request=request,
-        name="programs/session_options.html",
-        context={
-            "program": program,
-            "session_date": session_date,
-            "day_template": day_template,
-            "finished": workout.finished_at is not None,
         },
     )
 
