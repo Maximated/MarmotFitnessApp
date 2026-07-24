@@ -22,6 +22,12 @@
         <a href="/history">Historial</a>
         <a href="/programs">Programas</a>
         <a href="/calendar">Calendario</a>
+        <a href="/exercises/search" class="nav-search-icon" aria-label="Buscar ejercicios">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </a>
       </nav>
       {% if active_session_started_at or (active_session_rest_until and not suppress_header_timer) %}
         <div class="global-timer-group">

@@ -1,0 +1,18 @@
+{% from "exercises/_star_rating_macro.html" import star_rating %}
+
+{% macro exercise_row_large(exercise, rating, next_url) %}
+  <li class="exercise-row-large">
+    <div class="exercise-row-large-media">
+      <a href="/exercises/{{ exercise.id }}/view?next={{ next_url | urlencode }}">
+        <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="exercise-row-large-gif" />
+      </a>
+      {{ star_rating(exercise.id, rating, next_url, "sm") }}
+    </div>
+    <div class="exercise-row-large-info">
+      <h3 class="exercise-row-large-title">
+        <a href="/exercises/{{ exercise.id }}/view?next={{ next_url | urlencode }}">{{ exercise.name }}</a>
+      </h3>
+      <p class="exercise-row-large-desc">{{ exercise.muscle_description }}</p>
+    </div>
+  </li>
+{% endmacro %}

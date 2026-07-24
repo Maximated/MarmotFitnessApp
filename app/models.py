@@ -41,6 +41,7 @@ class Exercise(Base):
     equipment: Mapped[str] = mapped_column(String)
     gif_url: Mapped[str] = mapped_column(String)
     instructions: Mapped[str] = mapped_column(Text)
+    muscle_description: Mapped[str | None] = mapped_column(Text)
 
 
 class Workout(Base):

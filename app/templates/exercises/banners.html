@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Ejercicios</h1>
+
+  <ul class="muscle-banner-grid">
+    {% for muscle in muscles %}
+      <li>
+        <a href="/exercises/muscle/{{ muscle | urlencode }}" class="muscle-banner">
+          <span class="muscle-banner-name">{{ muscle }}</span>
+          <span class="muscle-banner-count">{{ counts[muscle] }} ejercicios</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

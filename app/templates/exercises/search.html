@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "exercises/_exercise_row_large.html" import exercise_row_large %}
+
+{% block content %}
+  <h1>Buscar ejercicios</h1>
+
+  <form method="get" action="/exercises/search">
+    <input type="text" name="q" placeholder="Nombre del ejercicio" value="{{ q }}" autofocus />
+    <button type="submit">Buscar</button>
+  </form>
+
+  {% if q %}
+    <ul class="exercise-row-large-list">
+      {% for exercise in exercises %}
+        {{ exercise_row_large(exercise, ratings.get(exercise.id), current_url) }}
+      {% else %}
+        <li>No se encontraron ejercicios.</li>
+      {% endfor %}
+    </ul>
+
+    <p class="pagination">
+      {% if page > 1 %}
+        <a href="/exercises/search?q={{ q | urlencode }}&page={{ page - 1 }}">« Anterior</a>
+      {% endif %}
+      Página {{ page }} de {{ total_pages }}
+      {% if page < total_pages %}
+        <a href="/exercises/search?q={{ q | urlencode }}&page={{ page + 1 }}">Siguiente »</a>
+      {% endif %}
+    </p>
+  {% endif %}
+{% endblock %}

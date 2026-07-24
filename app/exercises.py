@@ -1,7 +1,8 @@
 from math import ceil
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -14,67 +15,114 @@ from app.templates import templates
 router = APIRouter()
 
 PER_PAGE = 24
+PER_PAGE_LARGE = 10
 
 
 @router.get("/exercises")
-async def list_exercises(
+async def exercise_banners(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    counts = dict(
+        db.query(Exercise.target_muscle, func.count(Exercise.id))
+        .group_by(Exercise.target_muscle)
+        .all()
+    )
+    muscles = sorted(counts.keys())
+
+    return templates.TemplateResponse(
+        request=request,
+        name="exercises/banners.html",
+        context={"muscles": muscles, "counts": counts},
+    )
+
+
+@router.get("/exercises/search")
+async def exercise_search(
     request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     q: str | None = None,
-    category: str | None = None,
+    page: int = 1,
+):
+    exercises = []
+    total_pages = 1
+    if q:
+        query = db.query(Exercise).filter(Exercise.name.ilike(f"%{q}%"))
+        total = query.count()
+        total_pages = max(1, ceil(total / PER_PAGE_LARGE))
+        page = max(1, min(page, total_pages))
+        exercises = (
+            query.order_by(Exercise.name)
+            .offset((page - 1) * PER_PAGE_LARGE)
+            .limit(PER_PAGE_LARGE)
+            .all()
+        )
+
+    current_url = f"/exercises/search?{urlencode({'q': q or ''})}&page={page}"
+
+    return templates.TemplateResponse(
+        request=request,
+        name="exercises/search.html",
+        context={
+            "exercises": exercises,
+            "ratings": get_user_ratings_map(db, user.id, [e.id for e in exercises]),
+            "current_url": current_url,
+            "q": q or "",
+            "page": page,
+            "total_pages": total_pages,
+        },
+    )
+
+
+@router.get("/exercises/muscle/{target_muscle}")
+async def exercise_muscle_list(
+    target_muscle: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
     equipment: str | None = None,
     page: int = 1,
 ):
-    query = db.query(Exercise)
-    if q:
-        query = query.filter(Exercise.name.ilike(f"%{q}%"))
-    if category:
-        query = query.filter(Exercise.category == category)
+    query = db.query(Exercise).filter(Exercise.target_muscle == target_muscle)
     if equipment:
         query = query.filter(Exercise.equipment == equipment)
 
     total = query.count()
-    total_pages = max(1, ceil(total / PER_PAGE))
+    total_pages = max(1, ceil(total / PER_PAGE_LARGE))
     page = max(1, min(page, total_pages))
 
     exercises = (
         query.order_by(Exercise.name)
-        .offset((page - 1) * PER_PAGE)
-        .limit(PER_PAGE)
+        .offset((page - 1) * PER_PAGE_LARGE)
+        .limit(PER_PAGE_LARGE)
         .all()
     )
 
-    categories = [
-        row[0]
-        for row in db.query(Exercise.category).distinct().order_by(Exercise.category)
-    ]
     equipments = [
         row[0]
         for row in db.query(Exercise.equipment)
+        .filter(Exercise.target_muscle == target_muscle)
         .distinct()
         .order_by(Exercise.equipment)
     ]
 
-    filters = {
-        k: v
-        for k, v in {"q": q, "category": category, "equipment": equipment}.items()
-        if v
-    }
+    filters = {k: v for k, v in {"equipment": equipment}.items() if v}
     filters_qs = urlencode(filters)
-    current_list_url = f"/exercises?{filters_qs}{'&' if filters_qs else ''}page={page}"
+    base_path = f"/exercises/muscle/{quote(target_muscle)}"
+    current_url = f"{base_path}?{filters_qs}{'&' if filters_qs else ''}page={page}"
 
     return templates.TemplateResponse(
         request=request,
-        name="exercises/list.html",
+        name="exercises/muscle_list.html",
         context={
+            "target_muscle": target_muscle,
+            "base_path": base_path,
             "exercises": exercises,
             "ratings": get_user_ratings_map(db, user.id, [e.id for e in exercises]),
-            "current_list_url": current_list_url,
-            "categories": categories,
+            "current_url": current_url,
             "equipments": equipments,
-            "q": q or "",
-            "category": category or "",
             "equipment": equipment or "",
             "page": page,
             "total_pages": total_pages,

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "exercises/_exercise_row_large.html" import exercise_row_large %}
+
+{% block content %}
+  <p><a href="/exercises">« Volver a categorías</a></p>
+
+  <h1>{{ target_muscle }}</h1>
+
+  <form method="get" action="{{ base_path }}">
+    <select name="equipment" onchange="this.form.submit()">
+      <option value="">Todo el equipo</option>
+      {% for e in equipments %}
+        <option value="{{ e }}" {% if e == equipment %}selected{% endif %}>{{ e }}</option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit">Filtrar</button></noscript>
+  </form>
+
+  <ul class="exercise-row-large-list">
+    {% for exercise in exercises %}
+      {{ exercise_row_large(exercise, ratings.get(exercise.id), current_url) }}
+    {% else %}
+      <li>No hay ejercicios con ese filtro.</li>
+    {% endfor %}
+  </ul>
+
+  <p class="pagination">
+    {% if page > 1 %}
+      <a href="{{ base_path }}?{{ filters_qs }}{{ '&' if filters_qs }}page={{ page - 1 }}">« Anterior</a>
+    {% endif %}
+    Página {{ page }} de {{ total_pages }}
+    {% if page < total_pages %}
+      <a href="{{ base_path }}?{{ filters_qs }}{{ '&' if filters_qs }}page={{ page + 1 }}">Siguiente »</a>
+    {% endif %}
+  </p>
+{% endblock %}
