@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Programa importado: {{ program.name }}</h1>
+  <p><a href="/programs/{{ program.id }}">Ver programa »</a></p>
+
+  <h2>Resumen del emparejamiento</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Por id de catálogo</th><td class="numeric">{{ counts.id }}</td></tr>
+      <tr><th>Por alias ya confirmado</th><td class="numeric">{{ counts.alias }}</td></tr>
+      <tr><th>Por nombre exacto</th><td class="numeric">{{ counts.name }}</td></tr>
+      <tr><th>Por similitud (fuzzy)</th><td class="numeric">{{ counts.fuzzy }}</td></tr>
+      <tr><th>Pendientes de confirmar</th><td class="numeric">{{ counts.pending }}</td></tr>
+    </table>
+  </div>
+
+  {% if pending_list %}
+    <h2>Pendientes de resolver</h2>
+    <ul>
+      {% for pending in pending_list %}
+        <li>{{ pending.name }} — <a href="/block-exercises/{{ pending.id }}/resolve">Resolver</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <h2>Detalle</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Jornada</th><th>Ejercicio</th><th>Método</th><th>Similitud</th></tr>
+      {% for row in detail_rows %}
+        <tr>
+          <td>{{ row.jornada }}</td>
+          <td>{{ row.nombre }}</td>
+          <td>{{ row.method }}</td>
+          <td>{{ row.score ~ "%" if row.score is not none else "-" }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}

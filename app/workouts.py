@@ -109,6 +109,7 @@ async def log_exercise_form(
         )
         if block_exercise is not None:
             block = db.get(Block, block_exercise.block_id)
+            day_template = db.get(DayTemplate, block.day_template_id)
             today = date_type.today()
             todays_workout = (
                 db.query(Workout)
@@ -154,13 +155,17 @@ async def log_exercise_form(
                     superset_partner = prev_in_block
 
             training = {
-                "reps_target": block_exercise.reps,
+                "modo_registro": block_exercise.modo_registro,
+                "reps_min": block_exercise.reps_min,
+                "reps_max": block_exercise.reps_max,
+                "duracion_segundos": block_exercise.duracion_segundos,
                 "weight_target": block_exercise.target_weight,
                 "rest_seconds": block.rest_seconds,
                 "no_rest": block_exercise.is_superset_with_next,
                 "sets_completed": sets_completed_today,
                 "sets_target": block.num_sets,
-                "superset_partner_url": build_nav_url(superset_partner) if superset_partner is not None else None,
+                "is_warmup": block.type == "Calentamiento",
+                "program_id": day_template.program_id,
             }
 
             day_exercises = (
@@ -175,6 +180,25 @@ async def log_exercise_form(
                 if day_exercise.id == block_exercise.id:
                     index = i
                     break
+
+            auto_advance_url = None
+            prompt_finish = False
+            if superset_partner is not None:
+                auto_advance_url = build_nav_url(superset_partner)
+            elif block_exercise.modo_registro == "tiempo":
+                if index is not None:
+                    if index < len(day_exercises) - 1:
+                        auto_advance_url = build_nav_url(day_exercises[index + 1])
+                    else:
+                        prompt_finish = True
+            elif block.num_sets and sets_completed_today >= block.num_sets and index is not None:
+                if index < len(day_exercises) - 1:
+                    auto_advance_url = build_nav_url(day_exercises[index + 1])
+                else:
+                    prompt_finish = True
+            training["auto_advance_url"] = auto_advance_url
+            training["prompt_finish"] = prompt_finish
+
             if index is not None:
                 if index > 0:
                     prev_url = build_nav_url(day_exercises[index - 1])
@@ -202,6 +226,7 @@ async def log_exercise_form(
         "prev_url": prev_url,
         "next_exercise_url": next_exercise_url,
         "logged": logged,
+        "suppress_header_timer": training is not None,
     }
     context.update(history)
     return templates.TemplateResponse(
@@ -217,20 +242,32 @@ async def log_exercise_submit(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     weight: str = Form(""),
-    reps: int = Form(...),
+    reps: int | None = Form(None),
+    duration_seconds: int | None = Form(None),
     workout_date: date_type | None = Form(None, alias="date"),
     set_time: time_type | None = Form(None, alias="time"),
     comment: str | None = Form(None),
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
 ):
+    if reps is None and duration_seconds is None:
+        raise HTTPException(status_code=400, detail="Indica repeticiones o duración.")
+
     now = datetime.now()
     workout = get_or_create_workout(db, user.id, workout_date or now.date())
+    if workout.started_at is None:
+        workout.started_at = now
     set_time = set_time or now.time().replace(microsecond=0)
 
     next_order = (
         db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).count() + 1
     )
+
+    if block_exercise_id is not None:
+        block_exercise = db.get(BlockExercise, block_exercise_id)
+        if block_exercise is not None and block_exercise.modo_registro != "tiempo" and not block_exercise.is_superset_with_next:
+            block = db.get(Block, block_exercise.block_id)
+            workout.rest_until = now + timedelta(seconds=block.rest_seconds)
 
     db.add(
         WorkoutSet(
@@ -238,6 +275,7 @@ async def log_exercise_submit(
             exercise_id=exercise_id,
             weight=parse_optional_weight(weight),
             reps=reps,
+            duration_seconds=duration_seconds,
             time=set_time,
             comment=comment or None,
             order=next_order,
@@ -286,12 +324,16 @@ async def edit_workout_set_submit(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     weight: str = Form(""),
-    reps: int = Form(...),
+    reps: int | None = Form(None),
+    duration_seconds: int | None = Form(None),
     workout_date: date_type = Form(..., alias="date"),
     set_time: time_type = Form(..., alias="time"),
     comment: str | None = Form(None),
     next: str = Form(...),
 ):
+    if reps is None and duration_seconds is None:
+        raise HTTPException(status_code=400, detail="Indica repeticiones o duración.")
+
     workout_set = get_own_workout_set(db, set_id, user.id)
     workout = db.get(Workout, workout_set.workout_id)
 
@@ -309,6 +351,7 @@ async def edit_workout_set_submit(
 
     workout_set.weight = parse_optional_weight(weight)
     workout_set.reps = reps
+    workout_set.duration_seconds = duration_seconds
     workout_set.time = set_time
     workout_set.comment = comment or None
     db.flush()

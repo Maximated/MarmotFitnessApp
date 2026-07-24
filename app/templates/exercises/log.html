@@ -19,36 +19,80 @@
       <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
       <h1>{{ exercise.name }}</h1>
       <div class="training-stats">
-        <div class="stat-circle" id="reps-target-circle" data-reps="{{ training.reps_target or '' }}" data-weight="{{ training.weight_target or '' }}">
-          <span class="stat-value">{{ training.reps_target or "-" }}</span>
-          <span class="stat-label">Repeticiones necesarias</span>
-          {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
-        </div>
-        {% if training.no_rest %}
-          <div class="stat-circle stat-circle-danger">
-            <span class="stat-value">Superserie</span>
-            <span class="stat-label">Sin descanso</span>
-          </div>
+        {% if training.modo_registro == "tiempo" %}
+          {% if active_session_rest_until %}
+            <div class="stat-circle stat-circle-danger" id="duration-target-circle" data-rest-until="{{ active_session_rest_until }}">
+              <span class="rest-icon" id="duration-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </span>
+              <span class="stat-value" id="duration-value">--:--</span>
+              <span class="stat-label">Duración objetivo</span>
+              {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
+            </div>
+          {% else %}
+            <div class="stat-circle stat-circle-danger" id="duration-target-circle" data-duration-seconds="{{ training.duracion_segundos or 0 }}">
+              <span class="rest-icon" id="duration-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </span>
+              <span class="stat-value" id="duration-value">{{ training.duracion_segundos or 0 }}s</span>
+              <span class="stat-label">Duración objetivo</span>
+              {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
+            </div>
+          {% endif %}
         {% else %}
-          <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-seconds="{{ training.rest_seconds }}">
-            <span class="rest-icon" id="rest-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <div class="stat-circle" id="reps-target-circle" data-reps="{{ training.reps_max or '' }}" data-weight="{{ training.weight_target or '' }}">
+            <span class="stat-value">
+              {% if training.reps_min and training.reps_max and training.reps_min != training.reps_max %}
+                {{ training.reps_min }}-{{ training.reps_max }}
+              {% else %}
+                {{ training.reps_max or training.reps_min or "-" }}
+              {% endif %}
             </span>
-            <span class="stat-value" id="rest-value">{{ training.rest_seconds }}s</span>
-            <span class="stat-label">Descanso</span>
+            <span class="stat-label">Repeticiones necesarias</span>
+            {% if training.weight_target %}<span class="stat-label">{{ training.weight_target }} kg</span>{% endif %}
           </div>
         {% endif %}
-        <div class="stat-circle">
-          <span class="stat-value">{{ training.sets_completed }}/{{ training.sets_target or "-" }}</span>
-          <span class="stat-label">Series completadas</span>
-        </div>
+        {% if training.modo_registro != "tiempo" %}
+          {% if active_session_rest_until %}
+            <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-until="{{ active_session_rest_until }}">
+              <span class="rest-icon" id="rest-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </span>
+              <span class="stat-value" id="rest-value">--:--</span>
+              <span class="stat-label">Descanso</span>
+            </div>
+          {% elif training.no_rest %}
+            <div class="stat-circle stat-circle-danger">
+              <span class="stat-value">Superserie</span>
+              <span class="stat-label">Sin descanso</span>
+            </div>
+          {% else %}
+            <div class="stat-circle stat-circle-danger" id="rest-circle" data-rest-seconds="{{ training.rest_seconds }}">
+              <span class="rest-icon" id="rest-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </span>
+              <span class="stat-value" id="rest-value">{{ training.rest_seconds }}s</span>
+              <span class="stat-label">Descanso</span>
+            </div>
+          {% endif %}
+        {% endif %}
+        {% if training.modo_registro != "tiempo" %}
+          <div class="stat-circle">
+            <span class="stat-value">{{ training.sets_completed }}/{{ training.sets_target or "-" }}</span>
+            <span class="stat-label">Series completadas</span>
+          </div>
+        {% endif %}
       </div>
     </div>
 
-    <form method="post" action="/exercises/{{ exercise.id }}/log" class="training-log-form">
+    <form method="post" action="/exercises/{{ exercise.id }}/log" class="training-log-form" data-preserve-scroll>
       <div class="training-inputs">
         <input type="number" step="0.5" name="weight" id="weight-input" placeholder="Kilogramos" class="training-input" />
-        <input type="number" name="reps" id="reps-input" value="{{ training.reps_target or '' }}" placeholder="Repeticiones" required class="training-input" />
+        {% if training.modo_registro == "tiempo" %}
+          <input type="number" name="duration_seconds" id="duration-input" placeholder="Segundos" required class="training-input" />
+        {% else %}
+          <input type="number" name="reps" id="reps-input" value="{{ training.reps_max or training.reps_min or '' }}" placeholder="Repeticiones" required class="training-input" />
+        {% endif %}
         <button type="submit" class="btn-add" aria-label="Añadir serie">+</button>
       </div>
       <label>Notas <textarea name="comment"></textarea></label>
@@ -56,38 +100,47 @@
       {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
     </form>
 
-    <script>
-      (function () {
-        const repsCircle = document.getElementById("reps-target-circle");
-        const repsInput = document.getElementById("reps-input");
-        const weightInput = document.getElementById("weight-input");
-        if (repsCircle.dataset.reps) {
-          repsCircle.addEventListener("click", () => {
-            repsInput.value = repsCircle.dataset.reps;
-            if (repsCircle.dataset.weight) {
-              weightInput.value = repsCircle.dataset.weight;
-            }
-          });
-        }
-      })();
-    </script>
-
-    {% if logged and training.superset_partner_url %}
+    {% if training.modo_registro != "tiempo" %}
       <script>
         (function () {
-          const partnerUrl = {{ training.superset_partner_url | tojson }};
-          setTimeout(() => { window.location = partnerUrl; }, 1000);
+          const repsCircle = document.getElementById("reps-target-circle");
+          const repsInput = document.getElementById("reps-input");
+          const weightInput = document.getElementById("weight-input");
+          if (repsCircle.dataset.reps) {
+            repsCircle.addEventListener("click", () => {
+              repsInput.value = repsCircle.dataset.reps;
+              if (repsCircle.dataset.weight) {
+                weightInput.value = repsCircle.dataset.weight;
+              }
+            });
+          }
         })();
       </script>
     {% endif %}
 
-    {% if not training.no_rest %}
+    {% if logged and training.auto_advance_url %}
       <script>
         (function () {
-          const circle = document.getElementById("rest-circle");
-          const valueEl = document.getElementById("rest-value");
-          const iconEl = document.getElementById("rest-icon");
-          const totalSeconds = parseInt(circle.dataset.restSeconds, 10);
+          const nextUrl = {{ training.auto_advance_url | tojson }};
+          setTimeout(() => { window.location = nextUrl; }, 2000);
+        })();
+      </script>
+    {% elif logged and training.prompt_finish %}
+      <script>
+        (function () {
+          setTimeout(() => {
+            if (confirm("¿Quieres finalizar el entrenamiento?")) {
+              fetch("/programs/{{ training.program_id }}/today/finish", { method: "POST" })
+                .then(() => { window.location = "/programs/{{ training.program_id }}/today"; })
+                .catch(() => {});
+            }
+          }, 2000);
+        })();
+      </script>
+    {% endif %}
+
+    <script>
+        function createCountdownTimer({ circle, valueEl, iconEl, totalSeconds, autoStart, notifyText, onSettle, onStart }) {
           let remaining = totalSeconds;
           let intervalId = null;
           let clickTimer = null;
@@ -95,8 +148,14 @@
           const PLAY_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
           const PAUSE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
 
+          function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+          }
+
           function render() {
-            valueEl.textContent = remaining + "s";
+            valueEl.textContent = formatTime(remaining);
           }
 
           function tick() {
@@ -106,8 +165,9 @@
               intervalId = null;
               valueEl.textContent = "¡Listo!";
               iconEl.innerHTML = PLAY_ICON;
-              if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("Descanso terminado");
+              if (onSettle) onSettle(totalSeconds);
+              if (notifyText && "Notification" in window && Notification.permission === "granted") {
+                new Notification(notifyText);
               }
               return;
             }
@@ -121,6 +181,7 @@
             }
             intervalId = setInterval(tick, 1000);
             iconEl.innerHTML = PAUSE_ICON;
+            if (onStart) onStart();
           }
 
           function pause() {
@@ -131,6 +192,7 @@
           }
 
           function stop() {
+            const elapsed = totalSeconds - remaining;
             if (intervalId !== null) {
               clearInterval(intervalId);
               intervalId = null;
@@ -138,6 +200,7 @@
             remaining = totalSeconds;
             render();
             iconEl.innerHTML = PLAY_ICON;
+            if (onSettle) onSettle(elapsed);
           }
 
           circle.addEventListener("click", () => {
@@ -157,9 +220,84 @@
             }, 300);
           });
 
-          {% if logged %}
-            start();
-          {% endif %}
+          render();
+          if (autoStart) start();
+
+          return { start, pause, stop, getRemaining: () => remaining };
+        }
+      </script>
+
+    {% if training.modo_registro != "tiempo" and active_session_rest_until %}
+      <script>
+        (function () {
+          const circle = document.getElementById("rest-circle");
+          const restUntil = new Date({{ active_session_rest_until | tojson }}).getTime();
+          const remaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
+          window.__restTimer = createCountdownTimer({
+            circle: circle,
+            valueEl: document.getElementById("rest-value"),
+            iconEl: document.getElementById("rest-icon"),
+            totalSeconds: remaining,
+            autoStart: true,
+            notifyText: "Descanso terminado",
+          });
+        })();
+      </script>
+    {% elif training.modo_registro != "tiempo" and not training.no_rest %}
+      <script>
+        (function () {
+          const circle = document.getElementById("rest-circle");
+          window.__restTimer = createCountdownTimer({
+            circle: circle,
+            valueEl: document.getElementById("rest-value"),
+            iconEl: document.getElementById("rest-icon"),
+            totalSeconds: parseInt(circle.dataset.restSeconds, 10),
+            autoStart: false,
+            notifyText: "Descanso terminado",
+          });
+        })();
+      </script>
+    {% endif %}
+
+    {% if training.modo_registro == "tiempo" and active_session_rest_until %}
+      <script>
+        (function () {
+          const circle = document.getElementById("duration-target-circle");
+          const durationInput = document.getElementById("duration-input");
+          const restUntil = new Date({{ active_session_rest_until | tojson }}).getTime();
+          const remaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
+          window.__restTimer = createCountdownTimer({
+            circle: circle,
+            valueEl: document.getElementById("duration-value"),
+            iconEl: document.getElementById("duration-icon"),
+            totalSeconds: remaining,
+            autoStart: true,
+            notifyText: "Ejercicio completado",
+            onSettle: (elapsedSeconds) => { durationInput.value = elapsedSeconds; },
+          });
+        })();
+      </script>
+    {% elif training.modo_registro == "tiempo" %}
+      <script>
+        (function () {
+          const circle = document.getElementById("duration-target-circle");
+          const durationInput = document.getElementById("duration-input");
+          window.__restTimer = createCountdownTimer({
+            circle: circle,
+            valueEl: document.getElementById("duration-value"),
+            iconEl: document.getElementById("duration-icon"),
+            totalSeconds: parseInt(circle.dataset.durationSeconds, 10),
+            autoStart: false,
+            notifyText: "Ejercicio completado",
+            onSettle: (elapsedSeconds) => { durationInput.value = elapsedSeconds; },
+            onStart: () => {
+              const seconds = parseInt(circle.dataset.durationSeconds, 10);
+              fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds, { method: "POST" }).catch(() => {});
+              {% if training.is_warmup %}
+              fetch("/programs/{{ training.program_id }}/today/mark-started", { method: "POST" }).catch(() => {});
+              {% endif %}
+            },
+          });
         })();
       </script>
     {% endif %}
@@ -203,9 +341,9 @@
     <h1>{{ exercise.name }}</h1>
     <p>{{ exercise.category }} · {{ exercise.target_muscle }} · {{ exercise.equipment }}</p>
 
-    <form method="post" action="/exercises/{{ exercise.id }}/log">
-      <label>Peso (kg) <input type="number" step="0.5" name="weight" /></label>
-      <label>Repeticiones <input type="number" name="reps" required /></label>
+    <form method="post" action="/exercises/{{ exercise.id }}/log" data-preserve-scroll>
+      <label>Peso (kg) <input type="number" step="0.5" name="weight" id="weight-input" /></label>
+      <label>Repeticiones <input type="number" name="reps" id="reps-input" required /></label>
       <label>Fecha <input type="date" name="date" value="{{ today }}" required /></label>
       <label>Hora <input type="time" name="time" value="{{ now_time }}" required /></label>
       <label>Notas <textarea name="comment"></textarea></label>
@@ -214,4 +352,38 @@
   {% endif %}
 
   {% include "exercises/_history.html" %}
+
+  <script>
+    (function () {
+      document.querySelectorAll("form[data-preserve-scroll]").forEach((form) => {
+        form.addEventListener("submit", () => {
+          sessionStorage.setItem("exerciseLogScrollY", String(window.scrollY));
+        });
+      });
+
+      const savedScrollY = sessionStorage.getItem("exerciseLogScrollY");
+      if (savedScrollY !== null) {
+        sessionStorage.removeItem("exerciseLogScrollY");
+        window.addEventListener("load", () => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        });
+      }
+    })();
+  </script>
+
+  <script>
+    (function () {
+      document.querySelectorAll(".history-row").forEach((row) => {
+        row.addEventListener("click", (event) => {
+          if (event.target.closest(".actions")) return;
+          const weightInput = document.getElementById("weight-input");
+          if (weightInput && row.dataset.weight) weightInput.value = row.dataset.weight;
+          const repsInput = document.getElementById("reps-input");
+          if (repsInput && row.dataset.reps) repsInput.value = row.dataset.reps;
+          const durationInput = document.getElementById("duration-input");
+          if (durationInput && row.dataset.duration) durationInput.value = row.dataset.duration;
+        });
+      });
+    })();
+  </script>
 {% endblock %}

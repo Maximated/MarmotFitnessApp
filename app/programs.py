@@ -301,7 +301,9 @@ async def paste_day(
                     block_id=new_block.id,
                     exercise_id=source_exercise.exercise_id,
                     position=source_exercise.position,
-                    reps=source_exercise.reps,
+                    reps_min=source_exercise.reps_min,
+                    reps_max=source_exercise.reps_max,
+                    target_weight=source_exercise.target_weight,
                     is_superset_with_next=source_exercise.is_superset_with_next,
                 )
             )

@@ -16,17 +16,66 @@
       <nav class="nav">
         <a href="/" class="brand">
           <img src="/static/icons/icon-512.png" alt="Marmot" class="logo" />
-          Marmot
+          Inicio
         </a>
         <a href="/exercises">Ejercicios</a>
         <a href="/history">Historial</a>
         <a href="/programs">Programas</a>
       </nav>
+      {% if active_session_started_at or (active_session_rest_until and not suppress_header_timer) %}
+        <div class="global-timer-group">
+          {% if active_session_started_at %}
+            <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
+          {% endif %}
+          {% if active_session_rest_until and not suppress_header_timer %}
+            {% if active_session_started_at %}<span class="global-timer-sep">/</span>{% endif %}
+            <span id="global-rest-timer" class="global-timer" data-rest-until="{{ active_session_rest_until }}"></span>
+          {% endif %}
+        </div>
+      {% endif %}
     </header>
     {% block full_width %}{% endblock %}
     <main class="container">
       {% block content %}{% endblock %}
     </main>
     <script src="/static/js/app.js" defer></script>
+    {% if active_session_started_at %}
+      <script>
+        (function () {
+          const el = document.getElementById("global-session-timer");
+          const startedAt = new Date(el.dataset.startedAt).getTime();
+
+          function render() {
+            const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+            const h = Math.floor(elapsed / 3600);
+            const m = Math.floor((elapsed % 3600) / 60);
+            const s = elapsed % 60;
+            const pad = (n) => String(n).padStart(2, "0");
+            el.textContent = h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+          }
+
+          render();
+          setInterval(render, 1000);
+        })();
+      </script>
+    {% endif %}
+    {% if active_session_rest_until and not suppress_header_timer %}
+      <script>
+        (function () {
+          const el = document.getElementById("global-rest-timer");
+          const restUntil = new Date(el.dataset.restUntil).getTime();
+
+          function render() {
+            const remaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            el.textContent = String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+          }
+
+          render();
+          setInterval(render, 1000);
+        })();
+      </script>
+    {% endif %}
   </body>
 </html>

@@ -6,9 +6,28 @@
   <h1>{{ exercise.name }}</h1>
 
   <form method="post" action="/block-exercises/{{ block_exercise.id }}/edit">
-    <label>Repeticiones: <output id="reps-value">{{ block_exercise.reps or 10 }}</output>
-      <input type="range" name="reps" id="reps-slider" min="1" max="30" value="{{ block_exercise.reps or 10 }}" />
+    <label>Modo de registro
+      <select name="modo_registro" id="modo-registro-select">
+        <option value="series" {% if block_exercise.modo_registro != "tiempo" %}selected{% endif %}>Series</option>
+        <option value="tiempo" {% if block_exercise.modo_registro == "tiempo" %}selected{% endif %}>Tiempo</option>
+      </select>
     </label>
+
+    <div id="modo-series-fields">
+      <label>Repeticiones mínimas: <output id="reps-min-value">{{ block_exercise.reps_min or 8 }}</output>
+        <input type="range" name="reps_min" id="reps-min-slider" min="1" max="30" value="{{ block_exercise.reps_min or 8 }}" />
+      </label>
+      <label>Repeticiones máximas: <output id="reps-max-value">{{ block_exercise.reps_max or 10 }}</output>
+        <input type="range" name="reps_max" id="reps-max-slider" min="1" max="30" value="{{ block_exercise.reps_max or 10 }}" />
+      </label>
+    </div>
+
+    <div id="modo-tiempo-fields" class="hidden">
+      <label>Duración objetivo (segundos)
+        <input type="number" name="duracion_segundos" id="duracion-segundos-input" min="1" value="{{ block_exercise.duracion_segundos or '' }}" />
+      </label>
+    </div>
+
     <label>Peso objetivo (kg)
       <input type="number" step="0.5" name="target_weight" value="{{ block_exercise.target_weight or '' }}" />
     </label>
@@ -18,9 +37,22 @@
 
   <script>
     (function () {
-      const slider = document.getElementById("reps-slider");
-      const output = document.getElementById("reps-value");
-      slider.addEventListener("input", () => { output.textContent = slider.value; });
+      [["reps-min-slider", "reps-min-value"], ["reps-max-slider", "reps-max-value"]].forEach(([sliderId, outputId]) => {
+        const slider = document.getElementById(sliderId);
+        const output = document.getElementById(outputId);
+        slider.addEventListener("input", () => { output.textContent = slider.value; });
+      });
+
+      const modoSelect = document.getElementById("modo-registro-select");
+      const seriesFields = document.getElementById("modo-series-fields");
+      const tiempoFields = document.getElementById("modo-tiempo-fields");
+      const toggleModo = () => {
+        const isTiempo = modoSelect.value === "tiempo";
+        seriesFields.classList.toggle("hidden", isTiempo);
+        tiempoFields.classList.toggle("hidden", !isTiempo);
+      };
+      modoSelect.addEventListener("change", toggleModo);
+      toggleModo();
     })();
   </script>
 {% endblock %}

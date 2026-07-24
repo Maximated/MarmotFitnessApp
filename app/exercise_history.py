@@ -30,7 +30,8 @@ def build_exercise_history(db: Session, user_id: int, exercise_id: int) -> dict:
 
     chronological = list(reversed(sets))
     weights = [ws.weight for ws, _ in chronological if ws.weight is not None]
-    reps = [ws.reps for ws, _ in chronological]
+    reps = [ws.reps for ws, _ in chronological if ws.reps is not None]
+    durations = [ws.duration_seconds for ws, _ in chronological if ws.duration_seconds is not None]
 
     return {
         "day_groups": day_groups,
@@ -40,10 +41,16 @@ def build_exercise_history(db: Session, user_id: int, exercise_id: int) -> dict:
         "weight_line": polyline_points(scale_points(weights)),
         "weight_min": min(weights) if weights else None,
         "weight_max": max(weights) if weights else None,
+        "has_reps_progress": len(reps) >= 2,
         "reps_points": scale_points(reps),
         "reps_line": polyline_points(scale_points(reps)),
         "reps_min": min(reps) if reps else None,
         "reps_max": max(reps) if reps else None,
+        "has_duration_progress": len(durations) >= 2,
+        "duration_points": scale_points(durations),
+        "duration_line": polyline_points(scale_points(durations)),
+        "duration_min": min(durations) if durations else None,
+        "duration_max": max(durations) if durations else None,
         "progress_from": chronological[0][1].date if chronological else None,
         "progress_to": chronological[-1][1].date if chronological else None,
     }

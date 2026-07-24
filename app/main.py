@@ -16,6 +16,7 @@ from app.dependencies import get_current_user
 from app.exercises import router as exercises_router
 from app.history import router as history_router
 from app.models import DayTemplate, Program, User, Workout
+from app.program_import import router as program_import_router
 from app.program_sessions import build_calendar_weeks, get_next_two_sessions
 from app.program_sessions import router as program_sessions_router
 from app.programs import router as programs_router
@@ -33,6 +34,7 @@ app.include_router(auth_router)
 app.include_router(exercises_router)
 app.include_router(workouts_router)
 app.include_router(history_router)
+app.include_router(program_import_router)
 app.include_router(programs_router)
 app.include_router(blocks_router)
 app.include_router(block_exercises_router)

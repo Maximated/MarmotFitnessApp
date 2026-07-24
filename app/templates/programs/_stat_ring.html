@@ -1,0 +1,19 @@
+{% macro stat_ring(ring, label, caption="") %}
+  {% if ring %}
+    <div class="stat-ring">
+      <svg width="90" height="90" viewBox="0 0 90 90">
+        <circle cx="45" cy="45" r="38" fill="none" stroke="var(--border)" stroke-width="8" />
+        <circle
+          cx="45" cy="45" r="38" fill="none" stroke-width="8" stroke-linecap="round"
+          stroke="hsl({{ ring.hue }}, 70%, 45%)"
+          stroke-dasharray="{{ ring.circumference }}"
+          stroke-dashoffset="{{ ring.offset }}"
+          transform="rotate(-90 45 45)"
+        />
+        <text x="45" y="45" text-anchor="middle" dominant-baseline="central" font-size="18" fill="var(--text)">{{ ring.pct }}%</text>
+      </svg>
+      <span class="stat-ring-label">{{ label }}</span>
+      {% if caption %}<span class="stat-ring-caption">{{ caption }}</span>{% endif %}
+    </div>
+  {% endif %}
+{% endmacro %}

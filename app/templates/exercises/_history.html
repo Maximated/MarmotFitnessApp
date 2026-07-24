@@ -2,10 +2,17 @@
   {% for group in day_groups %}
     <h3 class="history-day-header">{{ group.header }}</h3>
     {% for number, workout_set in group.sets %}
-      <div class="history-row">
+      <div class="history-row"
+           data-weight="{{ workout_set.weight if workout_set.weight is not none else '' }}"
+           data-reps="{{ workout_set.reps if workout_set.reps is not none else '' }}"
+           data-duration="{{ workout_set.duration_seconds if workout_set.duration_seconds is not none else '' }}">
         <div class="history-row-main">
           <span class="history-number">#{{ number }}</span>
-          <span>{{ workout_set.weight if workout_set.weight is not none else "-" }} kg x {{ workout_set.reps }} reps</span>
+          {% if workout_set.duration_seconds is not none %}
+            <span>{% if workout_set.weight is not none %}{{ workout_set.weight }} kg · {% endif %}{{ workout_set.duration_seconds }}s</span>
+          {% else %}
+            <span>{{ workout_set.weight if workout_set.weight is not none else "-" }} kg x {{ workout_set.reps }} reps</span>
+          {% endif %}
           <span class="history-time">{{ workout_set.time.strftime("%H:%M") }}</span>
         </div>
         {% if workout_set.comment %}
@@ -40,11 +47,23 @@
       <p>Sin datos de peso para este ejercicio.</p>
     {% endif %}
 
-    <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
-    <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
-      <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ reps_line }}" />
-      {% for x, y in reps_points %}
-        <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
-      {% endfor %}
-    </svg>
+    {% if has_reps_progress %}
+      <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
+      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ reps_line }}" />
+        {% for x, y in reps_points %}
+          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
+        {% endfor %}
+      </svg>
+    {% endif %}
+
+    {% if has_duration_progress %}
+      <p>Duración (s) — mín {{ duration_min }}, máx {{ duration_max }}</p>
+      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ duration_line }}" />
+        {% for x, y in duration_points %}
+          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
+        {% endfor %}
+      </svg>
+    {% endif %}
   {% endif %}

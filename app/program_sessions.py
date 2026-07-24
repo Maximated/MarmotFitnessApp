@@ -1,11 +1,13 @@
 import calendar
+import math
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.block_exercises import group_by_superset
 from app.database import get_db
 from app.dependencies import require_user
 from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout, WorkoutSet
@@ -14,6 +16,101 @@ from app.templates import templates
 from app.workouts import SCHEDULE_INTERVAL_DAYS, get_or_create_workout, recompute_schedule
 
 router = APIRouter()
+
+
+RING_RADIUS = 38
+
+
+def ring_data(pct: float | None) -> dict | None:
+    if pct is None:
+        return None
+    circumference = 2 * math.pi * RING_RADIUS
+    clamped = max(0, min(pct, 100))
+    offset = circumference * (1 - clamped / 100)
+    return {
+        "pct": round(pct),
+        "circumference": round(circumference, 1),
+        "offset": round(offset, 1),
+        "hue": round(clamped * 1.2),
+    }
+
+
+def compute_session_stats(db: Session, workout: Workout, day_template_id: int) -> dict:
+    blocks = db.query(Block).filter(Block.day_template_id == day_template_id).all()
+    block_by_id = {block.id: block for block in blocks}
+    block_exercises = (
+        db.query(BlockExercise)
+        .filter(BlockExercise.block_id.in_(block_by_id.keys()), BlockExercise.exercise_id.isnot(None))
+        .all()
+    )
+
+    all_sets = db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).all()
+    sets_by_exercise: dict[int, list[WorkoutSet]] = {}
+    for workout_set in all_sets:
+        sets_by_exercise.setdefault(workout_set.exercise_id, []).append(workout_set)
+
+    weight_pcts = []
+    reps_pcts = []
+    warmup_planned = 0
+    warmup_actual = 0
+    exercises_total = 0
+    exercises_completed = 0
+
+    for block_exercise in block_exercises:
+        exercise_sets = sets_by_exercise.get(block_exercise.exercise_id, [])
+        block = block_by_id[block_exercise.block_id]
+
+        if block_exercise.target_weight:
+            weights = [s.weight for s in exercise_sets if s.weight is not None]
+            avg_weight = sum(weights) / len(weights) if weights else 0
+            weight_pcts.append(avg_weight / block_exercise.target_weight * 100)
+
+        if block_exercise.modo_registro == "tiempo":
+            if block_exercise.duracion_segundos:
+                durations = [s.duration_seconds for s in exercise_sets if s.duration_seconds is not None]
+                if block.type == "Calentamiento":
+                    warmup_planned += block_exercise.duracion_segundos
+                    warmup_actual += sum(durations)
+                exercises_total += 1
+                if durations and max(durations) >= block_exercise.duracion_segundos:
+                    exercises_completed += 1
+        elif block_exercise.reps_max:
+            reps = [s.reps for s in exercise_sets if s.reps is not None]
+            avg_reps = sum(reps) / len(reps) if reps else 0
+            reps_pcts.append(avg_reps / block_exercise.reps_max * 100)
+            if block.num_sets:
+                exercises_total += 1
+                if len(exercise_sets) >= block.num_sets:
+                    exercises_completed += 1
+
+    volume_kg = sum(
+        (s.weight or 0) * (s.reps or 0) for s in all_sets if s.weight is not None and s.reps is not None
+    )
+
+    session_minutes = None
+    times = [s.time for s in all_sets]
+    if len(times) >= 2:
+        earliest, latest = min(times), max(times)
+        delta = datetime.combine(date.today(), latest) - datetime.combine(date.today(), earliest)
+        session_minutes = round(delta.total_seconds() / 60)
+
+    weight_pct = sum(weight_pcts) / len(weight_pcts) if weight_pcts else None
+    reps_pct = sum(reps_pcts) / len(reps_pcts) if reps_pcts else None
+    warmup_pct = (warmup_actual / warmup_planned * 100) if warmup_planned else None
+    exercises_pct = (exercises_completed / exercises_total * 100) if exercises_total else None
+
+    return {
+        "weight_ring": ring_data(weight_pct),
+        "reps_ring": ring_data(reps_pct),
+        "warmup_ring": ring_data(warmup_pct),
+        "warmup_planned_seconds": warmup_planned,
+        "warmup_actual_seconds": warmup_actual,
+        "exercises_ring": ring_data(exercises_pct),
+        "exercises_completed": exercises_completed,
+        "exercises_total": exercises_total,
+        "volume_kg": round(volume_kg) if volume_kg else None,
+        "session_minutes": session_minutes,
+    }
 
 
 def get_day_content(db: Session, day_template_id: int):
@@ -27,7 +124,7 @@ def get_day_content(db: Session, day_template_id: int):
     for block in blocks:
         exercises_by_block[block.id] = (
             db.query(BlockExercise, Exercise)
-            .join(Exercise, BlockExercise.exercise_id == Exercise.id)
+            .outerjoin(Exercise, BlockExercise.exercise_id == Exercise.id)
             .filter(BlockExercise.block_id == block.id)
             .order_by(BlockExercise.position)
             .all()
@@ -82,6 +179,22 @@ async def program_today(
             .all()
         }
 
+        avg_duration_by_exercise = {
+            row[0]: row[1]
+            for row in db.query(WorkoutSet.exercise_id, func.avg(WorkoutSet.duration_seconds))
+            .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.duration_seconds.isnot(None))
+            .group_by(WorkoutSet.exercise_id)
+            .all()
+        }
+
+        exercise_groups_by_block = {
+            block_id: group_by_superset(attached)
+            for block_id, attached in exercises_by_block.items()
+        }
+
+        finished = todays_workout.finished_at is not None
+        stats = compute_session_stats(db, todays_workout, day_template.id) if finished else None
+
         return templates.TemplateResponse(
             request=request,
             name="programs/today.html",
@@ -90,10 +203,12 @@ async def program_today(
                 "state": "started",
                 "day_template": day_template,
                 "blocks": blocks,
-                "exercises_by_block": exercises_by_block,
+                "exercise_groups_by_block": exercise_groups_by_block,
                 "sets_completed_by_exercise": sets_completed_by_exercise,
                 "avg_weight_by_exercise": avg_weight_by_exercise,
-                "finished": todays_workout.finished_at is not None,
+                "avg_duration_by_exercise": avg_duration_by_exercise,
+                "finished": finished,
+                "stats": stats,
             },
         )
 
@@ -134,13 +249,7 @@ async def start_program(
     return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
 
 
-@router.post("/programs/{program_id}/today/start")
-async def start_today_session(
-    program_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user),
-):
-    program = get_own_program(db, program_id, user.id)
+def begin_today_session(db: Session, program, user_id: int) -> None:
     today = date.today()
 
     day_template = (
@@ -152,12 +261,83 @@ async def start_today_session(
         .first()
     )
 
-    workout = get_or_create_workout(db, user.id, today)
+    workout = get_or_create_workout(db, user_id, today)
     workout.program_id = program.id
     workout.day_template_id = day_template.id
 
     program.current_day_number = (program.current_day_number % program.cycle_days) + 1
     program.next_due_date = today + timedelta(days=SCHEDULE_INTERVAL_DAYS)
+
+
+@router.post("/programs/{program_id}/today/start")
+async def start_today_session(
+    program_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    program = get_own_program(db, program_id, user.id)
+    begin_today_session(db, program, user.id)
+    db.commit()
+
+    return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
+
+
+@router.post("/programs/{program_id}/today/mark-started")
+async def mark_today_started(
+    program_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    program = get_own_program(db, program_id, user.id)
+    today = date.today()
+
+    workout = (
+        db.query(Workout)
+        .filter(Workout.user_id == user.id, Workout.date == today, Workout.program_id == program.id)
+        .first()
+    )
+    if workout is not None and workout.started_at is None:
+        workout.started_at = datetime.now()
+        db.commit()
+
+    return Response(status_code=204)
+
+
+@router.post("/programs/{program_id}/today/start-rest")
+async def start_rest_timer(
+    program_id: int,
+    seconds: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    program = get_own_program(db, program_id, user.id)
+    today = date.today()
+
+    workout = (
+        db.query(Workout)
+        .filter(Workout.user_id == user.id, Workout.date == today, Workout.program_id == program.id)
+        .first()
+    )
+    if workout is not None:
+        workout.rest_until = datetime.now() + timedelta(seconds=seconds)
+        db.commit()
+
+    return Response(status_code=204)
+
+
+@router.post("/programs/{program_id}/begin")
+async def begin_program_now(
+    program_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    program = get_own_program(db, program_id, user.id)
+    if program.current_day_number is None:
+        program.current_day_number = 1
+        program.next_due_date = date.today()
+        db.flush()
+
+    begin_today_session(db, program, user.id)
     db.commit()
 
     return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)

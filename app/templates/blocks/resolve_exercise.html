@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p><a href="/blocks/{{ block_exercise.block_id }}/exercises">« Volver a ejercicios del bloque</a></p>
+
+  <h1>Resolver ejercicio pendiente</h1>
+  <p>El JSON importado traía «{{ block_exercise.pending_name }}», que no se pudo emparejar con confianza contra el catálogo.</p>
+
+  {% if suggested_exercise %}
+    <h2>Candidato más parecido ({{ suggested_score }}% de similitud)</h2>
+    <ul class="exercise-grid">
+      <li>
+        <img src="{{ suggested_exercise.gif_url }}" alt="{{ suggested_exercise.name }}" width="120" height="120" />
+        <p>{{ suggested_exercise.name }}</p>
+        <form method="post" action="/block-exercises/{{ block_exercise.id }}/resolve">
+          <input type="hidden" name="exercise_id" value="{{ suggested_exercise.id }}" />
+          <button type="submit">Confirmar este ejercicio</button>
+        </form>
+      </li>
+    </ul>
+  {% endif %}
+
+  <h2>Buscar otro ejercicio</h2>
+  <form method="get" action="/block-exercises/{{ block_exercise.id }}/resolve">
+    <label>Nombre <input type="text" name="q" placeholder="Buscar por nombre" value="{{ q }}" /></label>
+    <label>Categoría
+      <select name="category">
+        <option value="">Todas</option>
+        {% for c in categories %}
+          <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Equipo
+      <select name="equipment">
+        <option value="">Todos</option>
+        {% for e in equipments %}
+          <option value="{{ e }}" {% if e == equipment %}selected{% endif %}>{{ e }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Buscar</button>
+  </form>
+
+  {% if searched %}
+    <ul class="exercise-grid">
+      {% for exercise in results %}
+        <li>
+          <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="120" height="120" />
+          <p>{{ exercise.name }}</p>
+          <form method="post" action="/block-exercises/{{ block_exercise.id }}/resolve">
+            <input type="hidden" name="exercise_id" value="{{ exercise.id }}" />
+            <button type="submit">Elegir este ejercicio</button>
+          </form>
+        </li>
+      {% else %}
+        <li>No se encontraron ejercicios.</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

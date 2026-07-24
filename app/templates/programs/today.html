@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "programs/_stat_ring.html" import stat_ring %}
 
 {% block content %}
-  <p><a href="/programs/{{ program.id }}">« Volver a {{ program.name }}</a></p>
+  <p><a href="/">« Volver a inicio</a></p>
   <p><a href="/programs/{{ program.id }}/calendar">Ver calendario</a></p>
 
   <h1>{{ program.name }}</h1>
@@ -29,38 +30,73 @@
     </p>
     {% for block in blocks %}
       <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
+      {% if block.note %}
+        <p>{{ block.note }}</p>
+      {% else %}
       <ul class="exercise-row-list">
-        {% for block_exercise, exercise in exercises_by_block.get(block.id, []) %}
-          <li>
-            <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" class="exercise-row">
-              <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
-              <span>{{ exercise.name }}</span>
-              {% if block.num_sets or block_exercise.target_weight %}
-                <span class="exercise-row-progress-group">
-                  {% if block.num_sets %}
-                    {% set done = sets_completed_by_exercise.get(exercise.id, 0) %}
-                    {% set pct = (done / block.num_sets * 100) | round | int %}
-                    <span class="exercise-row-progress" style="color: hsl({{ ([pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ done }}/{{ block.num_sets }} {{ pct }}%</span>
+        {% for group in exercise_groups_by_block.get(block.id, []) %}
+          <li{% if group|length == 2 %} class="today-superset-group"{% endif %}>
+            {% for block_exercise, exercise in group %}
+              {% if exercise %}
+                <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" class="exercise-row">
+                  <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
+                  <span>{{ exercise.name }}</span>
+                  {% if block.num_sets or block_exercise.target_weight or (block_exercise.modo_registro == "tiempo" and block_exercise.duracion_segundos) %}
+                    <span class="exercise-row-progress-group">
+                      {% if block_exercise.modo_registro == "tiempo" %}
+                        {% if block_exercise.duracion_segundos %}
+                          {% set avg_duration = avg_duration_by_exercise.get(exercise.id, 0) %}
+                          {% set duration_pct = (avg_duration / block_exercise.duracion_segundos * 100) | round | int %}
+                          <span class="exercise-row-progress" style="color: hsl({{ ([duration_pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ duration_pct }}% tiempo</span>
+                        {% endif %}
+                      {% else %}
+                        {% if block.num_sets %}
+                          {% set done = sets_completed_by_exercise.get(exercise.id, 0) %}
+                          {% set pct = (done / block.num_sets * 100) | round | int %}
+                          <span class="exercise-row-progress" style="color: hsl({{ ([pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ done }}/{{ block.num_sets }} {{ pct }}%</span>
+                        {% endif %}
+                      {% endif %}
+                      {% if block_exercise.target_weight %}
+                        {% set avg_weight = avg_weight_by_exercise.get(exercise.id, 0) %}
+                        {% set weight_pct = (avg_weight / block_exercise.target_weight * 100) | round | int %}
+                        <span class="exercise-row-progress" style="color: hsl({{ ([weight_pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ weight_pct }}% peso</span>
+                      {% endif %}
+                    </span>
                   {% endif %}
-                  {% if block_exercise.target_weight %}
-                    {% set avg_weight = avg_weight_by_exercise.get(exercise.id, 0) %}
-                    {% set weight_pct = (avg_weight / block_exercise.target_weight * 100) | round | int %}
-                    <span class="exercise-row-progress" style="color: hsl({{ ([weight_pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ weight_pct }}% peso</span>
-                  {% endif %}
-                </span>
+                </a>
+              {% else %}
+                <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }} (<a href="/block-exercises/{{ block_exercise.id }}/resolve">resolver</a>)</span>
               {% endif %}
-            </a>
+              {% if not loop.last %}<div class="superset-connector"></div><span class="superset-label">⇅ Superserie</span>{% endif %}
+            {% endfor %}
           </li>
         {% else %}
           <li>Este bloque no tiene ejercicios todavía.</li>
         {% endfor %}
       </ul>
+      {% endif %}
     {% else %}
       <p>Este día no tiene bloques todavía.</p>
     {% endfor %}
 
     {% if finished %}
       <p>Entrenamiento finalizado. Puedes seguir revisando y editando tus series desde el histórico de cada ejercicio.</p>
+
+      {% if stats %}
+        <h2>Resumen del entrenamiento</h2>
+        <div class="stat-ring-group">
+          {{ stat_ring(stats.weight_ring, "Peso objetivo") }}
+          {{ stat_ring(stats.reps_ring, "Repeticiones") }}
+          {{ stat_ring(stats.warmup_ring, "Calentamiento", stats.warmup_actual_seconds ~ "/" ~ stats.warmup_planned_seconds ~ "s") }}
+          {{ stat_ring(stats.exercises_ring, "Ejercicios completos", stats.exercises_completed ~ "/" ~ stats.exercises_total) }}
+        </div>
+        {% if stats.volume_kg or stats.session_minutes %}
+          <ul>
+            {% if stats.volume_kg %}<li>Volumen total levantado: {{ stats.volume_kg }} kg</li>{% endif %}
+            {% if stats.session_minutes %}<li>Duración de la sesión: {{ stats.session_minutes }} min</li>{% endif %}
+          </ul>
+        {% endif %}
+      {% endif %}
     {% else %}
       <form method="post" action="/programs/{{ program.id }}/today/finish" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
         <button type="submit">Finalizar entrenamiento</button>

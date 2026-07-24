@@ -56,6 +56,8 @@ class Workout(Base):
     day_template_id: Mapped[int | None] = mapped_column(
         ForeignKey("day_templates.id", ondelete="SET NULL")
     )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    rest_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
@@ -70,7 +72,8 @@ class WorkoutSet(Base):
         ForeignKey("exercises.id"), index=True
     )
     weight: Mapped[float | None] = mapped_column(Float)
-    reps: Mapped[int] = mapped_column(Integer)
+    reps: Mapped[int | None] = mapped_column(Integer)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
     time: Mapped[time] = mapped_column(Time)
     comment: Mapped[str | None] = mapped_column(Text)
     order: Mapped[int] = mapped_column(Integer)
@@ -112,6 +115,7 @@ class Block(Base):
     type: Mapped[str] = mapped_column(String)
     muscle_group: Mapped[str | None] = mapped_column(String)
     variant: Mapped[str | None] = mapped_column(String)
+    note: Mapped[str | None] = mapped_column(Text)
     position: Mapped[int] = mapped_column(Integer)
     num_exercises: Mapped[int] = mapped_column(Integer)
     num_sets: Mapped[int | None] = mapped_column(Integer)
@@ -125,8 +129,24 @@ class BlockExercise(Base):
     block_id: Mapped[int] = mapped_column(
         ForeignKey("blocks.id", ondelete="CASCADE"), index=True
     )
-    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"), index=True)
+    exercise_id: Mapped[int | None] = mapped_column(ForeignKey("exercises.id"), index=True)
+    pending_name: Mapped[str | None] = mapped_column(String)
     position: Mapped[int] = mapped_column(Integer)
-    reps: Mapped[int | None] = mapped_column(Integer)
+    modo_registro: Mapped[str] = mapped_column(String, default="series")
+    reps_min: Mapped[int | None] = mapped_column(Integer)
+    reps_max: Mapped[int | None] = mapped_column(Integer)
+    duracion_segundos: Mapped[int | None] = mapped_column(Integer)
     target_weight: Mapped[float | None] = mapped_column(Float)
     is_superset_with_next: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class ExerciseAlias(Base):
+    __tablename__ = "exercise_aliases"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    raw_name: Mapped[str] = mapped_column(String)
+    normalized_name: Mapped[str] = mapped_column(String, unique=True, index=True)
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

@@ -5,6 +5,7 @@
 
   <h1>Ejercicios del bloque</h1>
   <p>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %} · {{ attached|length }} de {{ block.num_exercises }} ejercicios{% if block.num_sets %} · {{ block.num_sets }} series{% endif %}</p>
+  {% if block.note %}<p>{{ block.note }}</p>{% endif %}
 
   <ul class="exercise-grid">
     {% for group in groups %}
@@ -14,15 +15,25 @@
           <div class="superset-exercises">
             {% for block_exercise, exercise in group %}
               <div class="superset-exercise">
-                <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="90" height="90" />
-                <p>{{ exercise.name }}</p>
-                <p>{% if block_exercise.reps %}{{ block_exercise.reps }} reps{% else %}Reps sin definir{% endif %}</p>
-                <div class="actions">
-                  <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
-                  <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
-                    <button type="submit" class="btn-danger">Eliminar</button>
-                  </form>
-                </div>
+                {% if exercise %}
+                  <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="90" height="90" />
+                  <p>{{ exercise.name }}</p>
+                  <p>{% if block_exercise.modo_registro == "tiempo" %}{% if block_exercise.duracion_segundos %}{{ block_exercise.duracion_segundos }}s{% else %}Duración sin definir{% endif %}{% else %}{% if block_exercise.reps_min %}{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps{% else %}Reps sin definir{% endif %}{% endif %}</p>
+                  <div class="actions">
+                    <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
+                    <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
+                      <button type="submit" class="btn-danger">Eliminar</button>
+                    </form>
+                  </div>
+                {% else %}
+                  <p>⚠️ Pendiente: {{ block_exercise.pending_name }}</p>
+                  <div class="actions">
+                    <a href="/block-exercises/{{ block_exercise.id }}/resolve">Resolver</a>
+                    <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ block_exercise.pending_name }} de este bloque?">
+                      <button type="submit" class="btn-danger">Eliminar</button>
+                    </form>
+                  </div>
+                {% endif %}
               </div>
             {% endfor %}
           </div>
@@ -30,15 +41,25 @@
       {% else %}
         {% set block_exercise, exercise = group[0] %}
         <li>
-          <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="120" height="120" />
-          <p>{{ exercise.name }}</p>
-          <p>{% if block_exercise.reps %}{{ block_exercise.reps }} reps{% else %}Reps sin definir{% endif %}</p>
-          <div class="actions">
-            <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
-            <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
-              <button type="submit" class="btn-danger">Eliminar</button>
-            </form>
-          </div>
+          {% if exercise %}
+            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="120" height="120" />
+            <p>{{ exercise.name }}</p>
+            <p>{% if block_exercise.modo_registro == "tiempo" %}{% if block_exercise.duracion_segundos %}{{ block_exercise.duracion_segundos }}s{% else %}Duración sin definir{% endif %}{% else %}{% if block_exercise.reps_min %}{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps{% else %}Reps sin definir{% endif %}{% endif %}</p>
+            <div class="actions">
+              <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
+              <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
+                <button type="submit" class="btn-danger">Eliminar</button>
+              </form>
+            </div>
+          {% else %}
+            <p>⚠️ Pendiente: {{ block_exercise.pending_name }}</p>
+            <div class="actions">
+              <a href="/block-exercises/{{ block_exercise.id }}/resolve">Resolver</a>
+              <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ block_exercise.pending_name }} de este bloque?">
+                <button type="submit" class="btn-danger">Eliminar</button>
+              </form>
+            </div>
+          {% endif %}
         </li>
       {% endif %}
     {% else %}
@@ -81,9 +102,25 @@
             <form method="post" action="/blocks/{{ block.id }}/exercises" class="add-exercise-form">
               <input type="hidden" name="exercise_id" value="{{ exercise.id }}" />
               <input type="hidden" name="filters_qs" value="{{ filters_qs }}" />
-              <label>Reps: <output class="reps-value">10</output>
-                <input type="range" name="reps" class="reps-slider" min="1" max="30" value="10" />
+              <label>Modo de registro
+                <select name="modo_registro" class="modo-registro-select">
+                  <option value="series" selected>Series</option>
+                  <option value="tiempo">Tiempo</option>
+                </select>
               </label>
+              <div class="modo-series-fields">
+                <label>Reps mínimas: <output class="reps-min-value">8</output>
+                  <input type="range" name="reps_min" class="reps-min-slider" min="1" max="30" value="8" />
+                </label>
+                <label>Reps máximas: <output class="reps-max-value">10</output>
+                  <input type="range" name="reps_max" class="reps-max-slider" min="1" max="30" value="10" />
+                </label>
+              </div>
+              <div class="modo-tiempo-fields hidden">
+                <label>Duración objetivo (segundos)
+                  <input type="number" name="duracion_segundos" class="duracion-segundos-input" min="1" />
+                </label>
+              </div>
               <button type="submit">Añadir</button>
             </form>
           </li>
@@ -96,9 +133,22 @@
 
   <script>
     document.querySelectorAll(".add-exercise-form").forEach((form) => {
-      const slider = form.querySelector(".reps-slider");
-      const output = form.querySelector(".reps-value");
-      slider.addEventListener("input", () => { output.textContent = slider.value; });
+      [[".reps-min-slider", ".reps-min-value"], [".reps-max-slider", ".reps-max-value"]].forEach(([sliderSel, outputSel]) => {
+        const slider = form.querySelector(sliderSel);
+        const output = form.querySelector(outputSel);
+        slider.addEventListener("input", () => { output.textContent = slider.value; });
+      });
+
+      const modoSelect = form.querySelector(".modo-registro-select");
+      const seriesFields = form.querySelector(".modo-series-fields");
+      const tiempoFields = form.querySelector(".modo-tiempo-fields");
+      const toggleModo = () => {
+        const isTiempo = modoSelect.value === "tiempo";
+        seriesFields.classList.toggle("hidden", isTiempo);
+        tiempoFields.classList.toggle("hidden", !isTiempo);
+      };
+      modoSelect.addEventListener("change", toggleModo);
+      toggleModo();
     });
   </script>
 {% endblock %}
