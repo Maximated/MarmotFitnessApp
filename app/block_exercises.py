@@ -3,13 +3,15 @@ from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from app.blocks import get_own_block
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_matching import ExerciseMatcher, normalize_name
-from app.models import BlockExercise, Exercise, ExerciseAlias, User
+from app.exercise_ratings import rating_order_case
+from app.models import BlockExercise, Exercise, ExerciseAlias, ExerciseRating, User
 from app.templates import templates
 
 router = APIRouter()
@@ -81,14 +83,20 @@ async def view_block_exercises(
 
     results = []
     if q or category or equipment:
-        query = db.query(Exercise)
+        query = (
+            db.query(Exercise)
+            .outerjoin(
+                ExerciseRating,
+                and_(ExerciseRating.exercise_id == Exercise.id, ExerciseRating.user_id == user.id),
+            )
+        )
         if q:
             query = query.filter(Exercise.name.ilike(f"%{q}%"))
         if category:
             query = query.filter(Exercise.category == category)
         if equipment:
             query = query.filter(Exercise.equipment == equipment)
-        results = query.order_by(Exercise.name).limit(SEARCH_PER_PAGE).all()
+        results = query.order_by(rating_order_case(), Exercise.name).limit(SEARCH_PER_PAGE).all()
 
     categories = [
         row[0]
@@ -248,14 +256,20 @@ async def resolve_block_exercise_form(
 
     results = []
     if q or category or equipment:
-        query = db.query(Exercise)
+        query = (
+            db.query(Exercise)
+            .outerjoin(
+                ExerciseRating,
+                and_(ExerciseRating.exercise_id == Exercise.id, ExerciseRating.user_id == user.id),
+            )
+        )
         if q:
             query = query.filter(Exercise.name.ilike(f"%{q}%"))
         if category:
             query = query.filter(Exercise.category == category)
         if equipment:
             query = query.filter(Exercise.equipment == equipment)
-        results = query.order_by(Exercise.name).limit(SEARCH_PER_PAGE).all()
+        results = query.order_by(rating_order_case(), Exercise.name).limit(SEARCH_PER_PAGE).all()
 
     categories = [
         row[0] for row in db.query(Exercise.category).distinct().order_by(Exercise.category)

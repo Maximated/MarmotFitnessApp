@@ -13,6 +13,7 @@ from app.blocks import router as blocks_router
 from app.config import settings
 from app.database import get_db
 from app.dependencies import get_current_user
+from app.exercise_ratings import router as exercise_ratings_router
 from app.exercises import router as exercises_router
 from app.history import router as history_router
 from app.models import DayTemplate, Program, User, Workout
@@ -23,15 +24,16 @@ from app.programs import router as programs_router
 from app.templates import templates
 from app.workouts import router as workouts_router
 
-# El Debian slim de la imagen base no trae .woff2 en /etc/mime.types, así que
-# StaticFiles lo serviría como application/octet-stream y el navegador
-# rechazaría la fuente silenciosamente.
+# El Debian slim de la imagen base no trae .woff2 ni .webp en /etc/mime.types,
+# así que StaticFiles los serviría como application/octet-stream.
 mimetypes.add_type("font/woff2", ".woff2")
+mimetypes.add_type("image/webp", ".webp")
 
 app = FastAPI(title="Marmot Fitness App")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
 app.include_router(auth_router)
 app.include_router(exercises_router)
+app.include_router(exercise_ratings_router)
 app.include_router(workouts_router)
 app.include_router(history_router)
 app.include_router(program_import_router)

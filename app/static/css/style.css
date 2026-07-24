@@ -902,8 +902,33 @@ td.numeric {
   height: 72px;
   border-radius: 0.5rem;
   object-fit: contain;
-  background: var(--card-bg);
+  background: transparent;
   flex-shrink: 0;
+}
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-bottom: 1.5rem;
+}
+
+.star-form {
+  margin: 0;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--border);
+  cursor: pointer;
+}
+
+.star-btn.star-filled {
+  color: var(--primary);
 }
 
 .exercise-row span {

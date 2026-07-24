@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
+from app.exercise_ratings import get_similar_exercises, get_user_rating
 from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, User, Workout, WorkoutSet
 from app.templates import templates
 
@@ -244,6 +245,12 @@ async def log_exercise_form(
     if self_params:
         self_url += f"?{urlencode(self_params)}"
 
+    user_rating = None
+    similar_exercises = []
+    if block_exercise_id is None:
+        user_rating = get_user_rating(db, user.id, exercise_id)
+        similar_exercises = get_similar_exercises(db, user.id, exercise_id)
+
     now = datetime.now()
     context = {
         "exercise": exercise,
@@ -257,6 +264,8 @@ async def log_exercise_form(
         "next_exercise_url": next_exercise_url,
         "logged": logged,
         "suppress_header_timer": training is not None,
+        "user_rating": user_rating,
+        "similar_exercises": similar_exercises,
     }
     context.update(history)
     return templates.TemplateResponse(
