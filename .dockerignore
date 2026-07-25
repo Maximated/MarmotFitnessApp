@@ -4,5 +4,6 @@
 __pycache__/
 *.pyc
 .venv/
-/media/
+/media/exercises/*.gif
 /data/exercises-dataset-src/
+.DS_Store
