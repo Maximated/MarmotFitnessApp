@@ -14,26 +14,19 @@ ejecutar además media/exercises/proc_gif.py para generar esos .webp con
 transparencia a partir de los .gif recién copiados.
 """
 import argparse
-import json
 import shutil
 from pathlib import Path
 
 from app.database import SessionLocal
 from app.models import Exercise
+from scripts.exercise_data import build_exercise_values, load_exercises_dataset, load_translations
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MEDIA_DIR = PROJECT_ROOT / "media" / "exercises"
-TRANSLATIONS_PATH = PROJECT_ROOT / "data" / "translations_es.json"
-
-
-def load_translations() -> dict:
-    if not TRANSLATIONS_PATH.exists():
-        return {"category": {}, "equipment": {}, "target_muscle": {}, "name": {}}
-    return json.loads(TRANSLATIONS_PATH.read_text())
 
 
 def main(source: Path) -> None:
-    exercises = json.loads((PROJECT_ROOT / "data" / "exercises.json").read_text())
+    exercises = load_exercises_dataset()
     translations = load_translations()
 
     MEDIA_DIR.mkdir(parents=True, exist_ok=True)
@@ -49,20 +42,7 @@ def main(source: Path) -> None:
             if not dst_gif.exists():
                 shutil.copyfile(src_gif, dst_gif)
 
-            values = {
-                "name": translations["name"].get(item["id"], item["name"]),
-                "category": translations["category"].get(
-                    item["category"], item["category"]
-                ),
-                "target_muscle": translations["target_muscle"].get(
-                    item["target"], item["target"]
-                ),
-                "equipment": translations["equipment"].get(
-                    item["equipment"], item["equipment"]
-                ),
-                "gif_url": f"/media/exercises/webp/{Path(gif_filename).stem}.webp",
-                "instructions": item["instructions"]["es"],
-            }
+            values = build_exercise_values(item, translations)
 
             exercise = (
                 db.query(Exercise)
