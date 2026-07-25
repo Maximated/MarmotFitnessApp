@@ -1,7 +1,12 @@
-"""Importa data/exercises.json de un clon del dataset a la tabla `exercises`.
+"""Importa data/exercises.json (versionado en el repo) a la tabla `exercises`.
 
 Uso:
     uv run python scripts/import_exercises.py --source data/exercises-dataset-src
+
+`--source` apunta al clon del dataset original (no versionado, solo local)
+del que se copian los .gif; `data/exercises.json` y `data/translations_es.json`
+sí están versionados porque son necesarios para poblar la tabla en cualquier
+entorno, incluido un servidor donde ese clon no existe.
 
 Este script solo copia los .gif originales. `gif_url` apunta al .webp
 correspondiente en media/exercises/webp/, así que tras importar hace falta
@@ -28,7 +33,7 @@ def load_translations() -> dict:
 
 
 def main(source: Path) -> None:
-    exercises = json.loads((source / "data" / "exercises.json").read_text())
+    exercises = json.loads((PROJECT_ROOT / "data" / "exercises.json").read_text())
     translations = load_translations()
 
     MEDIA_DIR.mkdir(parents=True, exist_ok=True)
