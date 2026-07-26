@@ -13,22 +13,23 @@
   </head>
   <body>
     <header class="site-header">
-      <nav class="nav">
-        <a href="/profile" class="brand-icon">
-          <img src="/static/icons/icon-512.png" alt="Perfil" class="logo" />
-        </a>
-        <a href="/">Inicio</a>
-        <a href="/exercises">Ejercicios</a>
-        <a href="/history">Historial</a>
-        <a href="/programs">Programas</a>
-        <a href="/calendar">Calendario</a>
-        <a href="/exercises/search" class="nav-search-icon" aria-label="Buscar ejercicios">
+      <div class="top-bar">
+        <a href="/exercises/search" class="icon-btn" aria-label="Buscar ejercicios">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </a>
-      </nav>
+        {% if header_user %}
+          <a href="/profile" class="header-avatar-link" aria-label="Perfil">
+            {% if header_user.avatar_updated_at %}
+              <img src="/media/avatars/{{ header_user.id }}.webp?v={{ header_user.avatar_updated_at.timestamp() | int }}" alt="" class="header-avatar" />
+            {% else %}
+              <span class="header-avatar header-avatar-placeholder">{{ (header_user.name[0] if header_user.name else "?") | upper }}</span>
+            {% endif %}
+          </a>
+        {% endif %}
+      </div>
       {% if active_session_started_at or (active_session_rest_until and not suppress_header_timer) %}
         <div class="global-timer-group">
           {% if active_session_started_at %}
@@ -50,6 +51,45 @@
     <main class="container">
       {% block content %}{% endblock %}
     </main>
+    {% if header_user %}
+      {% set current_path = request.url.path %}
+      {% set is_calendar = '/calendar' in current_path %}
+      {% set is_programs = (current_path.startswith('/programs') or current_path.startswith('/blocks') or current_path.startswith('/days')) and not is_calendar %}
+      <nav class="bottom-nav">
+        <a href="/" class="bottom-nav-item{% if current_path == '/' %} active{% endif %}" aria-label="Inicio">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11.5 12 4l9 7.5"></path>
+            <path d="M5.5 10v9a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-9"></path>
+          </svg>
+        </a>
+        <a href="/exercises" class="bottom-nav-item{% if current_path.startswith('/exercises') %} active{% endif %}" aria-label="Ejercicios">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6.5 9v6M4 10v4M17.5 9v6M20 10v4M9 12h6"></path>
+          </svg>
+        </a>
+        <a href="/history" class="bottom-nav-item{% if current_path.startswith('/history') %} active{% endif %}" aria-label="Historial">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 12a8.5 8.5 0 1 0 2.7-6.2"></path>
+            <path d="M3 4.5v4h4"></path>
+            <path d="M12 8v4.5l3 2"></path>
+          </svg>
+        </a>
+        <a href="/programs" class="bottom-nav-item{% if is_programs %} active{% endif %}" aria-label="Programas">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="5" y="4" width="14" height="17" rx="2"></rect>
+            <path d="M9 3.5h6v2H9z"></path>
+            <path d="M8.5 11h7M8.5 14.5h7M8.5 18h4"></path>
+          </svg>
+        </a>
+        <a href="/calendar" class="bottom-nav-item{% if is_calendar %} active{% endif %}" aria-label="Calendario">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3.5" y="5" width="17" height="16" rx="2"></rect>
+            <path d="M3.5 9.5h17"></path>
+            <path d="M8 3v4M16 3v4"></path>
+          </svg>
+        </a>
+      </nav>
+    {% endif %}
     <script src="/static/js/app.js" defer></script>
     {% if active_session_started_at %}
       <script>

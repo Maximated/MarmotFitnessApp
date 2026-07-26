@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% from "exercises/_star_rating_macro.html" import star_rating %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% macro timer_ring(ring_id) %}
   <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-    <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
-    <circle class="timer-ring-progress" id="{{ ring_id }}" cx="50" cy="50" r="44"></circle>
+    <circle class="timer-ring-track" cx="50" cy="50" r="46"></circle>
+    <circle class="timer-ring-progress" id="{{ ring_id }}" cx="50" cy="50" r="46"></circle>
   </svg>
 {% endmacro %}
 
@@ -13,14 +14,14 @@
 {% endblock %}
 
 {% block content %}
-  <p><a href="{{ next or '/exercises' }}">« Volver{% if not next %} al listado{% endif %}</a></p>
+  <div class="page-nav-row">{{ nav_arrow(next or '/exercises', "back", "Volver" if next else "Volver al listado") }}</div>
 
   {% if training %}
     {% if prev_url or next_exercise_url %}
-      <p class="pagination">
-        {% if prev_url %}<a href="{{ prev_url }}" id="prev-exercise-link">« Anterior</a>{% endif %}
-        {% if next_exercise_url %}<a href="{{ next_exercise_url }}" id="next-exercise-link">Siguiente »</a>{% endif %}
-      </p>
+      <div class="pagination">
+        {% if prev_url %}{{ nav_arrow(prev_url, "back", "Ejercicio anterior", id="prev-exercise-link") }}{% endif %}
+        {% if next_exercise_url %}{{ nav_arrow(next_exercise_url, "next", "Ejercicio siguiente", id="next-exercise-link") }}{% endif %}
+      </div>
     {% endif %}
 
     <script>
@@ -231,7 +232,7 @@
           let intervalId = null;
           let clickTimer = null;
 
-          const RING_CIRCUMFERENCE = 2 * Math.PI * 44;
+          const RING_CIRCUMFERENCE = 2 * Math.PI * 46;
           if (ringEl) ringEl.style.strokeDasharray = String(RING_CIRCUMFERENCE);
 
           const PLAY_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';

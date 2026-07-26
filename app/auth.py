@@ -1,6 +1,11 @@
+from datetime import datetime, timezone
+from io import BytesIO
+from pathlib import Path
+
 from authlib.integrations.starlette_client import OAuth
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import RedirectResponse
+from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -10,6 +15,10 @@ from app.models import User
 from app.templates import templates
 
 router = APIRouter()
+
+AVATAR_DIR = Path("media/avatars")
+AVATAR_SIZE = 480
+MAX_AVATAR_BYTES = 8 * 1024 * 1024
 
 oauth = OAuth()
 oauth.register(
@@ -60,3 +69,34 @@ async def profile_page(request: Request, user: User | None = Depends(get_current
         name="profile.html",
         context={"user": user},
     )
+
+
+@router.post("/profile/avatar")
+async def upload_avatar(
+    photo: UploadFile,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if user is None:
+        raise HTTPException(status_code=401)
+    if not photo.content_type or not photo.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
+
+    raw = await photo.read(MAX_AVATAR_BYTES + 1)
+    if len(raw) > MAX_AVATAR_BYTES:
+        raise HTTPException(status_code=400, detail="La imagen no puede superar los 8 MB")
+
+    try:
+        image = Image.open(BytesIO(raw))
+        image = ImageOps.exif_transpose(image)
+        image = ImageOps.fit(image.convert("RGB"), (AVATAR_SIZE, AVATAR_SIZE), Image.LANCZOS)
+    except Exception:
+        raise HTTPException(status_code=400, detail="No se pudo procesar la imagen")
+
+    AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+    image.save(AVATAR_DIR / f"{user.id}.webp", format="WEBP", quality=85)
+
+    user.avatar_updated_at = datetime.now(timezone.utc)
+    db.commit()
+
+    return RedirectResponse(url="/profile", status_code=303)

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <p><a href="{{ next }}">« Volver al listado</a></p>
+  <div class="page-nav-row">{{ nav_arrow(next, "back", "Volver al listado") }}</div>
 
   <div class="gif-view">
     <h1>{{ exercise.name }}</h1>

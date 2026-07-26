@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <p><a href="/programs/{{ program.id }}">« Volver a {{ program.name }}</a></p>
+  <div class="page-nav-row">{{ nav_arrow("/programs/" ~ program.id, "back", "Volver a " ~ program.name) }}</div>
 
   <h1>Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %} — {{ program.name }}</h1>
 
@@ -16,7 +17,6 @@
     {% for block in blocks %}
       <li class="block-card">
         <p>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</p>
-        {% if block.note %}<p>{{ block.note }}</p>{% endif %}
         <p>{% if block.num_sets %}{{ block.num_sets }} series · {% endif %}descanso {{ block.rest_seconds }}s</p>
         {% if pending_counts.get(block.id, 0) > 0 %}
           <p style="color: var(--danger);">⚠️ {{ pending_counts.get(block.id, 0) }} pendiente(s) de resolver</p>

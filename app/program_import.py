@@ -89,7 +89,6 @@ async def import_program_submit(
                     type=map_block_type(bloque.get("tipo", "")),
                     muscle_group=bloque.get("muscle_group") or None,
                     variant=bloque.get("variante") or None,
-                    note=bloque.get("nota"),
                     position=block_pos,
                     num_exercises=len(ejercicios) if ejercicios else 0,
                     num_sets=bloque.get("num_sets"),

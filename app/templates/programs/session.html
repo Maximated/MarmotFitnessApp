@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% from "exercises/_star_rating_macro.html" import star_rating %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <p><a href="/programs/{{ program.id }}/calendar">« Volver al calendario</a></p>
+  <div class="page-nav-row">{{ nav_arrow("/programs/" ~ program.id ~ "/calendar", "back", "Volver al calendario") }}</div>
 
   <h1>{{ program.name }}</h1>
   <p>
@@ -12,9 +13,6 @@
 
   {% for block in blocks %}
     <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
-    {% if block.note %}
-      <p>{{ block.note }}</p>
-    {% else %}
     <ul class="exercise-row-list">
       {% for block_exercise, exercise in exercises_by_block.get(block.id, []) %}
         <li>
@@ -24,6 +22,17 @@
               <span>{{ exercise.name }}</span>
             </a>
             {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url, "sm") }}
+          {% elif block_exercise.modo_registro == "checklist" %}
+            <form method="post" action="/block-exercises/{{ block_exercise.id }}/checklist/toggle" class="exercise-row exercise-row-checklist">
+              <input type="hidden" name="workout_id" value="{{ workout_id }}" />
+              <input type="hidden" name="next" value="{{ current_page_url | urlencode }}" />
+              <button type="submit" class="checklist-checkbox{% if block_exercise.id in checklist_done_ids %} checked{% endif %}" aria-label="{% if block_exercise.id in checklist_done_ids %}Marcar como no hecho{% else %}Marcar como hecho{% endif %}">
+                {% if block_exercise.id in checklist_done_ids %}
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                {% endif %}
+              </button>
+              <span>{{ block_exercise.pending_name }}</span>
+            </form>
           {% else %}
             <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }}</span>
           {% endif %}
@@ -32,7 +41,6 @@
         <li>Este bloque no tenía ejercicios.</li>
       {% endfor %}
     </ul>
-    {% endif %}
   {% else %}
     <p>Este día no tiene bloques.</p>
   {% endfor %}

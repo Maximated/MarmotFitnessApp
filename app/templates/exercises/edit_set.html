@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <p><a href="{{ next }}">« Volver</a></p>
+  <div class="page-nav-row">{{ nav_arrow(next, "back", "Volver") }}</div>
 
   <a href="/exercises/{{ exercise.id }}/view?next={{ next | urlencode }}" target="_blank" rel="noopener">
     <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />

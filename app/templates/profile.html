@@ -4,10 +4,22 @@
   <h1>Perfil</h1>
 
   {% if user %}
+    <div class="profile-avatar-block">
+      {% if user.avatar_updated_at %}
+        <img src="/media/avatars/{{ user.id }}.webp?v={{ user.avatar_updated_at.timestamp() | int }}" alt="Foto de perfil" class="profile-avatar" />
+      {% else %}
+        <span class="profile-avatar profile-avatar-placeholder">{{ (user.name[0] if user.name else "?") | upper }}</span>
+      {% endif %}
+      <form method="post" action="/profile/avatar" enctype="multipart/form-data">
+        <label for="avatar-input" class="btn profile-avatar-upload-btn">Cambiar foto</label>
+        <input type="file" name="photo" id="avatar-input" accept="image/*" onchange="this.form.submit()" hidden />
+      </form>
+    </div>
+
     <p>{{ user.name }} · {{ user.email }}</p>
     <p><a href="/logout">Cerrar sesión</a></p>
     <h2>Próximamente</h2>
-    <p>Foto de perfil, ajustes y otras opciones de la cuenta.</p>
+    <p>Ajustes y otras opciones de la cuenta.</p>
   {% else %}
     <p><a href="/login">Login con Google</a></p>
   {% endif %}

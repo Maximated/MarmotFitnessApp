@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "exercises/_exercise_row_large.html" import exercise_row_large %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
   <h1>Buscar ejercicios</h1>
@@ -18,14 +19,14 @@
       {% endfor %}
     </ul>
 
-    <p class="pagination">
+    <div class="pagination">
       {% if page > 1 %}
-        <a href="/exercises/search?q={{ q | urlencode }}&page={{ page - 1 }}">« Anterior</a>
+        {{ nav_arrow("/exercises/search?q=" ~ (q | urlencode) ~ "&page=" ~ (page - 1), "back", "Página anterior") }}
       {% endif %}
-      Página {{ page }} de {{ total_pages }}
+      <span>Página {{ page }} de {{ total_pages }}</span>
       {% if page < total_pages %}
-        <a href="/exercises/search?q={{ q | urlencode }}&page={{ page + 1 }}">Siguiente »</a>
+        {{ nav_arrow("/exercises/search?q=" ~ (q | urlencode) ~ "&page=" ~ (page + 1), "next", "Página siguiente") }}
       {% endif %}
-    </p>
+    </div>
   {% endif %}
 {% endblock %}

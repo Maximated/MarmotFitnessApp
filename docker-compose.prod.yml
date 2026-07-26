@@ -21,8 +21,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - avatars_data:/code/media/avatars
     ports:
       - "8000:8000"
 
 volumes:
   db_data:
+  avatars_data:

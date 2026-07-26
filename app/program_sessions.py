@@ -11,6 +11,7 @@ from app.block_exercises import group_by_superset
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_ratings import get_user_ratings_map
+from app.workout_checklist import get_checklist_done_ids
 from app.workout_substitutions import apply_substitutions, get_substitution_map
 from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout, WorkoutSet
 from app.programs import get_own_program
@@ -42,7 +43,7 @@ def compute_session_stats(db: Session, workout: Workout, day_template_id: int) -
     block_by_id = {block.id: block for block in blocks}
     block_exercises = (
         db.query(BlockExercise)
-        .filter(BlockExercise.block_id.in_(block_by_id.keys()), BlockExercise.exercise_id.isnot(None))
+        .filter(BlockExercise.block_id.in_(block_by_id.keys()))
         .all()
     )
 
@@ -51,11 +52,15 @@ def compute_session_stats(db: Session, workout: Workout, day_template_id: int) -
     for workout_set in all_sets:
         sets_by_exercise.setdefault(workout_set.exercise_id, []).append(workout_set)
 
+    checklist_done_ids = get_checklist_done_ids(db, workout.id)
+
     weight_pcts = []
     reps_pcts = []
     warmup_planned = 0
     warmup_actual = 0
-    exercises_total = 0
+    # Progreso de la rutina: cada BlockExercise de la jornada cuenta como una
+    # unidad igual (series/tiempo/checklist), sin ponderación por tipo.
+    exercises_total = len(block_exercises)
     exercises_completed = 0
 
     for block_exercise in block_exercises:
@@ -67,23 +72,26 @@ def compute_session_stats(db: Session, workout: Workout, day_template_id: int) -
             avg_weight = sum(weights) / len(weights) if weights else 0
             weight_pcts.append(avg_weight / block_exercise.target_weight * 100)
 
-        if block_exercise.modo_registro == "tiempo":
+        if block_exercise.modo_registro == "checklist":
+            if block_exercise.id in checklist_done_ids:
+                exercises_completed += 1
+        elif block_exercise.modo_registro == "tiempo":
+            durations = [s.duration_seconds for s in exercise_sets if s.duration_seconds is not None]
             if block_exercise.duracion_segundos:
-                durations = [s.duration_seconds for s in exercise_sets if s.duration_seconds is not None]
                 if block.type == "Calentamiento":
                     warmup_planned += block_exercise.duracion_segundos
                     warmup_actual += sum(durations)
-                exercises_total += 1
                 if durations and max(durations) >= block_exercise.duracion_segundos:
                     exercises_completed += 1
-        elif block_exercise.reps_max:
-            reps = [s.reps for s in exercise_sets if s.reps is not None]
-            avg_reps = sum(reps) / len(reps) if reps else 0
-            reps_pcts.append(avg_reps / block_exercise.reps_max * 100)
-            if block.num_sets:
-                exercises_total += 1
-                if len(exercise_sets) >= block.num_sets:
-                    exercises_completed += 1
+            elif durations:
+                exercises_completed += 1
+        else:
+            if block_exercise.reps_max:
+                reps = [s.reps for s in exercise_sets if s.reps is not None]
+                avg_reps = sum(reps) / len(reps) if reps else 0
+                reps_pcts.append(avg_reps / block_exercise.reps_max * 100)
+            if len(exercise_sets) >= (block.num_sets or 1):
+                exercises_completed += 1
 
     volume_kg = sum(
         (s.weight or 0) * (s.reps or 0) for s in all_sets if s.weight is not None and s.reps is not None
@@ -223,6 +231,8 @@ async def program_today(
                 "current_page_url": f"/programs/{program.id}/today",
                 "finished": finished,
                 "stats": stats,
+                "workout_id": todays_workout.id,
+                "checklist_done_ids": get_checklist_done_ids(db, todays_workout.id),
             },
         )
 
@@ -522,6 +532,8 @@ async def view_session(
             "ratings": get_user_ratings_map(db, user.id, exercise_ids),
             "current_page_url": f"/programs/{program.id}/sessions/{session_date.isoformat()}/detail",
             "finished": workout.finished_at is not None,
+            "workout_id": workout.id,
+            "checklist_done_ids": get_checklist_done_ids(db, workout.id),
         },
     )
 

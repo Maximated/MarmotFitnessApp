@@ -1,11 +1,11 @@
 {% extends "base.html" %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <p><a href="/days/{{ block.day_template_id }}">« Volver al día</a></p>
+  <div class="page-nav-row">{{ nav_arrow("/days/" ~ block.day_template_id, "back", "Volver al día") }}</div>
 
   <h1>Ejercicios del bloque</h1>
   <p>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %} · {{ attached|length }} de {{ block.num_exercises }} ejercicios{% if block.num_sets %} · {{ block.num_sets }} series{% endif %}</p>
-  {% if block.note %}<p>{{ block.note }}</p>{% endif %}
 
   <ul class="exercise-grid">
     {% for group in groups %}
@@ -22,6 +22,15 @@
                   <div class="actions">
                     <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
                     <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
+                      <button type="submit" class="btn-danger">Eliminar</button>
+                    </form>
+                  </div>
+                {% elif block_exercise.modo_registro == "checklist" %}
+                  <p>☑️ {{ block_exercise.pending_name }}</p>
+                  <p>Checklist (sin ejercicio)</p>
+                  <div class="actions">
+                    <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
+                    <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ block_exercise.pending_name }} de este bloque?">
                       <button type="submit" class="btn-danger">Eliminar</button>
                     </form>
                   </div>
@@ -48,6 +57,15 @@
             <div class="actions">
               <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
               <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
+                <button type="submit" class="btn-danger">Eliminar</button>
+              </form>
+            </div>
+          {% elif block_exercise.modo_registro == "checklist" %}
+            <p>☑️ {{ block_exercise.pending_name }}</p>
+            <p>Checklist (sin ejercicio)</p>
+            <div class="actions">
+              <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
+              <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ block_exercise.pending_name }} de este bloque?">
                 <button type="submit" class="btn-danger">Eliminar</button>
               </form>
             </div>
@@ -90,6 +108,14 @@
         </select>
       </label>
       <button type="submit">Buscar</button>
+    </form>
+
+    <h2>O añadir un movimiento sin ejercicio (checklist)</h2>
+    <form method="post" action="/blocks/{{ block.id }}/exercises">
+      <input type="hidden" name="modo_registro" value="checklist" />
+      <input type="hidden" name="filters_qs" value="{{ filters_qs }}" />
+      <label>Descripción <input type="text" name="pending_name" placeholder="Ej. Giros de brazo" required /></label>
+      <button type="submit">Añadir a la checklist</button>
     </form>
 
     {% if searched %}

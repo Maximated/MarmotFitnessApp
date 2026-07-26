@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 
 from app.database import SessionLocal
-from app.models import Workout
+from app.models import User, Workout
 
 
 def session_timer_processor(request: Request) -> dict:
@@ -12,6 +12,7 @@ def session_timer_processor(request: Request) -> dict:
         "active_session_started_at": None,
         "active_session_rest_until": None,
         "active_session_rest_total_seconds": None,
+        "header_user": None,
     }
     user_id = request.session.get("user_id")
     if user_id is None:
@@ -19,6 +20,7 @@ def session_timer_processor(request: Request) -> dict:
 
     db = SessionLocal()
     try:
+        header_user = db.get(User, user_id)
         workout = (
             db.query(Workout)
             .filter(
@@ -30,11 +32,12 @@ def session_timer_processor(request: Request) -> dict:
             .first()
         )
         if workout is None:
-            return empty
+            return {**empty, "header_user": header_user}
         return {
             "active_session_started_at": workout.started_at.isoformat(),
             "active_session_rest_until": workout.rest_until.isoformat() if workout.rest_until else None,
             "active_session_rest_total_seconds": workout.rest_total_seconds,
+            "header_user": header_user,
         }
     finally:
         db.close()

@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% from "programs/_stat_ring.html" import stat_ring %}
 {% from "exercises/_star_rating_macro.html" import star_rating %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <p><a href="/">« Volver a inicio</a></p>
-  <p><a href="/programs/{{ program.id }}/calendar">Ver calendario</a></p>
+  <div class="page-nav-row">
+    {{ nav_arrow("/", "back", "Volver a inicio", double=True) }}
+    <a href="/programs/{{ program.id }}/calendar">Ver calendario</a>
+  </div>
 
   <h1>{{ program.name }}</h1>
 
@@ -31,9 +34,6 @@
     </p>
     {% for block in blocks %}
       <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
-      {% if block.note %}
-        <p>{{ block.note }}</p>
-      {% else %}
       <ul class="exercise-row-list">
         {% for group in exercise_groups_by_block.get(block.id, []) %}
           <li{% if group|length == 2 %} class="today-superset-group"{% endif %}>
@@ -66,6 +66,17 @@
                   {% endif %}
                 </a>
                 {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url, "sm") }}
+              {% elif block_exercise.modo_registro == "checklist" %}
+                <form method="post" action="/block-exercises/{{ block_exercise.id }}/checklist/toggle" class="exercise-row exercise-row-checklist">
+                  <input type="hidden" name="workout_id" value="{{ workout_id }}" />
+                  <input type="hidden" name="next" value="{{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" />
+                  <button type="submit" class="checklist-checkbox{% if block_exercise.id in checklist_done_ids %} checked{% endif %}" aria-label="{% if block_exercise.id in checklist_done_ids %}Marcar como no hecho{% else %}Marcar como hecho{% endif %}">
+                    {% if block_exercise.id in checklist_done_ids %}
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    {% endif %}
+                  </button>
+                  <span>{{ block_exercise.pending_name }}</span>
+                </form>
               {% else %}
                 <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }} (<a href="/block-exercises/{{ block_exercise.id }}/resolve">resolver</a>)</span>
               {% endif %}
@@ -76,7 +87,6 @@
           <li>Este bloque no tiene ejercicios todavía.</li>
         {% endfor %}
       </ul>
-      {% endif %}
     {% else %}
       <p>Este día no tiene bloques todavía.</p>
     {% endfor %}

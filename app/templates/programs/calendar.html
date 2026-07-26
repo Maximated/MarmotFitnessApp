@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% from "_calendar_table.html" import calendar_table %}
+{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <p><a href="/programs/{{ program.id }}/today">« Volver a hoy</a></p>
+  <div class="page-nav-row">{{ nav_arrow("/programs/" ~ program.id ~ "/today", "back", "Volver a hoy") }}</div>
 
   <h1>{{ program.name }} — calendario</h1>
-  <p class="pagination">
-    <a href="/programs/{{ program.id }}/calendar?year={{ prev_year }}&month={{ prev_month }}">« Anterior</a>
-    {{ month_name }}
-    <a href="/programs/{{ program.id }}/calendar?year={{ next_year }}&month={{ next_month }}">Siguiente »</a>
-  </p>
+  <div class="pagination">
+    {{ nav_arrow("/programs/" ~ program.id ~ "/calendar?year=" ~ prev_year ~ "&month=" ~ prev_month, "back", "Mes anterior") }}
+    <span>{{ month_name }}</span>
+    {{ nav_arrow("/programs/" ~ program.id ~ "/calendar?year=" ~ next_year ~ "&month=" ~ next_month, "next", "Mes siguiente") }}
+  </div>
 
   {{ calendar_table(weeks, program.id) }}
 
