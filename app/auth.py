@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 
+import pillow_heif
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import RedirectResponse
@@ -13,6 +14,8 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models import User
 from app.templates import templates
+
+pillow_heif.register_heif_opener()
 
 router = APIRouter()
 

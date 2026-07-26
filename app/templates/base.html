@@ -17,7 +17,7 @@
         <form action="/exercises/search" method="get" class="header-search" id="header-search-form">
           <input type="text" name="q" id="header-search-input" class="header-search-input" placeholder="Buscar ejercicios" autocomplete="off" />
           <button type="submit" class="icon-btn" id="header-search-toggle" aria-label="Buscar ejercicios">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -33,12 +33,12 @@
           </a>
         {% endif %}
       </div>
-      {% if active_session_started_at or (active_session_rest_until and not suppress_header_timer) %}
+      {% if active_session_started_at or active_session_rest_until %}
         <div class="global-timer-group">
           {% if active_session_started_at %}
             <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
           {% endif %}
-          {% if active_session_rest_until and not suppress_header_timer %}
+          {% if active_session_rest_until %}
             <span id="global-rest-timer" class="global-timer-circle" data-rest-until="{{ active_session_rest_until }}" data-total-seconds="{{ active_session_rest_total_seconds or '' }}">
               <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
                 <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
@@ -133,7 +133,7 @@
         })();
       </script>
     {% endif %}
-    {% if active_session_rest_until and not suppress_header_timer %}
+    {% if active_session_rest_until %}
       <script>
         (function () {
           const el = document.getElementById("global-rest-timer");

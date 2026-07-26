@@ -316,7 +316,6 @@ async def render_training_log(
         "prev_url": prev_url,
         "next_exercise_url": next_exercise_url,
         "logged": logged,
-        "suppress_header_timer": True,
         "user_rating": user_rating,
         "similar_exercises": similar_exercises,
     }
@@ -358,7 +357,6 @@ async def log_exercise_form(
             "prev_url": None,
             "next_exercise_url": None,
             "logged": logged,
-            "suppress_header_timer": False,
             "user_rating": get_user_rating(db, user.id, exercise_id),
             "similar_exercises": get_similar_exercises(db, user.id, exercise_id),
         }
@@ -451,7 +449,7 @@ async def log_exercise_submit(
     next: str | None = Form(None),
 ):
     submit_workout_set(
-        db, user, exercise_id, None, weight, reps, duration_seconds, workout_date, set_time, comment
+        db, user, exercise_id, block_exercise_id, weight, reps, duration_seconds, workout_date, set_time, comment
     )
 
     redirect_url = f"/exercises/{exercise_id}/log"

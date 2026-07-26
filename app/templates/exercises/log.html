@@ -366,6 +366,10 @@
             totalSeconds: parseInt(circle.dataset.restSeconds, 10),
             autoStart: false,
             notifyText: "Descanso terminado",
+            onStart: () => {
+              const seconds = parseInt(circle.dataset.restSeconds, 10);
+              fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds, { method: "POST" }).catch(() => {});
+            },
           });
         })();
       </script>
