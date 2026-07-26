@@ -13,7 +13,7 @@
   </head>
   <body>
     <header class="site-header">
-      <div class="top-bar{% if active_session_started_at or (active_session_rest_until and not suppress_header_timer) %} top-bar-with-timer{% endif %}">
+      <div class="top-bar">
         <form action="/exercises/search" method="get" class="header-search" id="header-search-form">
           <input type="text" name="q" id="header-search-input" class="header-search-input" placeholder="Buscar ejercicios" autocomplete="off" />
           <button type="submit" class="icon-btn" id="header-search-toggle" aria-label="Buscar ejercicios">
