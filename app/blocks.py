@@ -72,19 +72,6 @@ async def view_day_template(
         .group_by(BlockExercise.block_id)
         .all()
     }
-    pending_counts = {
-        block_id: count
-        for block_id, count in db.query(
-            BlockExercise.block_id, func.count(BlockExercise.id)
-        )
-        .filter(
-            BlockExercise.block_id.in_([b.id for b in blocks]),
-            BlockExercise.exercise_id.is_(None),
-            BlockExercise.modo_registro != "checklist",
-        )
-        .group_by(BlockExercise.block_id)
-        .all()
-    }
     return templates.TemplateResponse(
         request=request,
         name="days/view.html",
@@ -93,7 +80,6 @@ async def view_day_template(
             "day_template": day_template,
             "blocks": blocks,
             "exercise_counts": exercise_counts,
-            "pending_counts": pending_counts,
             "block_types": BLOCK_TYPES,
             "muscle_groups": MUSCLE_GROUPS,
             "rest_seconds_choices": REST_SECONDS_CHOICES,

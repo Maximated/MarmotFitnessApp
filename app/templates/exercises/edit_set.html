@@ -4,10 +4,12 @@
 {% block content %}
   <div class="page-nav-row">{{ nav_arrow(next, "back", "Volver") }}</div>
 
-  <a href="/exercises/{{ exercise.id }}/view?next={{ next | urlencode }}" target="_blank" rel="noopener">
-    <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
-  </a>
-  <h1>Editar serie — {{ exercise.name }}</h1>
+  {% if exercise %}
+    <a href="/exercises/{{ exercise.id }}/view?next={{ next | urlencode }}" target="_blank" rel="noopener">
+      <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="180" height="180" />
+    </a>
+  {% endif %}
+  <h1>Editar serie — {{ exercise.name if exercise else pending_name }}</h1>
 
   <form method="post" action="/workout-sets/{{ workout_set.id }}/edit">
     <label>Peso (kg) <input type="number" step="0.5" name="weight" value="{{ workout_set.weight if workout_set.weight is not none else '' }}" /></label>

@@ -12,14 +12,19 @@ def format_day_header(d) -> str:
     return f"{SPANISH_WEEKDAYS[d.weekday()]}, {d.day}/{d.month}/{d.year % 100:02d}"
 
 
-def build_exercise_history(db: Session, user_id: int, exercise_id: int) -> dict:
-    sets = (
+def build_exercise_history(
+    db: Session, user_id: int, exercise_id: int | None, block_exercise_id: int | None = None
+) -> dict:
+    query = (
         db.query(WorkoutSet, Workout)
         .join(Workout, WorkoutSet.workout_id == Workout.id)
-        .filter(Workout.user_id == user_id, WorkoutSet.exercise_id == exercise_id)
-        .order_by(Workout.date.desc(), WorkoutSet.order.desc())
-        .all()
+        .filter(Workout.user_id == user_id)
     )
+    if exercise_id is not None:
+        query = query.filter(WorkoutSet.exercise_id == exercise_id)
+    else:
+        query = query.filter(WorkoutSet.block_exercise_id == block_exercise_id)
+    sets = query.order_by(Workout.date.desc(), WorkoutSet.order.desc()).all()
 
     day_groups = []
     for day_date, rows in groupby(sets, key=lambda row: row[1].date):

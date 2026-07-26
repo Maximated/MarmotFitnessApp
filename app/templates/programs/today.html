@@ -66,19 +66,33 @@
                   {% endif %}
                 </a>
                 {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url, "sm") }}
-              {% elif block_exercise.modo_registro == "checklist" %}
-                <form method="post" action="/block-exercises/{{ block_exercise.id }}/checklist/toggle" class="exercise-row exercise-row-checklist">
-                  <input type="hidden" name="workout_id" value="{{ workout_id }}" />
-                  <input type="hidden" name="next" value="{{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" />
-                  <button type="submit" class="checklist-checkbox{% if block_exercise.id in checklist_done_ids %} checked{% endif %}" aria-label="{% if block_exercise.id in checklist_done_ids %}Marcar como no hecho{% else %}Marcar como hecho{% endif %}">
-                    {% if block_exercise.id in checklist_done_ids %}
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    {% endif %}
-                  </button>
-                  <span>{{ block_exercise.pending_name }}</span>
-                </form>
               {% else %}
-                <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }} (<a href="/block-exercises/{{ block_exercise.id }}/resolve">resolver</a>)</span>
+                <a href="/block-exercises/{{ block_exercise.id }}/log?next={{ ('/programs/' ~ program.id ~ '/today') | urlencode }}" class="exercise-row">
+                  <div class="exercise-row-placeholder"></div>
+                  <span>{{ block_exercise.pending_name }}</span>
+                  {% if block.num_sets or block_exercise.target_weight or (block_exercise.modo_registro == "tiempo" and block_exercise.duracion_segundos) %}
+                    <span class="exercise-row-progress-group">
+                      {% if block_exercise.modo_registro == "tiempo" %}
+                        {% if block_exercise.duracion_segundos %}
+                          {% set avg_duration = avg_duration_by_block_exercise.get(block_exercise.id, 0) %}
+                          {% set duration_pct = (avg_duration / block_exercise.duracion_segundos * 100) | round | int %}
+                          <span class="exercise-row-progress" style="color: hsl({{ ([duration_pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ duration_pct }}% tiempo</span>
+                        {% endif %}
+                      {% else %}
+                        {% if block.num_sets %}
+                          {% set done = sets_completed_by_block_exercise.get(block_exercise.id, 0) %}
+                          {% set pct = (done / block.num_sets * 100) | round | int %}
+                          <span class="exercise-row-progress" style="color: hsl({{ ([pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ done }}/{{ block.num_sets }} {{ pct }}%</span>
+                        {% endif %}
+                      {% endif %}
+                      {% if block_exercise.target_weight %}
+                        {% set avg_weight = avg_weight_by_block_exercise.get(block_exercise.id, 0) %}
+                        {% set weight_pct = (avg_weight / block_exercise.target_weight * 100) | round | int %}
+                        <span class="exercise-row-progress" style="color: hsl({{ ([weight_pct, 100] | min * 1.2) | round | int }}, 70%, 45%);">{{ weight_pct }}% peso</span>
+                      {% endif %}
+                    </span>
+                  {% endif %}
+                </a>
               {% endif %}
               {% if not loop.last %}<div class="superset-connector"></div><span class="superset-label">⇅ Superserie</span>{% endif %}
             {% endfor %}

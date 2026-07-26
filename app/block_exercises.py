@@ -11,9 +11,8 @@ from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_matching import ExerciseMatcher, normalize_name
 from app.exercise_ratings import rating_order_case
-from app.models import BlockExercise, Exercise, ExerciseAlias, ExerciseRating, User, Workout
+from app.models import BlockExercise, Exercise, ExerciseAlias, ExerciseRating, User
 from app.templates import templates
-from app.workout_checklist import toggle_checklist_item
 
 router = APIRouter()
 
@@ -37,13 +36,6 @@ def resolve_modo_fields(
             "reps_min": None,
             "reps_max": None,
             "duracion_segundos": int(duracion_segundos) if duracion_segundos.strip() else None,
-        }
-    if modo_registro == "checklist":
-        return {
-            "modo_registro": "checklist",
-            "reps_min": None,
-            "reps_max": None,
-            "duracion_segundos": None,
         }
     return {
         "modo_registro": "series",
@@ -163,29 +155,20 @@ async def add_block_exercise(
             detail=f"Este bloque ya tiene los {block.num_exercises} ejercicios declarados.",
         )
 
-    if modo_registro == "checklist":
-        if not pending_name.strip():
-            raise HTTPException(status_code=400, detail="Falta la descripción del movimiento.")
-        db.add(
-            BlockExercise(
-                block_id=block.id,
-                exercise_id=None,
-                pending_name=pending_name.strip(),
-                position=current_count + 1,
-                **resolve_modo_fields("checklist", "", "", ""),
-            )
+    if exercise_id is None and not pending_name.strip():
+        raise HTTPException(
+            status_code=400, detail="Falta el ejercicio o la descripción del movimiento."
         )
-    else:
-        if exercise_id is None:
-            raise HTTPException(status_code=400, detail="Falta el ejercicio.")
-        db.add(
-            BlockExercise(
-                block_id=block.id,
-                exercise_id=exercise_id,
-                position=current_count + 1,
-                **resolve_modo_fields(modo_registro, reps_min, reps_max, duracion_segundos),
-            )
+
+    db.add(
+        BlockExercise(
+            block_id=block.id,
+            exercise_id=exercise_id,
+            pending_name=pending_name.strip() if exercise_id is None else None,
+            position=current_count + 1,
+            **resolve_modo_fields(modo_registro, reps_min, reps_max, duracion_segundos),
         )
+    )
     db.commit()
 
     redirect_url = f"/blocks/{block.id}/exercises"
@@ -226,13 +209,11 @@ async def edit_block_exercise_submit(
     block_exercise = get_own_block_exercise(db, block_exercise_id, user.id)
     for field, value in resolve_modo_fields(modo_registro, reps_min, reps_max, duracion_segundos).items():
         setattr(block_exercise, field, value)
-    if modo_registro == "checklist":
+    if block_exercise.exercise_id is None:
         if not pending_name.strip():
             raise HTTPException(status_code=400, detail="Falta la descripción del movimiento.")
         block_exercise.pending_name = pending_name.strip()
-        block_exercise.target_weight = None
-    else:
-        block_exercise.target_weight = float(target_weight) if target_weight.strip() else None
+    block_exercise.target_weight = float(target_weight) if target_weight.strip() else None
     block_exercise.is_superset_with_next = is_superset_with_next
     db.commit()
 
@@ -265,28 +246,6 @@ async def delete_block_exercise(
     db.commit()
 
     return RedirectResponse(url=f"/blocks/{block_id}/exercises", status_code=303)
-
-
-@router.post("/block-exercises/{block_exercise_id}/checklist/toggle")
-async def toggle_block_exercise_checklist(
-    block_exercise_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user),
-    workout_id: int = Form(...),
-    next: str = Form(...),
-):
-    block_exercise = get_own_block_exercise(db, block_exercise_id, user.id)
-    if block_exercise.modo_registro != "checklist":
-        raise HTTPException(status_code=400)
-
-    workout = db.get(Workout, workout_id)
-    if workout is None or workout.user_id != user.id:
-        raise HTTPException(status_code=404)
-
-    toggle_checklist_item(db, workout_id, block_exercise_id)
-    db.commit()
-
-    return RedirectResponse(url=next, status_code=303)
 
 
 @router.get("/block-exercises/{block_exercise_id}/resolve")

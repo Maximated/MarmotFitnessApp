@@ -864,6 +864,51 @@ td.numeric {
   border-radius: 0.75rem;
 }
 
+.training-gif-placeholder {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  border: 1px dashed var(--border);
+  color: var(--muted);
+}
+
+.exercise-row-placeholder {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+}
+
+.training-gif-placeholder::before,
+.exercise-grid-placeholder::before,
+.exercise-row-placeholder::before {
+  content: "";
+  width: 30%;
+  height: 30%;
+  background: var(--muted);
+  opacity: 0.35;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E") center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.exercise-grid-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: 0.5rem;
+}
+
 .superset-badge {
   display: inline-block;
   margin: 0 0 0.5rem;
@@ -1123,30 +1168,6 @@ td.numeric {
 
 .today-superset-group .exercise-row {
   border-bottom: none;
-}
-
-.exercise-row-checklist {
-  margin-bottom: 0;
-  width: 100%;
-}
-
-.checklist-checkbox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 1.5rem;
-  height: 1.5rem;
-  padding: 0;
-  border-radius: 0.4rem;
-  border: 2px solid var(--primary);
-  background: none;
-  color: var(--primary-text);
-  cursor: pointer;
-}
-
-.checklist-checkbox.checked {
-  background: var(--primary);
 }
 
 .superset-connector {

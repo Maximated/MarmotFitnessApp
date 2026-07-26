@@ -18,9 +18,6 @@
       <li class="block-card">
         <p>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</p>
         <p>{% if block.num_sets %}{{ block.num_sets }} series · {% endif %}descanso {{ block.rest_seconds }}s</p>
-        {% if pending_counts.get(block.id, 0) > 0 %}
-          <p style="color: var(--danger);">⚠️ {{ pending_counts.get(block.id, 0) }} pendiente(s) de resolver</p>
-        {% endif %}
         <div class="card-footer">
           <p><a href="/blocks/{{ block.id }}/exercises">Ejercicios ({{ exercise_counts.get(block.id, 0) }}/{{ block.num_exercises }})</a></p>
           <div class="actions">

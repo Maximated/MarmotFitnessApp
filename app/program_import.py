@@ -65,7 +65,7 @@ async def import_program_submit(
 
     try:
         matcher = ExerciseMatcher(db)
-        counts = {"id": 0, "alias": 0, "name": 0, "fuzzy": 0, "pending": 0, "checklist": 0}
+        counts = {"id": 0, "alias": 0, "name": 0, "fuzzy": 0, "pending": 0, "sin_catalogo": 0}
         detail_rows = []
         pending_refs = []
 
@@ -103,12 +103,15 @@ async def import_program_submit(
                 superset_flags = compute_superset_flags(ejercicios)
                 for ex_pos, (item, is_superset) in enumerate(zip(ejercicios, superset_flags), start=1):
                     modo = item.get("modo", "series")
+                    # "id_dataset" presente con valor null (no ausente) significa
+                    # que a propósito no hay equivalente en el catálogo (ej.
+                    # "Giros de brazo"): salta el emparejador por completo y no
+                    # cuenta como pendiente de resolver. Si la clave falta, sí se
+                    # intenta emparejar por nombre como siempre.
+                    explicit_no_catalog = "id_dataset" in item and item["id_dataset"] is None
 
-                    if modo == "checklist":
-                        # Movimiento sin equivalente en el catálogo, a propósito
-                        # (ej. "Giros de brazo"): no pasa por el emparejador ni
-                        # se cuenta como pendiente de resolver.
-                        exercise_id, method, score = None, "checklist", None
+                    if explicit_no_catalog:
+                        exercise_id, method, score = None, "sin_catalogo", None
                     else:
                         exercise_id, method, score = matcher.resolve(
                             item.get("id_dataset"), item["nombre"]
@@ -128,13 +131,13 @@ async def import_program_submit(
                         pending_name=item["nombre"] if exercise_id is None else None,
                         position=ex_pos,
                         modo_registro=modo,
-                        reps_min=item.get("reps_min") if modo not in ("tiempo", "checklist") else None,
-                        reps_max=item.get("reps_max") if modo not in ("tiempo", "checklist") else None,
+                        reps_min=item.get("reps_min") if modo != "tiempo" else None,
+                        reps_max=item.get("reps_max") if modo != "tiempo" else None,
                         duracion_segundos=item.get("duracion_segundos") if modo == "tiempo" else None,
                         is_superset_with_next=is_superset,
                     )
                     db.add(block_exercise)
-                    if exercise_id is None and modo != "checklist":
+                    if exercise_id is None and not explicit_no_catalog:
                         pending_refs.append(block_exercise)
 
         db.flush()

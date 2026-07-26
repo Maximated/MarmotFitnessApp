@@ -22,19 +22,11 @@
               <span>{{ exercise.name }}</span>
             </a>
             {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url, "sm") }}
-          {% elif block_exercise.modo_registro == "checklist" %}
-            <form method="post" action="/block-exercises/{{ block_exercise.id }}/checklist/toggle" class="exercise-row exercise-row-checklist">
-              <input type="hidden" name="workout_id" value="{{ workout_id }}" />
-              <input type="hidden" name="next" value="{{ current_page_url | urlencode }}" />
-              <button type="submit" class="checklist-checkbox{% if block_exercise.id in checklist_done_ids %} checked{% endif %}" aria-label="{% if block_exercise.id in checklist_done_ids %}Marcar como no hecho{% else %}Marcar como hecho{% endif %}">
-                {% if block_exercise.id in checklist_done_ids %}
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                {% endif %}
-              </button>
-              <span>{{ block_exercise.pending_name }}</span>
-            </form>
           {% else %}
-            <span class="exercise-row">⚠️ Pendiente de resolver: {{ block_exercise.pending_name }}</span>
+            <a href="/block-exercises/{{ block_exercise.id }}/log?next={{ current_page_url | urlencode }}" class="exercise-row">
+              <div class="exercise-row-placeholder"></div>
+              <span>{{ block_exercise.pending_name }}</span>
+            </a>
           {% endif %}
         </li>
       {% else %}

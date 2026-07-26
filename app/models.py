@@ -71,8 +71,11 @@ class WorkoutSet(Base):
     workout_id: Mapped[int] = mapped_column(
         ForeignKey("workouts.id", ondelete="CASCADE"), index=True
     )
-    exercise_id: Mapped[int] = mapped_column(
+    exercise_id: Mapped[int | None] = mapped_column(
         ForeignKey("exercises.id"), index=True
+    )
+    block_exercise_id: Mapped[int | None] = mapped_column(
+        ForeignKey("block_exercises.id"), index=True
     )
     weight: Mapped[float | None] = mapped_column(Float)
     reps: Mapped[int | None] = mapped_column(Integer)
@@ -156,24 +159,6 @@ class WorkoutSubstitution(Base):
         ForeignKey("block_exercises.id", ondelete="CASCADE")
     )
     exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
-
-
-class WorkoutChecklistItem(Base):
-    __tablename__ = "workout_checklist_items"
-    __table_args__ = (
-        UniqueConstraint("workout_id", "block_exercise_id", name="uq_workout_checklist_item"),
-    )
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    workout_id: Mapped[int] = mapped_column(
-        ForeignKey("workouts.id", ondelete="CASCADE"), index=True
-    )
-    block_exercise_id: Mapped[int] = mapped_column(
-        ForeignKey("block_exercises.id", ondelete="CASCADE")
-    )
-    completed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
 
 
 class ExerciseAlias(Base):

@@ -48,19 +48,29 @@
           </a>
         </div>
       {% endif %}
-      {% if training.is_superset and training.superset_partner_gif_url %}
+      {% if training.is_superset and training.superset_partner_name %}
         <div class="training-gif-row{% if not training.superset_is_first %} training-gif-row-reverse{% endif %}">
-          <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+          {% if exercise %}
+            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+          {% else %}
+            <div class="training-gif training-gif-placeholder"></div>
+          {% endif %}
           <span class="superset-arrow">{% if training.superset_is_first %}→{% else %}←{% endif %}</span>
           <a href="{{ training.superset_partner_url }}" class="training-gif-thumb-link">
-            <img src="{{ training.superset_partner_gif_url }}" alt="{{ training.superset_partner_name }}" class="training-gif-thumb" />
+            {% if training.superset_partner_gif_url %}
+              <img src="{{ training.superset_partner_gif_url }}" alt="{{ training.superset_partner_name }}" class="training-gif-thumb" />
+            {% else %}
+              <div class="training-gif-thumb training-gif-placeholder"></div>
+            {% endif %}
           </a>
         </div>
-      {% else %}
+      {% elif exercise %}
         <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+      {% else %}
+        <div class="training-gif training-gif-placeholder"></div>
       {% endif %}
-      <h1>{{ exercise.name }}</h1>
-      {{ star_rating(exercise.id, user_rating, self_url) }}
+      <h1>{{ exercise.name if exercise else pending_name }}</h1>
+      {% if exercise %}{{ star_rating(exercise.id, user_rating, self_url) }}{% endif %}
 
       <div class="training-stats">
         {% if training.modo_registro == "tiempo" %}
@@ -153,7 +163,7 @@
       </script>
     {% endif %}
 
-    <form method="post" action="/exercises/{{ exercise.id }}/log" class="training-log-form" data-preserve-scroll
+    <form method="post" action="{% if exercise %}/exercises/{{ exercise.id }}/log{% else %}/block-exercises/{{ block_exercise_id }}/log{% endif %}" class="training-log-form" data-preserve-scroll
       {% if training.is_superset %}
       data-superset-warn="1" data-sets-completed="{{ training.sets_completed }}" data-partner-sets-completed="{{ training.superset_partner_sets_completed }}"
       {% endif %}>
