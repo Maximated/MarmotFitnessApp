@@ -159,6 +159,12 @@
           const RING_CIRCUMFERENCE = 2 * Math.PI * 44;
           ringEl.style.strokeDasharray = String(RING_CIRCUMFERENCE);
           let navigated = false;
+          // Only auto-navigate for a countdown that's genuinely still running when this
+          // page loads. If it had already hit zero before we even got here (e.g. you
+          // browsed away and came back later), don't force a redirect on every single
+          // page you visit from now on -- that traps you bouncing back to the same
+          // exercise forever, since nothing else ever clears the stale timer.
+          const wasRunningOnLoad = (restUntil - Date.now()) / 1000 > 0;
 
           function render() {
             const rawRemaining = (restUntil - Date.now()) / 1000;
@@ -170,7 +176,7 @@
             ringEl.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - pct));
             ringEl.style.stroke = `hsl(${Math.round(120 * pct)}, 80%, 45%)`;
 
-            if (rawRemaining <= 0 && !navigated && activeExerciseUrl) {
+            if (wasRunningOnLoad && rawRemaining <= 0 && !navigated && activeExerciseUrl) {
               const targetPath = activeExerciseUrl.split("?")[0];
               if (window.location.pathname !== targetPath) {
                 navigated = true;
