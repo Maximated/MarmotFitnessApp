@@ -1,6 +1,35 @@
 {% extends "base.html" %}
 {% from "_nav_arrows.html" import nav_arrow %}
 
+{% macro exercise_actions(block_exercise, delete_label) %}
+  <div class="swipe-row-actions">
+    <a href="/block-exercises/{{ block_exercise.id }}/edit" class="swipe-action swipe-action-edit" aria-label="Editar">
+      {% include "_icon_pencil.html" %}
+    </a>
+    <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form swipe-action-form" data-confirm="¿Seguro que quieres quitar {{ delete_label }} de este bloque?">
+      <button type="submit" class="swipe-action swipe-action-delete" aria-label="Eliminar">
+        {% include "_icon_trash.html" %}
+      </button>
+    </form>
+  </div>
+{% endmacro %}
+
+{% macro exercise_card_body(block_exercise, exercise, img_size) %}
+  <div class="swipe-row-content">
+    {% if exercise %}
+      <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="{{ img_size }}" height="{{ img_size }}" />
+      <p>{{ exercise.name }}</p>
+    {% else %}
+      <div class="exercise-grid-placeholder"></div>
+      <p>{{ block_exercise.pending_name }}</p>
+    {% endif %}
+    <p>{% if block_exercise.modo_registro == "tiempo" %}{% if block_exercise.duracion_segundos %}{{ block_exercise.duracion_segundos }}s{% else %}Duración sin definir{% endif %}{% else %}{% if block_exercise.reps_min %}{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps{% else %}Reps sin definir{% endif %}{% endif %}</p>
+    {% if not exercise %}
+      <p><a href="/block-exercises/{{ block_exercise.id }}/resolve" class="link-small">Vincular a ejercicio del catálogo</a></p>
+    {% endif %}
+  </div>
+{% endmacro %}
+
 {% block content %}
   <div class="page-nav-row">{{ nav_arrow("/days/" ~ block.day_template_id, "back", "Volver al día") }}</div>
 
@@ -14,58 +43,18 @@
           <p><strong>Superserie</strong></p>
           <div class="superset-exercises">
             {% for block_exercise, exercise in group %}
-              <div class="superset-exercise">
-                {% if exercise %}
-                  <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="90" height="90" />
-                  <p>{{ exercise.name }}</p>
-                  <p>{% if block_exercise.modo_registro == "tiempo" %}{% if block_exercise.duracion_segundos %}{{ block_exercise.duracion_segundos }}s{% else %}Duración sin definir{% endif %}{% else %}{% if block_exercise.reps_min %}{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps{% else %}Reps sin definir{% endif %}{% endif %}</p>
-                  <div class="actions">
-                    <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
-                    <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
-                      <button type="submit" class="btn-danger">Eliminar</button>
-                    </form>
-                  </div>
-                {% else %}
-                  <div class="exercise-grid-placeholder"></div>
-                  <p>{{ block_exercise.pending_name }}</p>
-                  <p>{% if block_exercise.modo_registro == "tiempo" %}{% if block_exercise.duracion_segundos %}{{ block_exercise.duracion_segundos }}s{% else %}Duración sin definir{% endif %}{% else %}{% if block_exercise.reps_min %}{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps{% else %}Reps sin definir{% endif %}{% endif %}</p>
-                  <div class="actions">
-                    <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
-                    <a href="/block-exercises/{{ block_exercise.id }}/resolve">Vincular a ejercicio del catálogo</a>
-                    <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ block_exercise.pending_name }} de este bloque?">
-                      <button type="submit" class="btn-danger">Eliminar</button>
-                    </form>
-                  </div>
-                {% endif %}
+              <div class="superset-exercise swipe-row">
+                {{ exercise_actions(block_exercise, exercise.name if exercise else block_exercise.pending_name) }}
+                {{ exercise_card_body(block_exercise, exercise, 90) }}
               </div>
             {% endfor %}
           </div>
         </li>
       {% else %}
         {% set block_exercise, exercise = group[0] %}
-        <li>
-          {% if exercise %}
-            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" width="120" height="120" />
-            <p>{{ exercise.name }}</p>
-            <p>{% if block_exercise.modo_registro == "tiempo" %}{% if block_exercise.duracion_segundos %}{{ block_exercise.duracion_segundos }}s{% else %}Duración sin definir{% endif %}{% else %}{% if block_exercise.reps_min %}{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps{% else %}Reps sin definir{% endif %}{% endif %}</p>
-            <div class="actions">
-              <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
-              <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ exercise.name }} de este bloque?">
-                <button type="submit" class="btn-danger">Eliminar</button>
-              </form>
-            </div>
-          {% else %}
-            <div class="exercise-grid-placeholder"></div>
-            <p>{{ block_exercise.pending_name }}</p>
-            <p>{% if block_exercise.modo_registro == "tiempo" %}{% if block_exercise.duracion_segundos %}{{ block_exercise.duracion_segundos }}s{% else %}Duración sin definir{% endif %}{% else %}{% if block_exercise.reps_min %}{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps{% else %}Reps sin definir{% endif %}{% endif %}</p>
-            <div class="actions">
-              <a href="/block-exercises/{{ block_exercise.id }}/edit">Editar</a>
-              <a href="/block-exercises/{{ block_exercise.id }}/resolve">Vincular a ejercicio del catálogo</a>
-              <form method="post" action="/block-exercises/{{ block_exercise.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres quitar {{ block_exercise.pending_name }} de este bloque?">
-                <button type="submit" class="btn-danger">Eliminar</button>
-              </form>
-            </div>
-          {% endif %}
+        <li class="swipe-row">
+          {{ exercise_actions(block_exercise, exercise.name if exercise else block_exercise.pending_name) }}
+          {{ exercise_card_body(block_exercise, exercise, 120) }}
         </li>
       {% endif %}
     {% else %}

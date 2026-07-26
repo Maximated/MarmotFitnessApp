@@ -4,49 +4,90 @@
 {% block content %}
   <h1>Historial de entrenamientos</h1>
 
-  <form method="get" action="/history">
-    <label>Desde <input type="date" name="date_from" value="{{ date_from }}" /></label>
-    <label>Hasta <input type="date" name="date_to" value="{{ date_to }}" /></label>
-    <label>Ejercicio <input type="text" name="q" placeholder="Nombre del ejercicio" value="{{ q }}" /></label>
+  <form method="get" action="/history" class="history-filters" id="history-filters-form">
+    <div class="history-date-field">
+      <span class="history-date-label">Desde</span>
+      <button type="button" class="icon-btn history-date-toggle" id="date-from-toggle" aria-label="Filtrar desde fecha">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="16" rx="2"></rect>
+          <path d="M3.5 9.5h17"></path>
+          <path d="M8 3v4M16 3v4"></path>
+        </svg>
+      </button>
+      <input type="date" name="date_from" id="date-from-input" value="{{ date_from }}" class="history-date-input" />
+      {% if date_from %}<span class="history-date-chip">{{ date_from }}</span>{% endif %}
+    </div>
+    <div class="history-date-field">
+      <span class="history-date-label">Hasta</span>
+      <button type="button" class="icon-btn history-date-toggle" id="date-to-toggle" aria-label="Filtrar hasta fecha">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="16" rx="2"></rect>
+          <path d="M3.5 9.5h17"></path>
+          <path d="M8 3v4M16 3v4"></path>
+        </svg>
+      </button>
+      <input type="date" name="date_to" id="date-to-input" value="{{ date_to }}" class="history-date-input" />
+      {% if date_to %}<span class="history-date-chip">{{ date_to }}</span>{% endif %}
+    </div>
+    <input type="text" name="q" placeholder="Nombre del ejercicio" value="{{ q }}" class="history-search-input" />
     <button type="submit">Filtrar</button>
   </form>
+
+  <script>
+    (function () {
+      const form = document.getElementById("history-filters-form");
+      [
+        [document.getElementById("date-from-toggle"), document.getElementById("date-from-input")],
+        [document.getElementById("date-to-toggle"), document.getElementById("date-to-input")],
+      ].forEach(([toggle, input]) => {
+        toggle.addEventListener("click", () => {
+          if (input.showPicker) {
+            input.showPicker();
+          } else {
+            input.focus();
+          }
+        });
+        input.addEventListener("change", () => form.submit());
+      });
+    })();
+  </script>
 
   {% set return_to = "/history?" ~ filters_qs ~ ('&' if filters_qs else '') ~ "page=" ~ page %}
   {% for day, sets in days %}
     <h2>{{ day }}</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Ejercicio</th>
-            <th>Peso (kg)</th>
-            <th>Reps</th>
-            <th>Tiempo</th>
-            <th>Hora</th>
-            <th>Notas</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for workout_set, workout, exercise, elapsed in sets %}
-            <tr>
-              <td><a href="/exercises/{{ exercise.id }}/log">{{ exercise.name }}</a></td>
-              <td class="numeric">{{ workout_set.weight if workout_set.weight is not none else "-" }}</td>
-              <td class="numeric">{{ workout_set.reps if workout_set.reps is not none else "-" }}</td>
-              <td class="numeric">{{ elapsed }}</td>
-              <td>{{ workout_set.time.strftime("%H:%M") }}</td>
-              <td>{{ workout_set.comment or "" }}</td>
-              <td class="actions">
-                <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ return_to | urlencode }}">Editar</a>
-                <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar esta serie?">
-                  <input type="hidden" name="next" value="{{ return_to }}" />
-                  <button type="submit" class="btn-danger">Eliminar</button>
-                </form>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="history-list">
+      {% for workout_set, workout, exercise, elapsed in sets %}
+        <div class="history-row swipe-row">
+          <div class="swipe-row-actions actions">
+            <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ return_to | urlencode }}" class="swipe-action swipe-action-edit" aria-label="Editar">
+              {% include "_icon_pencil.html" %}
+            </a>
+            <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form swipe-action-form" data-confirm="¿Seguro que quieres eliminar esta serie?">
+              <input type="hidden" name="next" value="{{ return_to }}" />
+              <button type="submit" class="swipe-action swipe-action-delete" aria-label="Eliminar">
+                {% include "_icon_trash.html" %}
+              </button>
+            </form>
+          </div>
+          <div class="swipe-row-content">
+            <div class="history-row-main">
+              <a href="/exercises/{{ exercise.id }}/log" class="history-exercise-link">{{ exercise.name }}</a>
+              <span class="history-time">{{ workout_set.time.strftime("%H:%M") }}</span>
+            </div>
+            <div class="history-row-detail">
+              {% if workout_set.duration_seconds is not none %}
+                <span>{% if workout_set.weight is not none %}{{ workout_set.weight }} kg · {% endif %}{{ workout_set.duration_seconds }}s</span>
+              {% else %}
+                <span>{{ workout_set.weight if workout_set.weight is not none else "-" }} kg × {{ workout_set.reps if workout_set.reps is not none else "-" }} reps</span>
+              {% endif %}
+              <span class="history-elapsed">{{ elapsed }}</span>
+            </div>
+            {% if workout_set.comment %}
+              <p class="history-note">{{ workout_set.comment }}</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
     </div>
   {% else %}
     <p>No hay entrenamientos en este periodo.</p>

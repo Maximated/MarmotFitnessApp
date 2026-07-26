@@ -353,6 +353,73 @@ button.home-banner {
   }
 }
 
+.program-banner-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.program-banner-item {
+  position: relative;
+}
+
+.program-banner-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 6rem;
+  padding: 1.25rem 3.5rem 1.25rem 1.25rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-family: "Bebas Neue", system-ui, sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.program-banner-name {
+  font-size: 1.7rem;
+}
+
+.program-banner-meta {
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: normal;
+  opacity: 0.85;
+}
+
+.program-banner-item-active .program-banner-link {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.program-banner-item-inactive .program-banner-link {
+  background: #000;
+  color: var(--primary);
+  border: 1px dashed var(--primary);
+}
+
+.program-banner-delete-form {
+  display: contents;
+}
+
+.program-banner-delete {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  border: none;
+}
+
 .bottom-nav {
   position: fixed;
   left: 50%;
@@ -653,6 +720,19 @@ input[type="submit"] {
   padding-bottom: 0.75rem;
 }
 
+.exercise-grid li.swipe-row {
+  padding: 0;
+}
+
+.exercise-grid li.swipe-row .swipe-row-content {
+  padding: 0.75rem;
+  background: var(--card-bg);
+}
+
+.exercise-grid li.swipe-row .swipe-row-actions {
+  gap: 0;
+}
+
 .superset-exercises {
   display: flex;
   gap: 0.75rem;
@@ -662,8 +742,13 @@ input[type="submit"] {
   position: relative;
   flex: 1;
   min-width: 0;
-  padding-bottom: 3rem;
   text-align: center;
+  border-radius: 0.5rem;
+}
+
+.superset-exercise .swipe-row-content {
+  padding-bottom: 0.5rem;
+  background: var(--card-bg);
 }
 
 .day-summary {
@@ -1221,9 +1306,13 @@ td.numeric {
 }
 
 .history-row {
-  padding: 0.5rem 0.25rem;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
+}
+
+.history-row .swipe-row-content {
+  padding: 0.5rem 0.25rem;
+  background: var(--bg);
 }
 
 .history-row-main {
@@ -1246,6 +1335,76 @@ td.numeric {
   font-size: 0.8rem;
   color: var(--muted);
   margin: 0.25rem 0;
+}
+
+.history-exercise-link {
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.history-row-detail {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.history-elapsed {
+  margin-left: auto;
+}
+
+.history-list {
+  margin-bottom: 1rem;
+}
+
+.history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.history-date-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.history-date-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.history-date-toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+
+.history-date-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
+
+.history-date-chip {
+  font-size: 0.7rem;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.history-search-input {
+  flex: 1 1 140px;
+  min-width: 0;
+  max-width: 220px;
 }
 
 .exercise-row-list {
@@ -1411,4 +1570,46 @@ td.numeric {
 .actions form {
   display: inline-flex;
   margin: 0;
+}
+
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-row-content {
+  position: relative;
+  z-index: 1;
+}
+
+.swipe-row-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  display: flex;
+}
+
+.swipe-action-form {
+  display: contents;
+}
+
+.swipe-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  border: none;
+  border-radius: 0;
+  color: #fff;
+  cursor: pointer;
+}
+
+.swipe-action-edit {
+  background: var(--primary);
+}
+
+.swipe-action-delete {
+  background: var(--danger);
 }
