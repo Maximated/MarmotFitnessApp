@@ -86,7 +86,38 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
+}
+
+.top-bar-with-timer {
   padding-right: 6rem;
+}
+
+.header-search {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.header-search-input {
+  display: inline-block;
+  width: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--text);
+  font-size: 0.95rem;
+  opacity: 0;
+  transition: width 0.2s ease, opacity 0.2s ease, padding 0.2s ease;
+}
+
+.header-search.expanded .header-search-input {
+  width: 9rem;
+  opacity: 1;
+  padding: 0.3rem 0;
+  border-bottom-color: var(--border);
 }
 
 .icon-btn {
@@ -96,6 +127,7 @@ a {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
+  flex-shrink: 0;
   color: var(--text);
 }
 
@@ -206,12 +238,6 @@ a {
   color: var(--primary-text);
   font-family: "Bebas Neue", system-ui, sans-serif;
   font-size: 2.5rem;
-}
-
-.profile-avatar-upload-btn {
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
 }
 
 .logo-large {
@@ -706,6 +732,7 @@ td.numeric {
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 1rem;
   color: var(--muted);
 }
 
@@ -902,6 +929,7 @@ td.numeric {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 0.5rem;
   margin: 1rem 0 1.5rem;
 }
@@ -921,8 +949,8 @@ td.numeric {
 }
 
 .stat-circle.stat-circle-timer {
-  width: 112px;
-  height: 112px;
+  width: 130px;
+  height: 130px;
   border: none;
 }
 
@@ -937,13 +965,13 @@ td.numeric {
 .timer-ring-track {
   fill: none;
   stroke: var(--border);
-  stroke-width: 6;
+  stroke-width: 8;
 }
 
 .timer-ring-progress {
   fill: none;
   stroke: var(--danger);
-  stroke-width: 6;
+  stroke-width: 8;
   stroke-linecap: round;
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 1s linear, stroke 1s linear;

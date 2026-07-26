@@ -80,6 +80,7 @@ async def view_day_template(
         .filter(
             BlockExercise.block_id.in_([b.id for b in blocks]),
             BlockExercise.exercise_id.is_(None),
+            BlockExercise.modo_registro != "checklist",
         )
         .group_by(BlockExercise.block_id)
         .all()
