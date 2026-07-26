@@ -120,8 +120,8 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   flex-shrink: 0;
   color: var(--text);
@@ -295,6 +295,62 @@ button.global-timer {
 
 .program-banner h1 {
   margin: 0;
+}
+
+.home-banner {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  text-align: center;
+  text-decoration: none;
+  font-family: "Bebas Neue", system-ui, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  cursor: default;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+a.home-banner,
+button.home-banner {
+  cursor: pointer;
+}
+
+.home-banner-today {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.home-banner-next {
+  background: #000;
+  color: var(--primary);
+  border: 1px dashed var(--primary);
+}
+
+.home-banner-locked {
+  opacity: 0.65;
+}
+
+.home-banner-note {
+  display: block;
+  font-family: system-ui, sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: normal;
+  margin-top: 0.15rem;
+  opacity: 0.85;
+}
+
+@media (max-width: 720px) {
+  .home-banner {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+  }
 }
 
 .bottom-nav {

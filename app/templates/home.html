@@ -18,23 +18,32 @@
       <h2>Siguiente entrenamiento</h2>
 
       {% if today_session %}
-        <p>
-          <a href="/programs/{{ active_program.id }}/today" class="btn">
-            Entrenamiento de hoy{% if today_session.day_template %} — Día {{ today_session.day_template.day_number }}{% if today_session.day_template.subtitle %} · {{ today_session.day_template.subtitle }}{% endif %}{% endif %}
-            {% if today_session.finished %}(finalizado){% else %}(en curso){% endif %}
-          </a>
-        </p>
+        <a href="/programs/{{ active_program.id }}/today" class="home-banner home-banner-today">
+          Entrenamiento de hoy{% if today_session.day_template %} — Día {{ today_session.day_template.day_number }}{% if today_session.day_template.subtitle %} · {{ today_session.day_template.subtitle }}{% endif %}{% endif %}
+          {% if today_session.finished %}(finalizado){% else %}(en curso){% endif %}
+        </a>
         {% if next_sessions %}
-          <p>Después: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}</p>
+          <span class="home-banner home-banner-next">
+            Después: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
+          </span>
         {% endif %}
       {% elif next_sessions %}
-        <form method="post" action="/programs/{{ active_program.id }}/today/start">
-          <button type="submit" class="btn">
+        {% if next_session_locked %}
+          <span class="home-banner home-banner-next home-banner-locked">
             Siguiente: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
-          </button>
-        </form>
+            <span class="home-banner-note">Disponible a partir de las {{ next_session_available_at.strftime("%H:%M del %d/%m") }}</span>
+          </span>
+        {% else %}
+          <form method="post" action="/programs/{{ active_program.id }}/today/start">
+            <button type="submit" class="home-banner home-banner-next">
+              Siguiente: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
+            </button>
+          </form>
+        {% endif %}
         {% if next_sessions|length > 1 %}
-          <p>Después: {{ next_sessions[1].date }}{% if next_sessions[1].day_template %} — Día {{ next_sessions[1].day_template.day_number }}{% if next_sessions[1].day_template.subtitle %} · {{ next_sessions[1].day_template.subtitle }}{% endif %}{% endif %}</p>
+          <span class="home-banner home-banner-next">
+            Después: {{ next_sessions[1].date }}{% if next_sessions[1].day_template %} — Día {{ next_sessions[1].day_template.day_number }}{% if next_sessions[1].day_template.subtitle %} · {{ next_sessions[1].day_template.subtitle }}{% endif %}{% endif %}
+          </span>
         {% endif %}
       {% else %}
         <form method="post" action="/programs/{{ active_program.id }}/begin">

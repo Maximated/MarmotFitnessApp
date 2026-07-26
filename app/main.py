@@ -1,5 +1,5 @@
 import mimetypes
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import FileResponse, RedirectResponse
@@ -28,6 +28,8 @@ from app.workouts import router as workouts_router
 # así que StaticFiles los serviría como application/octet-stream.
 mimetypes.add_type("font/woff2", ".woff2")
 mimetypes.add_type("image/webp", ".webp")
+
+NEXT_SESSION_LOCK_HOURS = 24
 
 app = FastAPI(title="Marmot Fitness App")
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
@@ -89,6 +91,20 @@ async def home(
                 last_day_template = db.get(DayTemplate, last_workout.day_template_id)
                 last_session = {"date": last_workout.date, "day_template": last_day_template}
             context["last_session"] = last_session
+
+            next_session_available_at = None
+            if last_workout is not None:
+                reference_time = last_workout.finished_at or last_workout.started_at
+                if reference_time is not None:
+                    next_session_available_at = reference_time + timedelta(
+                        hours=NEXT_SESSION_LOCK_HOURS
+                    )
+            next_session_locked = (
+                next_session_available_at is not None
+                and datetime.now(timezone.utc) < next_session_available_at
+            )
+            context["next_session_available_at"] = next_session_available_at
+            context["next_session_locked"] = next_session_locked
 
             next_sessions = []
             for day_number, due_date in get_next_two_sessions(active_program):
