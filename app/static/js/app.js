@@ -26,43 +26,51 @@ if ("serviceWorker" in navigator) {
     const actions = row.querySelector(".swipe-row-actions");
     if (!content || !actions) return;
 
+    let pointerId = null;
     let startX = null;
     let startY = null;
     let baseX = 0;
     let dragging = false;
     let isHorizontal = null;
+    let moved = false;
 
-    content.addEventListener("touchstart", (event) => {
+    content.addEventListener("pointerdown", (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
       if (openRow && openRow !== row) closeRow(openRow);
-      startX = event.touches[0].clientX;
-      startY = event.touches[0].clientY;
+      pointerId = event.pointerId;
+      startX = event.clientX;
+      startY = event.clientY;
       baseX = row.classList.contains("swipe-open") ? -actions.offsetWidth : 0;
       dragging = true;
       isHorizontal = null;
+      moved = false;
       content.style.transition = "none";
-    }, { passive: true });
+    });
 
-    content.addEventListener("touchmove", (event) => {
-      if (!dragging) return;
-      const dx = event.touches[0].clientX - startX;
-      const dy = event.touches[0].clientY - startY;
-      if (isHorizontal === null) {
+    content.addEventListener("pointermove", (event) => {
+      if (!dragging || event.pointerId !== pointerId) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (isHorizontal === null && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
         isHorizontal = Math.abs(dx) > Math.abs(dy);
+        if (isHorizontal) content.setPointerCapture(pointerId);
       }
       if (!isHorizontal) return;
+      moved = true;
       const actionsWidth = actions.offsetWidth;
       const next = Math.max(-actionsWidth, Math.min(0, baseX + dx));
       content.style.transform = `translateX(${next}px)`;
-    }, { passive: true });
+    });
 
-    content.addEventListener("touchend", (event) => {
+    function finishDrag(event) {
+      if (!dragging || event.pointerId !== pointerId) return;
       content.style.transition = "";
-      if (!dragging || !isHorizontal) {
-        dragging = false;
-        return;
-      }
       dragging = false;
-      const dx = event.changedTouches[0].clientX - startX;
+      if (content.hasPointerCapture(pointerId)) {
+        content.releasePointerCapture(pointerId);
+      }
+      if (!isHorizontal || !moved) return;
+      const dx = event.clientX - startX;
       const actionsWidth = actions.offsetWidth;
       const shouldOpen = baseX + dx < -actionsWidth / 2;
       if (shouldOpen) {
@@ -74,7 +82,10 @@ if ("serviceWorker" in navigator) {
         row.classList.remove("swipe-open");
         if (openRow === row) openRow = null;
       }
-    });
+    }
+
+    content.addEventListener("pointerup", finishDrag);
+    content.addEventListener("pointercancel", finishDrag);
   });
 
   document.addEventListener("click", (event) => {

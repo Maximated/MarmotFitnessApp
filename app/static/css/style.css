@@ -1580,6 +1580,7 @@ td.numeric {
 .swipe-row-content {
   position: relative;
   z-index: 1;
+  touch-action: pan-y;
 }
 
 .swipe-row-actions {

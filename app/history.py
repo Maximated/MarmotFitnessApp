@@ -5,11 +5,12 @@ from math import ceil
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_user
-from app.models import Exercise, User, Workout, WorkoutSet
+from app.models import BlockExercise, Exercise, User, Workout, WorkoutSet
 from app.templates import templates
 
 router = APIRouter()
@@ -38,10 +39,16 @@ async def history(
     if date_to:
         dates_query = dates_query.filter(Workout.date <= date_to)
     if q:
-        dates_query = dates_query.join(
-            WorkoutSet, WorkoutSet.workout_id == Workout.id
-        ).join(Exercise, Exercise.id == WorkoutSet.exercise_id).filter(
-            Exercise.name.ilike(f"%{q}%")
+        dates_query = (
+            dates_query.join(WorkoutSet, WorkoutSet.workout_id == Workout.id)
+            .outerjoin(Exercise, Exercise.id == WorkoutSet.exercise_id)
+            .outerjoin(BlockExercise, BlockExercise.id == WorkoutSet.block_exercise_id)
+            .filter(
+                or_(
+                    Exercise.name.ilike(f"%{q}%"),
+                    BlockExercise.pending_name.ilike(f"%{q}%"),
+                )
+            )
         )
     dates_query = dates_query.distinct().order_by(Workout.date.desc())
 
@@ -56,18 +63,24 @@ async def history(
     days = []
     if page_dates:
         sets_query = (
-            db.query(WorkoutSet, Workout, Exercise)
+            db.query(WorkoutSet, Workout, Exercise, BlockExercise)
             .join(Workout, WorkoutSet.workout_id == Workout.id)
-            .join(Exercise, Exercise.id == WorkoutSet.exercise_id)
+            .outerjoin(Exercise, Exercise.id == WorkoutSet.exercise_id)
+            .outerjoin(BlockExercise, BlockExercise.id == WorkoutSet.block_exercise_id)
             .filter(Workout.user_id == user.id, Workout.date.in_(page_dates))
         )
         if q:
-            sets_query = sets_query.filter(Exercise.name.ilike(f"%{q}%"))
+            sets_query = sets_query.filter(
+                or_(
+                    Exercise.name.ilike(f"%{q}%"),
+                    BlockExercise.pending_name.ilike(f"%{q}%"),
+                )
+            )
         rows = sets_query.order_by(Workout.date.desc(), WorkoutSet.order.asc()).all()
 
         prev_time_by_workout: dict[int, object] = {}
         enriched_rows = []
-        for workout_set, workout, exercise in rows:
+        for workout_set, workout, exercise, block_exercise in rows:
             if workout_set.duration_seconds is not None:
                 elapsed_display = format_duration(workout_set.duration_seconds)
             else:
@@ -80,7 +93,15 @@ async def history(
                 else:
                     elapsed_display = "-"
             prev_time_by_workout[workout.id] = workout_set.time
-            enriched_rows.append((workout_set, workout, exercise, elapsed_display))
+            display_name = exercise.name if exercise is not None else block_exercise.pending_name
+            link_url = (
+                f"/exercises/{exercise.id}/log"
+                if exercise is not None
+                else f"/block-exercises/{workout_set.block_exercise_id}/log"
+            )
+            enriched_rows.append(
+                (workout_set, workout, display_name, link_url, elapsed_display)
+            )
 
         days = [
             (day, list(items))

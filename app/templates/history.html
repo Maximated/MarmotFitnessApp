@@ -56,7 +56,7 @@
   {% for day, sets in days %}
     <h2>{{ day }}</h2>
     <div class="history-list">
-      {% for workout_set, workout, exercise, elapsed in sets %}
+      {% for workout_set, workout, display_name, link_url, elapsed in sets %}
         <div class="history-row swipe-row">
           <div class="swipe-row-actions actions">
             <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ return_to | urlencode }}" class="swipe-action swipe-action-edit" aria-label="Editar">
@@ -71,7 +71,7 @@
           </div>
           <div class="swipe-row-content">
             <div class="history-row-main">
-              <a href="/exercises/{{ exercise.id }}/log" class="history-exercise-link">{{ exercise.name }}</a>
+              <a href="{{ link_url }}" class="history-exercise-link">{{ display_name }}</a>
               <span class="history-time">{{ workout_set.time.strftime("%H:%M") }}</span>
             </div>
             <div class="history-row-detail">
