@@ -35,9 +35,13 @@
       </tbody>
     </table>
     <div class="cal-actions-popover" hidden>
-      <a class="cal-actions-edit btn" href="#">Editar</a>
+      <a class="cal-actions-edit cal-action-icon cal-action-icon-edit" href="#" aria-label="Editar">
+        {% include "_icon_pencil.html" %}
+      </a>
       <form method="post" class="cal-actions-delete delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
-        <button type="submit" class="btn-danger">Eliminar</button>
+        <button type="submit" class="cal-action-icon cal-action-icon-delete" aria-label="Eliminar">
+          {% include "_icon_trash.html" %}
+        </button>
       </form>
     </div>
   </div>
