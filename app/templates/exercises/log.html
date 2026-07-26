@@ -186,7 +186,9 @@
         if (!("Notification" in window) || Notification.permission !== "default") return;
         const submitBtn = document.querySelector(".training-log-form .btn-add");
         if (submitBtn) {
-          submitBtn.addEventListener("click", () => { Notification.requestPermission(); }, { once: true });
+          submitBtn.addEventListener("click", () => {
+            try { Notification.requestPermission(); } catch (err) { /* not supported in this context */ }
+          }, { once: true });
         }
       })();
     </script>
@@ -285,7 +287,7 @@
               iconEl.innerHTML = PLAY_ICON;
               if (onSettle) onSettle(totalSeconds);
               if (notifyText && "Notification" in window && Notification.permission === "granted") {
-                new Notification(notifyText);
+                try { new Notification(notifyText); } catch (err) { /* not supported in this context */ }
               }
               return;
             }
@@ -294,9 +296,6 @@
 
           function start() {
             if (intervalId !== null) return;
-            if ("Notification" in window && Notification.permission === "default") {
-              Notification.requestPermission();
-            }
             intervalId = setInterval(tick, 1000);
             iconEl.innerHTML = PAUSE_ICON;
             if (onStart) onStart();
