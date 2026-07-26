@@ -61,6 +61,9 @@ class Workout(Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     rest_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     rest_total_seconds: Mapped[int | None] = mapped_column(Integer)
+    active_block_exercise_id: Mapped[int | None] = mapped_column(
+        ForeignKey("block_exercises.id", ondelete="SET NULL"), index=True
+    )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 

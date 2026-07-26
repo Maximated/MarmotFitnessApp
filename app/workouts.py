@@ -15,6 +15,7 @@ from app.exercise_ratings import get_next_similar_exercise, get_similar_exercise
 from app.workout_substitutions import get_substitution_map, set_substitution
 from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, User, Workout, WorkoutSet
 from app.templates import templates
+from app.training_urls import training_url
 
 router = APIRouter()
 
@@ -82,15 +83,6 @@ def get_own_workout_set(db: Session, set_id: int, user_id: int) -> WorkoutSet:
     if workout_set is None:
         raise HTTPException(status_code=404)
     return workout_set
-
-
-def training_url(block_exercise_id: int, exercise_id: int | None, params: dict) -> str:
-    """URL for a training slot: the catalog route when it resolves to a real
-    Exercise, the block-exercise route otherwise (no gif/catálogo, but the
-    same training screen)."""
-    if exercise_id is not None:
-        return f"/exercises/{exercise_id}/log?{urlencode(params)}"
-    return f"/block-exercises/{block_exercise_id}/log?{urlencode(params)}"
 
 
 def count_sets(db: Session, workout_id: int, exercise_id: int | None, block_exercise_id: int) -> int:
@@ -412,10 +404,12 @@ def submit_workout_set(
         if block_exercise is not None and block_exercise.modo_registro == "tiempo":
             workout.rest_until = None
             workout.rest_total_seconds = None
+            workout.active_block_exercise_id = None
         elif block_exercise is not None and not block_exercise.is_superset_with_next:
             block = db.get(Block, block_exercise.block_id)
             workout.rest_until = now + timedelta(seconds=block.rest_seconds)
             workout.rest_total_seconds = block.rest_seconds
+            workout.active_block_exercise_id = block_exercise_id
 
     db.add(
         WorkoutSet(

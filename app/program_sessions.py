@@ -370,6 +370,7 @@ async def mark_today_started(
 async def start_rest_timer(
     program_id: int,
     seconds: int,
+    block_exercise_id: int | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
@@ -384,6 +385,7 @@ async def start_rest_timer(
     if workout is not None:
         workout.rest_until = datetime.now() + timedelta(seconds=seconds)
         workout.rest_total_seconds = seconds
+        workout.active_block_exercise_id = block_exercise_id
         db.commit()
 
     return Response(status_code=204)

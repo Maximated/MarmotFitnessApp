@@ -20,18 +20,10 @@
         <tr>
           {% for day in week %}
             {% if day %}
-              <td class="{% if day.status == 'done' %}cal-done{% elif day.status == 'due' %}cal-due{% endif %}">
-                {% if day.status == 'done' %}
-                  <button type="button" class="cal-day-btn" data-date="{{ day.date.isoformat() }}">
-                    <span class="cal-day-num">{{ day.date.day }}</span>
-                    {{ dumbbell_icon() }}
-                  </button>
-                {% elif day.status == 'due' %}
-                  <span class="cal-day-num">{{ day.date.day }}</span>
-                  {{ dumbbell_icon() }}
-                {% else %}
-                  <span class="cal-day-num">{{ day.date.day }}</span>
-                {% endif %}
+              <td class="{% if day.status == 'done' %}cal-done cal-day-btn{% elif day.status == 'due' %}cal-due{% endif %}"
+                {% if day.status == 'done' %}data-date="{{ day.date.isoformat() }}" tabindex="0" role="button"{% endif %}>
+                <span class="cal-day-num">{{ day.date.day }}</span>
+                {% if day.status == 'done' or day.status == 'due' %}{{ dumbbell_icon() }}{% endif %}
               </td>
             {% else %}
               <td></td>
@@ -54,7 +46,7 @@
   <script>
     (function () {
       document.querySelectorAll(".cal-day-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
+        const toggle = () => {
           const row = btn.closest("tr");
           const actionsRow = row.nextElementSibling;
           const wasOpen = !actionsRow.hidden;
@@ -64,6 +56,13 @@
           actionsRow.querySelector(".cal-actions-edit").href = "/programs/{{ program_id }}/sessions/" + dateStr + "/detail";
           actionsRow.querySelector(".cal-actions-delete").action = "/programs/{{ program_id }}/sessions/" + dateStr + "/delete";
           actionsRow.hidden = false;
+        };
+        btn.addEventListener("click", toggle);
+        btn.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggle();
+          }
         });
       });
     })();

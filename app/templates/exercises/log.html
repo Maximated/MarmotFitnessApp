@@ -113,12 +113,7 @@
           </div>
         {% endif %}
         {% if training.modo_registro != "tiempo" %}
-          {% if training.no_rest %}
-            <div class="stat-circle stat-circle-danger stat-circle-no-rest">
-              <span class="stat-value">Superserie</span>
-              <span class="stat-label">Sin descanso</span>
-            </div>
-          {% elif active_session_rest_until %}
+          {% if active_session_rest_until %}
             <div class="stat-circle stat-circle-danger stat-circle-timer" id="rest-circle" data-rest-until="{{ active_session_rest_until }}" data-total-seconds="{{ active_session_rest_total_seconds or '' }}">
               {{ timer_ring("rest-ring") }}
               <div class="stat-circle-content">
@@ -128,6 +123,11 @@
                 <span class="stat-value" id="rest-value">--:--</span>
                 <span class="stat-label">Descanso</span>
               </div>
+            </div>
+          {% elif training.no_rest %}
+            <div class="stat-circle stat-circle-danger stat-circle-no-rest">
+              <span class="stat-value">Superserie</span>
+              <span class="stat-label">Sin descanso</span>
             </div>
           {% else %}
             <div class="stat-circle stat-circle-danger stat-circle-timer" id="rest-circle" data-rest-seconds="{{ training.rest_seconds }}">
@@ -180,6 +180,16 @@
       <input type="hidden" name="block_exercise_id" value="{{ block_exercise_id }}" />
       {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
     </form>
+
+    <script>
+      (function () {
+        if (!("Notification" in window) || Notification.permission !== "default") return;
+        const submitBtn = document.querySelector(".training-log-form .btn-add");
+        if (submitBtn) {
+          submitBtn.addEventListener("click", () => { Notification.requestPermission(); }, { once: true });
+        }
+      })();
+    </script>
 
     {% if training.is_superset %}
       <script>
@@ -335,7 +345,7 @@
         }
       </script>
 
-    {% if training.modo_registro != "tiempo" and not training.no_rest and active_session_rest_until %}
+    {% if training.modo_registro != "tiempo" and active_session_rest_until %}
       <script>
         (function () {
           const circle = document.getElementById("rest-circle");
@@ -368,7 +378,7 @@
             notifyText: "Descanso terminado",
             onStart: () => {
               const seconds = parseInt(circle.dataset.restSeconds, 10);
-              fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds, { method: "POST" }).catch(() => {});
+              fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds + "&block_exercise_id={{ block_exercise_id }}", { method: "POST" }).catch(() => {});
             },
           });
         })();
@@ -412,7 +422,7 @@
             onSettle: (elapsedSeconds) => { durationInput.value = elapsedSeconds; },
             onStart: () => {
               const seconds = parseInt(circle.dataset.durationSeconds, 10);
-              fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds, { method: "POST" }).catch(() => {});
+              fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds + "&block_exercise_id={{ block_exercise_id }}", { method: "POST" }).catch(() => {});
               {% if training.is_warmup %}
               fetch("/programs/{{ training.program_id }}/today/mark-started", { method: "POST" }).catch(() => {});
               {% endif %}
