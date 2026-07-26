@@ -9,53 +9,72 @@
 {% endmacro %}
 
 {% macro calendar_table(weeks, program_id) %}
-  <table class="calendar-table">
-    <thead>
-      <tr>
-        <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for week in weeks %}
+  <div class="calendar-wrap">
+    <table class="calendar-table">
+      <thead>
         <tr>
-          {% for day in week %}
-            {% if day %}
-              <td class="{% if day.status == 'done' %}cal-done cal-day-btn{% elif day.status == 'due' %}cal-due{% endif %}"
-                {% if day.status == 'done' %}data-date="{{ day.date.isoformat() }}" tabindex="0" role="button"{% endif %}>
-                <span class="cal-day-num">{{ day.date.day }}</span>
-                {% if day.status == 'done' or day.status == 'due' %}{{ dumbbell_icon() }}{% endif %}
-              </td>
-            {% else %}
-              <td></td>
-            {% endif %}
-          {% endfor %}
+          <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
         </tr>
-        <tr class="cal-actions-row" hidden>
-          <td colspan="7">
-            <div class="cal-actions">
-              <a class="cal-actions-edit btn" href="#">Editar</a>
-              <form method="post" class="cal-actions-delete delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
-                <button type="submit" class="btn-danger">Eliminar</button>
-              </form>
-            </div>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for week in weeks %}
+          <tr>
+            {% for day in week %}
+              {% if day %}
+                <td class="{% if day.status == 'done' %}cal-done cal-day-btn{% elif day.status == 'due' %}cal-due{% endif %}"
+                  {% if day.status == 'done' %}data-date="{{ day.date.isoformat() }}" tabindex="0" role="button"{% endif %}>
+                  <span class="cal-day-num">{{ day.date.day }}</span>
+                  {% if day.status == 'done' or day.status == 'due' %}{{ dumbbell_icon() }}{% endif %}
+                </td>
+              {% else %}
+                <td></td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="cal-actions-popover" hidden>
+      <a class="cal-actions-edit btn" href="#">Editar</a>
+      <form method="post" class="cal-actions-delete delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
+        <button type="submit" class="btn-danger">Eliminar</button>
+      </form>
+    </div>
+  </div>
   <script>
     (function () {
+      const wraps = document.querySelectorAll(".calendar-wrap");
+      const wrap = wraps[wraps.length - 1];
+      const popover = wrap.querySelector(".cal-actions-popover");
+      let currentBtn = null;
+
+      function position(btn) {
+        const rect = btn.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
+        const popoverWidth = popover.offsetWidth;
+        let left = rect.left - wrapRect.left + rect.width / 2 - popoverWidth / 2;
+        left = Math.max(0, Math.min(left, wrapRect.width - popoverWidth));
+        popover.style.left = left + "px";
+        popover.style.top = (rect.bottom - wrapRect.top + 6) + "px";
+      }
+
+      function close() {
+        popover.hidden = true;
+        currentBtn = null;
+      }
+
       document.querySelectorAll(".cal-day-btn").forEach((btn) => {
         const toggle = () => {
-          const row = btn.closest("tr");
-          const actionsRow = row.nextElementSibling;
-          const wasOpen = !actionsRow.hidden;
-          document.querySelectorAll(".cal-actions-row").forEach((r) => { r.hidden = true; });
-          if (wasOpen) return;
+          if (currentBtn === btn && !popover.hidden) {
+            close();
+            return;
+          }
+          currentBtn = btn;
           const dateStr = btn.dataset.date;
-          actionsRow.querySelector(".cal-actions-edit").href = "/programs/{{ program_id }}/sessions/" + dateStr + "/detail";
-          actionsRow.querySelector(".cal-actions-delete").action = "/programs/{{ program_id }}/sessions/" + dateStr + "/delete";
-          actionsRow.hidden = false;
+          popover.querySelector(".cal-actions-edit").href = "/programs/{{ program_id }}/sessions/" + dateStr + "/detail";
+          popover.querySelector(".cal-actions-delete").action = "/programs/{{ program_id }}/sessions/" + dateStr + "/delete";
+          popover.hidden = false;
+          position(btn);
         };
         btn.addEventListener("click", toggle);
         btn.addEventListener("keydown", (event) => {
@@ -64,6 +83,12 @@
             toggle();
           }
         });
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!popover.hidden && !popover.contains(event.target) && !event.target.closest(".cal-day-btn")) {
+          close();
+        }
       });
     })();
   </script>

@@ -32,6 +32,23 @@
       Entrenamiento de hoy — Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %} (ya iniciado)
       {% if finished %} · Finalizado{% endif %}
     </p>
+
+    {% if finished and stats %}
+      <h2>Resumen del entrenamiento</h2>
+      <div class="stat-ring-group">
+        {{ stat_ring(stats.weight_ring, "Peso objetivo") }}
+        {{ stat_ring(stats.reps_ring, "Repeticiones") }}
+        {{ stat_ring(stats.warmup_ring, "Calentamiento", stats.warmup_actual_seconds ~ "/" ~ stats.warmup_planned_seconds ~ "s") }}
+        {{ stat_ring(stats.exercises_ring, "Ejercicios completos", stats.exercises_completed ~ "/" ~ stats.exercises_total) }}
+      </div>
+      {% if stats.volume_kg or stats.session_minutes %}
+        <ul>
+          {% if stats.volume_kg %}<li>Volumen total levantado: {{ stats.volume_kg }} kg</li>{% endif %}
+          {% if stats.session_minutes %}<li>Duración de la sesión: {{ stats.session_minutes }} min</li>{% endif %}
+        </ul>
+      {% endif %}
+    {% endif %}
+
     {% for block in blocks %}
       <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
       <ul class="exercise-row-list">
@@ -107,22 +124,6 @@
 
     {% if finished %}
       <p>Entrenamiento finalizado. Puedes seguir revisando y editando tus series desde el histórico de cada ejercicio.</p>
-
-      {% if stats %}
-        <h2>Resumen del entrenamiento</h2>
-        <div class="stat-ring-group">
-          {{ stat_ring(stats.weight_ring, "Peso objetivo") }}
-          {{ stat_ring(stats.reps_ring, "Repeticiones") }}
-          {{ stat_ring(stats.warmup_ring, "Calentamiento", stats.warmup_actual_seconds ~ "/" ~ stats.warmup_planned_seconds ~ "s") }}
-          {{ stat_ring(stats.exercises_ring, "Ejercicios completos", stats.exercises_completed ~ "/" ~ stats.exercises_total) }}
-        </div>
-        {% if stats.volume_kg or stats.session_minutes %}
-          <ul>
-            {% if stats.volume_kg %}<li>Volumen total levantado: {{ stats.volume_kg }} kg</li>{% endif %}
-            {% if stats.session_minutes %}<li>Duración de la sesión: {{ stats.session_minutes }} min</li>{% endif %}
-          </ul>
-        {% endif %}
-      {% endif %}
     {% else %}
       <form method="post" action="/programs/{{ program.id }}/today/finish" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
         <button type="submit">Finalizar entrenamiento</button>

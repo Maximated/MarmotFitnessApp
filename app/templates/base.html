@@ -17,7 +17,7 @@
         <form action="/exercises/search" method="get" class="header-search" id="header-search-form">
           <input type="text" name="q" id="header-search-input" class="header-search-input" placeholder="Buscar ejercicios" autocomplete="off" />
           <button type="submit" class="icon-btn" id="header-search-toggle" aria-label="Buscar ejercicios">
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -34,11 +34,10 @@
         {% endif %}
       </div>
       {% if active_session_started_at or active_session_rest_until %}
-        {% set on_active_exercise = active_exercise_url and request.url.path == active_exercise_url.split('?')[0] %}
         <div class="global-timer-group">
           {% if active_session_started_at %}
             {% if active_program_id %}
-              <form method="post" action="/programs/{{ active_program_id }}/today/finish" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
+              <form method="post" action="/programs/{{ active_program_id }}/today/finish" class="global-timer-finish-form" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
                 <button type="submit" id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></button>
               </form>
             {% else %}
@@ -46,21 +45,20 @@
             {% endif %}
           {% endif %}
           {% if active_session_rest_until %}
-            <span id="global-rest-timer" class="global-timer-circle" data-rest-until="{{ active_session_rest_until }}" data-total-seconds="{{ active_session_rest_total_seconds or '' }}" data-active-exercise-url="{{ active_exercise_url or '' }}">
+            {% set rest_timer_tag = "a" if active_exercise_url else "span" %}
+            <{{ rest_timer_tag }}
+              id="global-rest-timer"
+              class="global-timer-circle"
+              {% if active_exercise_url %}href="{{ active_exercise_url }}" aria-label="Ir al ejercicio en curso"{% endif %}
+              data-rest-until="{{ active_session_rest_until }}"
+              data-total-seconds="{{ active_session_rest_total_seconds or '' }}"
+            >
               <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
                 <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
                 <circle class="timer-ring-progress" id="global-rest-ring" cx="50" cy="50" r="44"></circle>
               </svg>
               <span class="global-timer-circle-value" id="global-rest-value"></span>
-            </span>
-          {% endif %}
-          {% if active_exercise_url and not on_active_exercise %}
-            <a href="{{ active_exercise_url }}" class="global-timer-jump" aria-label="Ir al ejercicio en curso">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 4v14"></path>
-                <path d="M6 12l6 6 6-6"></path>
-              </svg>
-            </a>
+            </{{ rest_timer_tag }}>
           {% endif %}
         </div>
       {% endif %}
@@ -157,7 +155,7 @@
           const restUntil = new Date(el.dataset.restUntil).getTime();
           const initialRemaining = Math.max(0, Math.round((restUntil - Date.now()) / 1000));
           const totalSeconds = parseInt(el.dataset.totalSeconds, 10) || initialRemaining;
-          const activeExerciseUrl = el.dataset.activeExerciseUrl || "";
+          const activeExerciseUrl = el.tagName === "A" ? el.getAttribute("href") : "";
           const RING_CIRCUMFERENCE = 2 * Math.PI * 44;
           ringEl.style.strokeDasharray = String(RING_CIRCUMFERENCE);
           let navigated = false;
