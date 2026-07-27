@@ -19,7 +19,7 @@ from app.exercise_ratings import (
     get_user_rating,
 )
 from app.workout_substitutions import get_substitution_map, set_substitution
-from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, User, Workout, WorkoutSet
+from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, Program, User, Workout, WorkoutSet
 from app.templates import templates
 from app.training_urls import training_url
 
@@ -351,12 +351,25 @@ async def render_training_log(
                 db, todays_workout.id, partner_exercise_id, superset_partner.id
             )
 
+    weight_target = block_exercise.target_weight
+    if exercise_id is not None:
+        progress = (
+            db.query(ExerciseUserProgress)
+            .filter(
+                ExerciseUserProgress.user_id == user.id,
+                ExerciseUserProgress.exercise_id == exercise_id,
+            )
+            .first()
+        )
+        if progress is not None:
+            weight_target = progress.current_weight
+
     training = {
         "modo_registro": block_exercise.modo_registro,
         "reps_min": block_exercise.reps_min,
         "reps_max": block_exercise.reps_max,
         "duracion_segundos": block_exercise.duracion_segundos,
-        "weight_target": block_exercise.target_weight,
+        "weight_target": weight_target,
         "rest_seconds": block.rest_seconds,
         "no_rest": block_exercise.is_superset_with_next,
         "sets_completed": sets_completed_today,

@@ -209,3 +209,18 @@ class ExerciseRating(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class ExerciseUserProgress(Base):
+    __tablename__ = "exercise_user_progress"
+    __table_args__ = (
+        UniqueConstraint("user_id", "exercise_id", name="uq_exercise_user_progress_user_exercise"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id", ondelete="CASCADE"), index=True)
+    current_weight: Mapped[float] = mapped_column(Float)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

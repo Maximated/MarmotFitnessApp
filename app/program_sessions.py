@@ -12,7 +12,7 @@ from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_ratings import get_user_ratings_map
 from app.workout_substitutions import apply_substitutions, get_substitution_map
-from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout, WorkoutSet
+from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, User, Workout, WorkoutSet
 from app.programs import get_own_program
 from app.templates import templates
 from app.workouts import SCHEDULE_INTERVAL_DAYS, count_sets, get_or_create_workout, recompute_schedule, resolve_rest_step
@@ -21,6 +21,10 @@ router = APIRouter()
 
 
 RING_RADIUS = 38
+# Default bump applied to ExerciseUserProgress.current_weight once every set
+# of an exercise hit reps_max in a finished session. Not yet configurable
+# per-user/per-exercise -- flat for everyone until that's asked for.
+WEIGHT_INCREMENT_KG = 2.5
 
 
 def ring_data(pct: float | None) -> dict | None:
@@ -124,6 +128,57 @@ def compute_session_stats(db: Session, workout: Workout, day_template_id: int) -
         "volume_kg": round(volume_kg) if volume_kg else None,
         "session_minutes": session_minutes,
     }
+
+
+def apply_weight_progression(db: Session, workout: Workout, day_template_id: int) -> None:
+    """Bumps ExerciseUserProgress.current_weight for every "series"-mode
+    exercise of the day where every logged set reached reps_max -- only for
+    exercises that already have a progress row (creating the first one, by
+    asking the user what weight to start from, is a separate feature not
+    built yet). Falling short on reps never lowers the weight, that's left
+    for later if it turns out to be needed."""
+    blocks = db.query(Block).filter(Block.day_template_id == day_template_id).all()
+    block_by_id = {block.id: block for block in blocks}
+    block_exercises = (
+        db.query(BlockExercise)
+        .filter(BlockExercise.block_id.in_(block_by_id.keys()))
+        .all()
+    )
+    substitution_map = get_substitution_map(db, workout.id)
+
+    all_sets = db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).all()
+    sets_by_exercise: dict[int, list[WorkoutSet]] = {}
+    for workout_set in all_sets:
+        if workout_set.exercise_id is not None:
+            sets_by_exercise.setdefault(workout_set.exercise_id, []).append(workout_set)
+
+    for block_exercise in block_exercises:
+        if block_exercise.modo_registro != "series" or not block_exercise.reps_max:
+            continue
+        effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
+        if effective_exercise_id is None:
+            continue
+
+        progress = (
+            db.query(ExerciseUserProgress)
+            .filter(
+                ExerciseUserProgress.user_id == workout.user_id,
+                ExerciseUserProgress.exercise_id == effective_exercise_id,
+            )
+            .first()
+        )
+        if progress is None:
+            continue
+
+        block = block_by_id[block_exercise.block_id]
+        exercise_sets = sets_by_exercise.get(effective_exercise_id, [])
+        if len(exercise_sets) < (block.num_sets or 1):
+            continue
+        all_hit_reps_max = all(
+            s.reps is not None and s.reps >= block_exercise.reps_max for s in exercise_sets
+        )
+        if all_hit_reps_max:
+            progress.current_weight += WEIGHT_INCREMENT_KG
 
 
 def get_day_content(db: Session, day_template_id: int):
@@ -461,6 +516,8 @@ async def finish_today_session(
         .first()
     )
     if todays_workout is not None and todays_workout.finished_at is None:
+        if todays_workout.day_template_id is not None:
+            apply_weight_progression(db, todays_workout, todays_workout.day_template_id)
         todays_workout.finished_at = datetime.now()
         db.commit()
 
