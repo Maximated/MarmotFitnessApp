@@ -24,7 +24,7 @@
         </a>
         {% for session in next_sessions[:2] %}
           {% if session.day_template %}
-            <a href="/days/{{ session.day_template.id }}" class="home-banner home-banner-next">
+            <a href="/days/{{ session.day_template.id }}/preview" class="home-banner home-banner-next">
               Después: {{ session.date }} — Día {{ session.day_template.day_number }}{% if session.day_template.subtitle %} · {{ session.day_template.subtitle }}{% endif %}
             </a>
           {% else %}
@@ -43,7 +43,7 @@
         {% endif %}
         {% for session in next_sessions[1:3] %}
           {% if session.day_template %}
-            <a href="/days/{{ session.day_template.id }}" class="home-banner home-banner-next">
+            <a href="/days/{{ session.day_template.id }}/preview" class="home-banner home-banner-next">
               Después: {{ session.date }} — Día {{ session.day_template.day_number }}{% if session.day_template.subtitle %} · {{ session.day_template.subtitle }}{% endif %}
             </a>
           {% else %}

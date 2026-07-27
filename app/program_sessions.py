@@ -12,8 +12,8 @@ from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_ratings import get_user_ratings_map
 from app.workout_substitutions import apply_substitutions, get_substitution_map
-from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, User, Workout, WorkoutSet
-from app.programs import get_own_program
+from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, Program, User, Workout, WorkoutSet
+from app.programs import get_own_day_template, get_own_program
 from app.templates import templates
 from app.workouts import SCHEDULE_INTERVAL_DAYS, count_sets, get_or_create_workout, recompute_schedule, resolve_rest_step
 
@@ -350,6 +350,55 @@ async def program_today(
             "day_template": day_template,
             "is_due": program.next_due_date is not None and program.next_due_date <= today,
             "next_due_date": program.next_due_date,
+        },
+    )
+
+
+@router.get("/days/{day_template_id}/preview")
+async def preview_day_template(
+    day_template_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Read-only look at a not-yet-startable day: same exercise-in-order
+    layout as /today, but rows aren't links and there's no start/finish
+    form -- used by the home page's "day after next" preview slots, which
+    must stay non-actionable (see the 24h-lock/same-date-collision
+    reasoning in program_sessions history)."""
+    day_template = get_own_day_template(db, day_template_id, user.id)
+    program = db.get(Program, day_template.program_id)
+    blocks, exercises_by_block = get_day_content(db, day_template.id)
+    exercise_groups_by_block = {
+        block_id: group_by_superset(attached)
+        for block_id, attached in exercises_by_block.items()
+    }
+
+    exercise_ids = [
+        exercise.id
+        for attached in exercises_by_block.values()
+        for _, exercise in attached
+        if exercise is not None
+    ]
+    weight_targets = {
+        row[0]: row[1]
+        for row in db.query(ExerciseUserProgress.exercise_id, ExerciseUserProgress.current_weight)
+        .filter(
+            ExerciseUserProgress.user_id == user.id,
+            ExerciseUserProgress.exercise_id.in_(exercise_ids),
+        )
+        .all()
+    }
+
+    return templates.TemplateResponse(
+        request=request,
+        name="programs/day_preview.html",
+        context={
+            "program": program,
+            "day_template": day_template,
+            "blocks": blocks,
+            "exercise_groups_by_block": exercise_groups_by_block,
+            "weight_targets": weight_targets,
         },
     )
 

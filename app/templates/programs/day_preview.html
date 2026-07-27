@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_nav_arrows.html" import nav_arrow %}
+
+{% block content %}
+  <div class="page-nav-row">
+    {{ nav_arrow("/", "back", "Volver a inicio", double=True) }}
+  </div>
+
+  <h1>{{ program.name }}</h1>
+  <p>
+    Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
+    (vista previa)
+  </p>
+  <p>Todavía no puedes empezar esta rutina. Así es como se vería, en orden.</p>
+
+  {% for block in blocks %}
+    <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}{% if block.num_sets %} · {{ block.num_sets }} series{% endif %}</h2>
+    <ul class="exercise-row-list">
+      {% for group in exercise_groups_by_block.get(block.id, []) %}
+        <li{% if group|length == 2 %} class="today-superset-group"{% endif %}>
+          {% for block_exercise, exercise in group %}
+            <div class="exercise-row">
+              {% if exercise %}
+                <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
+                <span>{{ exercise.name }}</span>
+              {% else %}
+                <div class="exercise-row-placeholder"></div>
+                <span>{{ block_exercise.pending_name }}</span>
+              {% endif %}
+              <span class="exercise-row-progress-group">
+                {% if block_exercise.modo_registro == "tiempo" %}
+                  {% if block_exercise.duracion_segundos %}
+                    <span class="exercise-row-progress">{{ block_exercise.duracion_segundos }}s</span>
+                  {% endif %}
+                {% elif block_exercise.reps_min %}
+                  <span class="exercise-row-progress">{{ block_exercise.reps_min }}-{{ block_exercise.reps_max }} reps</span>
+                {% endif %}
+                {% set weight_target = weight_targets.get(exercise.id, block_exercise.target_weight) if exercise else block_exercise.target_weight %}
+                {% if weight_target %}
+                  <span class="exercise-row-progress">{{ weight_target }} kg</span>
+                {% endif %}
+              </span>
+            </div>
+            {% if not loop.last %}<div class="superset-connector"></div><span class="superset-label">⇅ Superserie</span>{% endif %}
+          {% endfor %}
+        </li>
+      {% else %}
+        <li>Este bloque no tiene ejercicios todavía.</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Este día no tiene bloques todavía.</p>
+  {% endfor %}
+{% endblock %}
