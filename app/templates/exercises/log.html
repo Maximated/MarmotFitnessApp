@@ -88,7 +88,7 @@
         <div class="training-gif training-gif-placeholder"></div>
       {% endif %}
       <h1>{{ exercise.name if exercise else pending_name }}</h1>
-      {% if exercise %}{{ star_rating(exercise.id, user_rating, self_url) }}{% endif %}
+      {% if exercise %}{{ star_rating(exercise.id, user_rating, self_url, banned=user_banned) }}{% endif %}
 
       <div class="training-stats">
         {% if training.modo_registro == "tiempo" %}

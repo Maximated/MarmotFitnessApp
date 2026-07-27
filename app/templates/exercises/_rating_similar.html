@@ -1,6 +1,6 @@
 {% from "exercises/_star_rating_macro.html" import star_rating %}
 
-{{ star_rating(exercise.id, user_rating, self_url) }}
+{{ star_rating(exercise.id, user_rating, self_url, banned=user_banned) }}
 
 {% if similar_exercises %}
   <h2>Ejercicios similares</h2>

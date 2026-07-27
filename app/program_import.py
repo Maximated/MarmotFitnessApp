@@ -64,7 +64,7 @@ async def import_program_submit(
         )
 
     try:
-        matcher = ExerciseMatcher(db)
+        matcher = ExerciseMatcher(db, user.id)
         counts = {"id": 0, "alias": 0, "name": 0, "fuzzy": 0, "pending": 0, "sin_catalogo": 0}
         detail_rows = []
         pending_refs = []

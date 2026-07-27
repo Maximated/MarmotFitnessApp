@@ -2,7 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse
-from sqlalchemy import and_, case
+from sqlalchemy import and_, case, or_
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -49,6 +49,15 @@ def get_user_rating(db: Session, user_id: int, exercise_id: int) -> int | None:
     return rating.rating if rating else None
 
 
+def get_user_ban(db: Session, user_id: int, exercise_id: int) -> bool:
+    rating = (
+        db.query(ExerciseRating)
+        .filter(ExerciseRating.user_id == user_id, ExerciseRating.exercise_id == exercise_id)
+        .first()
+    )
+    return bool(rating.banned) if rating else False
+
+
 def get_user_ratings_map(db: Session, user_id: int, exercise_ids: list[int]) -> dict[int, int]:
     if not exercise_ids:
         return {}
@@ -77,6 +86,7 @@ def get_similar_exercises(db: Session, user_id: int, exercise_id: int, limit: in
         .filter(
             Exercise.target_muscle.in_(muscle_pool(exercise.target_muscle)),
             Exercise.id != exercise_id,
+            ExerciseRating.banned.isnot(True),
         )
     )
     if exercise.variante is not None:
@@ -85,6 +95,10 @@ def get_similar_exercises(db: Session, user_id: int, exercise_id: int, limit: in
 
 
 def _ranked_similar(db: Session, user_id: int, exercise: Exercise):
+    # The current exercise always stays in its own pool (even if the user
+    # banned it) so get_next_similar_exercise/get_previous_similar_exercise
+    # can still find its position to cycle from -- only OTHER banned
+    # exercises are excluded as candidates.
     query = (
         db.query(Exercise)
         .outerjoin(
@@ -94,7 +108,10 @@ def _ranked_similar(db: Session, user_id: int, exercise: Exercise):
                 ExerciseRating.user_id == user_id,
             ),
         )
-        .filter(Exercise.target_muscle.in_(muscle_pool(exercise.target_muscle)))
+        .filter(
+            Exercise.target_muscle.in_(muscle_pool(exercise.target_muscle)),
+            or_(Exercise.id == exercise.id, ExerciseRating.banned.isnot(True)),
+        )
     )
     if exercise.variante is not None:
         query = query.filter(Exercise.variante == exercise.variante)
@@ -155,6 +172,28 @@ async def rate_exercise(
         existing.updated_at = datetime.now()
     else:
         db.add(ExerciseRating(user_id=user.id, exercise_id=exercise_id, rating=rating))
+    db.commit()
+
+    return RedirectResponse(url=next or f"/exercises/{exercise_id}/log", status_code=303)
+
+
+@router.post("/exercises/{exercise_id}/ban")
+async def ban_exercise(
+    exercise_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+    banned: bool = Form(...),
+    next: str | None = Form(None),
+):
+    existing = (
+        db.query(ExerciseRating)
+        .filter(ExerciseRating.user_id == user.id, ExerciseRating.exercise_id == exercise_id)
+        .first()
+    )
+    if existing is not None:
+        existing.banned = banned
+    else:
+        db.add(ExerciseRating(user_id=user.id, exercise_id=exercise_id, rating=None, banned=banned))
     db.commit()
 
     return RedirectResponse(url=next or f"/exercises/{exercise_id}/log", status_code=303)

@@ -262,7 +262,7 @@ async def resolve_block_exercise_form(
     if block_exercise.exercise_id is not None:
         return RedirectResponse(url=f"/blocks/{block_exercise.block_id}/exercises", status_code=303)
 
-    matcher = ExerciseMatcher(db)
+    matcher = ExerciseMatcher(db, user.id)
     suggested_id, _, suggested_score = matcher.best_suggestion(block_exercise.pending_name)
     suggested_exercise = db.get(Exercise, suggested_id) if suggested_id is not None else None
 

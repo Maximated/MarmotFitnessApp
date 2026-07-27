@@ -16,6 +16,7 @@ from app.exercise_ratings import (
     get_next_similar_exercise,
     get_previous_similar_exercise,
     get_similar_exercises,
+    get_user_ban,
     get_user_rating,
 )
 from app.workout_substitutions import get_substitution_map, set_substitution
@@ -306,6 +307,7 @@ async def render_training_log(
     recycle_back_url = None
     revert_url = None
     user_rating = None
+    user_banned = False
     similar_exercises = []
     if exercise_id is not None:
         next_similar = get_next_similar_exercise(db, user.id, exercise_id)
@@ -315,6 +317,7 @@ async def render_training_log(
         if block_exercise.exercise_id is not None and exercise_id != block_exercise.exercise_id:
             revert_url = build_recycle_url(block_exercise.exercise_id)
         user_rating = get_user_rating(db, user.id, exercise_id)
+        user_banned = get_user_ban(db, user.id, exercise_id)
         similar_exercises = get_similar_exercises(db, user.id, exercise_id)
 
     superset_partner = None
@@ -478,6 +481,7 @@ async def render_training_log(
         "next_exercise_url": next_exercise_url,
         "logged": logged,
         "user_rating": user_rating,
+        "user_banned": user_banned,
         "similar_exercises": similar_exercises,
     }
     context.update(history)
@@ -519,6 +523,7 @@ async def log_exercise_form(
             "next_exercise_url": None,
             "logged": logged,
             "user_rating": get_user_rating(db, user.id, exercise_id),
+            "user_banned": get_user_ban(db, user.id, exercise_id),
             "similar_exercises": get_similar_exercises(db, user.id, exercise_id),
         }
         context.update(history)

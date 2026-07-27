@@ -1601,6 +1601,23 @@ td.numeric {
   color: var(--primary);
 }
 
+.ban-form {
+  margin: 0 0 0 0.5rem;
+}
+
+.ban-btn {
+  display: flex;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ban-btn.ban-active {
+  color: var(--danger);
+}
+
 .exercise-row span {
   font-weight: 600;
 }

@@ -3,7 +3,7 @@ import unicodedata
 from rapidfuzz import fuzz, process
 from sqlalchemy.orm import Session
 
-from app.models import Exercise, ExerciseAlias
+from app.models import Exercise, ExerciseAlias, ExerciseRating
 
 FUZZY_THRESHOLD = 90
 
@@ -15,13 +15,23 @@ def normalize_name(name: str) -> str:
 
 
 class ExerciseMatcher:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, user_id: int):
+        banned_ids = {
+            row[0]
+            for row in db.query(ExerciseRating.exercise_id)
+            .filter(ExerciseRating.user_id == user_id, ExerciseRating.banned.is_(True))
+            .all()
+        }
+        self.banned_ids = banned_ids
         self.alias_map: dict[str, int] = {
-            alias.normalized_name: alias.exercise_id for alias in db.query(ExerciseAlias).all()
+            alias.normalized_name: alias.exercise_id
+            for alias in db.query(ExerciseAlias).all()
+            if alias.exercise_id not in banned_ids
         }
         self.normalized_index: dict[str, int] = {
             normalize_name(name): exercise_id
             for exercise_id, name in db.query(Exercise.id, Exercise.name).all()
+            if exercise_id not in banned_ids
         }
         self.db = db
 
@@ -33,7 +43,7 @@ class ExerciseMatcher:
             exercise = (
                 self.db.query(Exercise).filter(Exercise.external_id == normalized_id).first()
             )
-            if exercise is not None:
+            if exercise is not None and exercise.id not in self.banned_ids:
                 return exercise.id, "id", None
 
         normalized = normalize_name(nombre)

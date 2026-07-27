@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
-from app.exercise_ratings import get_similar_exercises, get_user_rating, get_user_ratings_map
+from app.exercise_ratings import get_similar_exercises, get_user_ban, get_user_rating, get_user_ratings_map
 from app.models import Exercise, User
 from app.templates import templates
 
@@ -151,6 +151,7 @@ async def view_exercise_gif(
         "next": next or "/exercises",
         "self_url": self_url,
         "user_rating": get_user_rating(db, user.id, exercise_id),
+        "user_banned": get_user_ban(db, user.id, exercise_id),
         "similar_exercises": get_similar_exercises(db, user.id, exercise_id),
     }
     context.update(history)

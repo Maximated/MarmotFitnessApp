@@ -1,4 +1,4 @@
-{% macro star_rating(exercise_id, rating, next_url, size="normal") %}
+{% macro star_rating(exercise_id, rating, next_url, size="normal", banned=False) %}
   <div class="star-rating{% if size == "sm" %} star-rating-sm{% endif %}">
     {% for i in range(1, 6) %}
       <form method="post" action="/exercises/{{ exercise_id }}/rate" class="star-form">
@@ -7,5 +7,18 @@
         <button type="submit" class="star-btn{% if rating and i <= rating %} star-filled{% endif %}" aria-label="{{ i }} estrellas">★</button>
       </form>
     {% endfor %}
+    {% if size != "sm" %}
+      <form method="post" action="/exercises/{{ exercise_id }}/ban" class="ban-form">
+        <input type="hidden" name="banned" value="{{ 'false' if banned else 'true' }}" />
+        <input type="hidden" name="next" value="{{ next_url }}" />
+        <button type="submit" class="ban-btn{% if banned %} ban-active{% endif %}"
+          aria-label="{% if banned %}Quitar del bloqueo{% else %}Bloquear ejercicio (no sugerir nunca){% endif %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+          </svg>
+        </button>
+      </form>
+    {% endif %}
   </div>
 {% endmacro %}

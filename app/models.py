@@ -205,7 +205,8 @@ class ExerciseRating(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"), index=True)
-    rating: Mapped[int] = mapped_column(Integer)
+    rating: Mapped[int | None] = mapped_column(Integer)
+    banned: Mapped[bool] = mapped_column(Boolean, default=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
