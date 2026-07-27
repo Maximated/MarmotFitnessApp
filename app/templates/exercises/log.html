@@ -274,7 +274,7 @@
     {% endif %}
 
     <script>
-        function createCountdownTimer({ circle, valueEl, iconEl, ringEl, totalSeconds, initialRemaining, autoStart, notifyText, onSettle, onStart }) {
+        function createCountdownTimer({ circle, valueEl, iconEl, ringEl, totalSeconds, initialRemaining, autoStart, notifyText, notifyKey, onSettle, onStart }) {
           // remaining/endTime: exactly one is authoritative at a time. While running,
           // endTime (an absolute timestamp) is authoritative and remaining is derived
           // from it on every render -- this way a throttled/suspended background tab
@@ -330,8 +330,18 @@
             iconEl.innerHTML = PLAY_ICON;
             settled = true;
             if (onSettle) onSettle(elapsedSeconds);
-            if (notify && notifyText && "Notification" in window && Notification.permission === "granted") {
+            // Every page navigation creates a brand new timer instance with no
+            // memory of previous pages, so browsing between suggested exercises
+            // while the countdown is still ticking down would otherwise let each
+            // page independently "witness" the same deadline pass and re-notify.
+            // The dedupe key (the rest deadline itself) is stable across pages
+            // for the same rest period and only changes once a genuinely new
+            // rest period starts, so this persists correctly via localStorage.
+            const alreadyNotifiedThisDeadline =
+              notifyKey && window.localStorage.getItem("marmotLastRestNotify") === notifyKey;
+            if (notify && notifyText && !alreadyNotifiedThisDeadline && "Notification" in window && Notification.permission === "granted") {
               try { new Notification(notifyText); } catch (err) { /* not supported in this context */ }
+              if (notifyKey) window.localStorage.setItem("marmotLastRestNotify", notifyKey);
             }
           }
 
@@ -419,6 +429,7 @@
             initialRemaining: remaining,
             autoStart: true,
             notifyText: {{ training.rest_notify_text | tojson }},
+            notifyKey: circle.dataset.restUntil,
           });
         })();
       </script>
@@ -460,6 +471,7 @@
             initialRemaining: remaining,
             autoStart: true,
             notifyText: {% if training.is_superset and training.superset_is_first %}null{% else %}{{ training.rest_notify_text | tojson }}{% endif %},
+            notifyKey: circle.dataset.restUntil,
             onSettle: (elapsedSeconds) => { durationInput.value = elapsedSeconds; },
           });
         })();
