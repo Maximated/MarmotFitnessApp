@@ -104,3 +104,10 @@ def send_push_for_workout(db: Session, workout: Workout) -> None:
                 db.delete(subscription)
             else:
                 logger.warning("Web push failed for subscription %s: %s", subscription.id, exc)
+        except Exception:
+            # Anything below the HTTP layer (connection errors, timeouts,
+            # DNS failures) never becomes a WebPushException -- it must not
+            # abort the loop, or a retry of this whole function on the next
+            # poll would re-send to every subscription that already
+            # succeeded just above.
+            logger.warning("Web push request failed for subscription %s", subscription.id, exc_info=True)

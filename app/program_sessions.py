@@ -391,7 +391,11 @@ async def start_rest_timer(
         # not "the next exercise" -- nothing has been completed yet, unlike
         # the post-log rest timer in submit_workout_set.
         workout.active_block_exercise_id = block_exercise_id
-        workout.rest_notify_text = None
+        # Fallback text for the (not reachable via the current UI, but
+        # possible via a direct call) case with no block_exercise_id --
+        # without this, send_push_for_workout's `not rest_notify_text`
+        # guard would silently skip the push with no error and no retry.
+        workout.rest_notify_text = "Descanso terminado."
         workout.rest_push_sent_at = None
 
         block_exercise = (
