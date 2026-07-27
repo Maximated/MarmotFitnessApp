@@ -21,7 +21,7 @@ from app.exercises import router as exercises_router
 from app.history import router as history_router
 from app.models import DayTemplate, Program, User, Workout
 from app.program_import import router as program_import_router
-from app.program_sessions import build_calendar_weeks, get_next_two_sessions
+from app.program_sessions import build_calendar_weeks, get_next_sessions
 from app.program_sessions import router as program_sessions_router
 from app.programs import router as programs_router
 from app.push import router as push_router, send_push_for_workout
@@ -150,7 +150,7 @@ async def home(
             context["next_session_locked"] = next_session_locked
 
             next_sessions = []
-            for day_number, due_date in get_next_two_sessions(active_program):
+            for day_number, due_date in get_next_sessions(active_program, count=3):
                 day_template = (
                     db.query(DayTemplate)
                     .filter(

@@ -570,14 +570,17 @@ def build_calendar_weeks(db: Session, program, year: int, month: int):
     return weeks, first_day, last_day
 
 
-def get_next_two_sessions(program):
+def get_next_sessions(program, count: int = 2):
     if program.current_day_number is None or program.next_due_date is None:
         return []
-    day_number_2 = (program.current_day_number % program.cycle_days) + 1
-    return [
-        (program.current_day_number, program.next_due_date),
-        (day_number_2, program.next_due_date + timedelta(days=SCHEDULE_INTERVAL_DAYS)),
-    ]
+    sessions = []
+    day_number = program.current_day_number
+    due_date = program.next_due_date
+    for _ in range(count):
+        sessions.append((day_number, due_date))
+        day_number = (day_number % program.cycle_days) + 1
+        due_date = due_date + timedelta(days=SCHEDULE_INTERVAL_DAYS)
+    return sessions
 
 
 @router.get("/programs/{program_id}/calendar")

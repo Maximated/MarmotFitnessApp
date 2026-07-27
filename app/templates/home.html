@@ -22,29 +22,34 @@
           Entrenamiento de hoy{% if today_session.day_template %} — Día {{ today_session.day_template.day_number }}{% if today_session.day_template.subtitle %} · {{ today_session.day_template.subtitle }}{% endif %}{% endif %}
           {% if today_session.finished %}(finalizado){% else %}(en curso){% endif %}
         </a>
-        {% if next_sessions %}
-          <span class="home-banner home-banner-next">
-            Después: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
-          </span>
-        {% endif %}
+        {% for session in next_sessions[:2] %}
+          {% if session.day_template %}
+            <a href="/days/{{ session.day_template.id }}" class="home-banner home-banner-next">
+              Después: {{ session.date }} — Día {{ session.day_template.day_number }}{% if session.day_template.subtitle %} · {{ session.day_template.subtitle }}{% endif %}
+            </a>
+          {% else %}
+            <span class="home-banner home-banner-next">Después: {{ session.date }}</span>
+          {% endif %}
+        {% endfor %}
       {% elif next_sessions %}
-        {% if next_session_locked %}
-          <span class="home-banner home-banner-next home-banner-locked">
+        <form method="post" action="/programs/{{ active_program.id }}/today/start"
+          {% if next_session_locked %}data-confirm="Aún no han pasado 24 horas desde el último entrenamiento. ¿Estás seguro de que quieres empezar esta rutina?"{% endif %}>
+          <button type="submit" class="home-banner home-banner-next">
             Siguiente: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
-            <span class="home-banner-note">Disponible a partir de las {{ next_session_available_at.strftime("%H:%M del %d/%m") }}</span>
-          </span>
-        {% else %}
-          <form method="post" action="/programs/{{ active_program.id }}/today/start">
-            <button type="submit" class="home-banner home-banner-next">
-              Siguiente: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
-            </button>
-          </form>
+          </button>
+        </form>
+        {% if next_session_locked %}
+          <p class="home-banner-note">Aún no han pasado 24 horas desde tu último entrenamiento (disponible sin confirmar a partir de las {{ next_session_available_at.strftime("%H:%M del %d/%m") }})</p>
         {% endif %}
-        {% if next_sessions|length > 1 %}
-          <span class="home-banner home-banner-next">
-            Después: {{ next_sessions[1].date }}{% if next_sessions[1].day_template %} — Día {{ next_sessions[1].day_template.day_number }}{% if next_sessions[1].day_template.subtitle %} · {{ next_sessions[1].day_template.subtitle }}{% endif %}{% endif %}
-          </span>
-        {% endif %}
+        {% for session in next_sessions[1:3] %}
+          {% if session.day_template %}
+            <a href="/days/{{ session.day_template.id }}" class="home-banner home-banner-next">
+              Después: {{ session.date }} — Día {{ session.day_template.day_number }}{% if session.day_template.subtitle %} · {{ session.day_template.subtitle }}{% endif %}
+            </a>
+          {% else %}
+            <span class="home-banner home-banner-next">Después: {{ session.date }}</span>
+          {% endif %}
+        {% endfor %}
       {% else %}
         <form method="post" action="/programs/{{ active_program.id }}/begin">
           <p>Todavía no has empezado este programa. <button type="submit">Empezar</button></p>
