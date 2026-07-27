@@ -6,16 +6,20 @@
 
   <ul class="program-banner-list">
     {% for program in programs %}
-      <li class="program-banner-item {% if program.is_active %}program-banner-item-active{% else %}program-banner-item-inactive{% endif %}">
-        <a href="/programs/{{ program.id }}" class="program-banner-link">
-          <span class="program-banner-name">{{ program.name }}</span>
-          <span class="program-banner-meta">{{ program.cycle_days }} días de ciclo{% if program.is_active %} · Cargado{% endif %}</span>
-        </a>
-        <form method="post" action="/programs/{{ program.id }}/delete" class="delete-form program-banner-delete-form" data-confirm="¿Seguro que quieres eliminar el programa &quot;{{ program.name }}&quot;? Se perderán también sus días y bloques.">
-          <button type="submit" class="program-banner-delete" aria-label="Eliminar programa">
-            {% include "_icon_trash.html" %}
-          </button>
-        </form>
+      <li class="program-banner-item {% if program.is_active %}program-banner-item-active{% else %}program-banner-item-inactive{% endif %} swipe-row swipe-row-single-action">
+        <div class="swipe-row-actions swipe-row-actions-single">
+          <form method="post" action="/programs/{{ program.id }}/delete" class="delete-form swipe-action-form" data-confirm="¿Seguro que quieres eliminar el programa &quot;{{ program.name }}&quot;? Se perderán también sus días y bloques.">
+            <button type="submit" class="swipe-action swipe-action-delete" aria-label="Eliminar programa">
+              {% include "_icon_trash.html" %}
+            </button>
+          </form>
+        </div>
+        <div class="swipe-row-content">
+          <a href="/programs/{{ program.id }}" class="program-banner-link">
+            <span class="program-banner-name">{{ program.name }}</span>
+            <span class="program-banner-meta">{{ program.cycle_days }} días de ciclo{% if program.is_active %} · Cargado{% endif %}</span>
+          </a>
+        </div>
       </li>
     {% else %}
       <li>Todavía no has creado ningún programa.</li>

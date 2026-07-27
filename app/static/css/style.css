@@ -376,7 +376,7 @@ button.home-banner {
   justify-content: center;
   gap: 0.3rem;
   min-height: 6rem;
-  padding: 1.25rem 3.5rem 1.25rem 1.25rem;
+  padding: 1.25rem;
   border-radius: 0.75rem;
   text-decoration: none;
   font-family: "Bebas Neue", system-ui, sans-serif;
@@ -403,25 +403,6 @@ button.home-banner {
   background: #000;
   color: var(--primary);
   border: 1px dashed var(--primary);
-}
-
-.program-banner-delete-form {
-  display: contents;
-}
-
-.program-banner-delete {
-  position: absolute;
-  top: 0.9rem;
-  right: 0.9rem;
-  width: 2.25rem;
-  height: 2.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  border: none;
 }
 
 .bottom-nav {
@@ -1674,6 +1655,14 @@ td.numeric {
   .swipe-row:hover .swipe-row-content {
     transform: translateX(-7rem);
   }
+
+  .swipe-row-single-action:hover .swipe-row-content {
+    transform: translateX(-3.5rem);
+  }
+}
+
+.swipe-row-actions-single {
+  width: 3.5rem;
 }
 
 .swipe-action-form {
