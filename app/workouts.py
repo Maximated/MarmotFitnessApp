@@ -100,6 +100,131 @@ def count_sets(db: Session, workout_id: int, exercise_id: int | None, block_exer
     return query.count()
 
 
+def resolve_rest_step(
+    db: Session,
+    block_exercise: BlockExercise,
+    block: Block,
+    day_exercises: list[BlockExercise],
+    workout_id: int | None,
+    sets_completed_today: int,
+) -> tuple[str, BlockExercise | None, bool]:
+    """What should happen once this exercise's rest/duration countdown ends:
+    the notification text, and which block_exercise the header timer and
+    the push notification should point to next -- the superset partner
+    while a round is still in progress, the next exercise in the day once
+    this one (or the pair) is fully done, or None if there's nowhere new to
+    go yet (prompt_finish=True if that's because the day is over).
+
+    Computed independently of any specific page/request (no `next`
+    return-to param, no URL building) so it can run both from a live page
+    render and right when a set is logged, with no page ever having to
+    load again for the text to exist."""
+    substitution_map = get_substitution_map(db, workout_id)
+
+    def effective_exercise_id(be: BlockExercise) -> int | None:
+        return substitution_map.get(be.id, be.exercise_id)
+
+    def display_name(be: BlockExercise) -> str:
+        eff = effective_exercise_id(be)
+        if eff is not None:
+            ex = db.get(Exercise, eff)
+            if ex is not None:
+                return ex.name
+        return be.pending_name or "el ejercicio"
+
+    superset_partner = None
+    if block_exercise.is_superset_with_next:
+        superset_partner = (
+            db.query(BlockExercise)
+            .filter(
+                BlockExercise.block_id == block_exercise.block_id,
+                BlockExercise.position == block_exercise.position + 1,
+            )
+            .first()
+        )
+    else:
+        prev_in_block = (
+            db.query(BlockExercise)
+            .filter(
+                BlockExercise.block_id == block_exercise.block_id,
+                BlockExercise.position == block_exercise.position - 1,
+            )
+            .first()
+        )
+        if prev_in_block is not None and prev_in_block.is_superset_with_next:
+            superset_partner = prev_in_block
+
+    partner_sets_completed_today = 0
+    if superset_partner is not None and workout_id is not None:
+        partner_exercise_id = effective_exercise_id(superset_partner)
+        partner_sets_completed_today = count_sets(
+            db, workout_id, partner_exercise_id, superset_partner.id
+        )
+
+    index = None
+    partner_index = None
+    for i, day_exercise in enumerate(day_exercises):
+        if day_exercise.id == block_exercise.id:
+            index = i
+        if superset_partner is not None and day_exercise.id == superset_partner.id:
+            partner_index = i
+
+    superset_done = (
+        superset_partner is not None
+        and block.num_sets is not None
+        and sets_completed_today >= block.num_sets
+        and partner_sets_completed_today >= block.num_sets
+    )
+
+    target_be = None
+    prompt_finish = False
+    if superset_partner is not None and not superset_done:
+        target_be = superset_partner
+    elif block_exercise.modo_registro == "tiempo":
+        if index is not None:
+            if index < len(day_exercises) - 1:
+                target_be = day_exercises[index + 1]
+            else:
+                prompt_finish = True
+    elif superset_done or (block.num_sets and sets_completed_today >= block.num_sets and index is not None):
+        exit_index = max(index, partner_index) if partner_index is not None else index
+        if exit_index < len(day_exercises) - 1:
+            target_be = day_exercises[exit_index + 1]
+        else:
+            prompt_finish = True
+
+    current_name = display_name(block_exercise)
+    next_name = display_name(target_be) if target_be is not None else None
+
+    if block_exercise.modo_registro == "tiempo":
+        if next_name:
+            notify_text = f"{current_name} completado. Siguiente: {next_name}."
+        else:
+            notify_text = f"{current_name} completado. ¡Entrenamiento terminado!"
+    else:
+        sets_remaining = None
+        if block.num_sets is not None:
+            sets_remaining = max(0, block.num_sets - sets_completed_today)
+        if sets_remaining and next_name:
+            notify_text = (
+                f"El tiempo de descanso del ejercicio {current_name} ha terminado. "
+                f"Te quedan {sets_remaining} series para pasar al ejercicio {next_name}."
+            )
+        elif sets_remaining:
+            notify_text = (
+                f"El tiempo de descanso del ejercicio {current_name} ha terminado. "
+                f"Te quedan {sets_remaining} series."
+            )
+        elif next_name:
+            notify_text = (
+                f"Descanso terminado. {current_name} completado — pasa al ejercicio {next_name}."
+            )
+        else:
+            notify_text = f"Descanso terminado. {current_name} completado."
+
+    return notify_text, target_be, prompt_finish
+
+
 async def render_training_log(
     request: Request,
     db: Session,
@@ -261,110 +386,24 @@ async def render_training_log(
         .all()
     )
     index = None
-    partner_index = None
     for i, day_exercise in enumerate(day_exercises):
         if day_exercise.id == block_exercise.id:
             index = i
-        if superset_partner is not None and day_exercise.id == superset_partner.id:
-            partner_index = i
 
-    superset_done = (
-        superset_partner is not None
-        and block.num_sets is not None
-        and sets_completed_today >= block.num_sets
-        and partner_sets_completed_today >= block.num_sets
-    )
-
-    auto_advance_url = None
-    auto_advance_target_id = None
-    prompt_finish = False
     prev_url = None
     next_exercise_url = None
-    if superset_partner is not None and not superset_done:
-        auto_advance_url = build_nav_url(superset_partner)
-        auto_advance_target_id = superset_partner.id
-    elif block_exercise.modo_registro == "tiempo":
-        if index is not None:
-            if index < len(day_exercises) - 1:
-                auto_advance_url = build_nav_url(day_exercises[index + 1])
-                auto_advance_target_id = day_exercises[index + 1].id
-            else:
-                prompt_finish = True
-    elif superset_done or (block.num_sets and sets_completed_today >= block.num_sets and index is not None):
-        exit_index = max(index, partner_index) if partner_index is not None else index
-        if exit_index < len(day_exercises) - 1:
-            auto_advance_url = build_nav_url(day_exercises[exit_index + 1])
-            auto_advance_target_id = day_exercises[exit_index + 1].id
-        else:
-            prompt_finish = True
-    training["auto_advance_url"] = auto_advance_url
+
+    notify_text, target_be, prompt_finish = resolve_rest_step(
+        db,
+        block_exercise,
+        block,
+        day_exercises,
+        todays_workout.id if todays_workout is not None else None,
+        sets_completed_today,
+    )
+    training["rest_notify_text"] = notify_text
+    training["auto_advance_url"] = build_nav_url(target_be) if target_be is not None else None
     training["prompt_finish"] = prompt_finish
-
-    def resolve_display_name(be: BlockExercise) -> str:
-        effective_id = substitution_map.get(be.id, be.exercise_id)
-        if effective_id is not None:
-            ex = db.get(Exercise, effective_id)
-            if ex is not None:
-                return ex.name
-        return be.pending_name or "el ejercicio"
-
-    current_name = exercise.name if exercise is not None else block_exercise.pending_name
-    next_name = None
-    if auto_advance_target_id is not None:
-        target_be = None
-        for d in day_exercises:
-            if d.id == auto_advance_target_id:
-                target_be = d
-                break
-        if target_be is not None:
-            next_name = resolve_display_name(target_be)
-
-    if block_exercise.modo_registro == "tiempo":
-        if next_name:
-            training["rest_notify_text"] = f"{current_name} completado. Siguiente: {next_name}."
-        else:
-            training["rest_notify_text"] = f"{current_name} completado. ¡Entrenamiento terminado!"
-    else:
-        sets_remaining = None
-        if block.num_sets is not None:
-            sets_remaining = max(0, block.num_sets - sets_completed_today)
-        if sets_remaining and next_name:
-            training["rest_notify_text"] = (
-                f"El tiempo de descanso del ejercicio {current_name} ha terminado. "
-                f"Te quedan {sets_remaining} series para pasar al ejercicio {next_name}."
-            )
-        elif sets_remaining:
-            training["rest_notify_text"] = (
-                f"El tiempo de descanso del ejercicio {current_name} ha terminado. "
-                f"Te quedan {sets_remaining} series."
-            )
-        elif next_name:
-            training["rest_notify_text"] = (
-                f"Descanso terminado. {current_name} completado — pasa al ejercicio {next_name}."
-            )
-        else:
-            training["rest_notify_text"] = f"Descanso terminado. {current_name} completado."
-
-    # The header timer's "jump back" link and its auto-navigate-on-zero both
-    # read workout.active_block_exercise_id. Resolve it here (not at the
-    # moment the rest started) because only here do we know where the day
-    # actually leads next -- back to the superset partner while a round is
-    # still in progress, to the next exercise once this one (or the whole
-    # pair) is fully done, or nowhere new if we're just mid-set on the same
-    # exercise. Only touch it right after a genuine logging action actually
-    # left an active rest running, so idle browsing elsewhere never clobbers
-    # it.
-    if (
-        logged
-        and todays_workout is not None
-        and block_exercise.modo_registro != "tiempo"
-        and todays_workout.rest_until is not None
-        and todays_workout.rest_until > datetime.now(timezone.utc)
-    ):
-        target_id = auto_advance_target_id if auto_advance_url is not None else block_exercise_id
-        if todays_workout.active_block_exercise_id != target_id:
-            todays_workout.active_block_exercise_id = target_id
-            db.commit()
 
     if index is not None:
         if index > 0:
@@ -485,6 +524,7 @@ def submit_workout_set(
 
     pending_name_snapshot = None
     is_superset = False
+    block_exercise = None
     if block_exercise_id is not None:
         block_exercise = db.get(BlockExercise, block_exercise_id)
         if block_exercise is not None and exercise_id is None:
@@ -500,21 +540,6 @@ def submit_workout_set(
                 .first()
                 is not None
             )
-        if block_exercise is not None and block_exercise.modo_registro == "tiempo":
-            workout.rest_until = None
-            workout.rest_total_seconds = None
-            workout.active_block_exercise_id = None
-        elif block_exercise is not None and not block_exercise.is_superset_with_next:
-            block = db.get(Block, block_exercise.block_id)
-            workout.rest_until = now + timedelta(seconds=block.rest_seconds)
-            workout.rest_total_seconds = block.rest_seconds
-            # active_block_exercise_id (which exercise the header timer/rest
-            # countdown "belongs to" and returns you to) is resolved properly
-            # in render_training_log right after this redirect, once we know
-            # whether the day auto-advances you to a superset partner or the
-            # next exercise -- setting it here would only ever point back to
-            # whichever exercise just closed a superset round, not where the
-            # user is actually headed next.
 
     db.add(
         WorkoutSet(
@@ -531,6 +556,33 @@ def submit_workout_set(
             order=next_order,
         )
     )
+    db.flush()
+
+    if block_exercise is not None and block_exercise.modo_registro == "tiempo":
+        workout.rest_until = None
+        workout.rest_total_seconds = None
+        workout.rest_notify_text = None
+        workout.rest_push_sent_at = None
+        workout.active_block_exercise_id = None
+    elif block_exercise is not None and not block_exercise.is_superset_with_next:
+        block = db.get(Block, block_exercise.block_id)
+        day_exercises = (
+            db.query(BlockExercise)
+            .join(Block, BlockExercise.block_id == Block.id)
+            .filter(Block.day_template_id == block.day_template_id)
+            .order_by(Block.position, BlockExercise.position)
+            .all()
+        )
+        sets_completed_today = count_sets(db, workout.id, exercise_id, block_exercise_id)
+        notify_text, target_be, _prompt_finish = resolve_rest_step(
+            db, block_exercise, block, day_exercises, workout.id, sets_completed_today
+        )
+        workout.rest_until = now + timedelta(seconds=block.rest_seconds)
+        workout.rest_total_seconds = block.rest_seconds
+        workout.rest_notify_text = notify_text
+        workout.rest_push_sent_at = None
+        workout.active_block_exercise_id = target_be.id if target_be is not None else block_exercise_id
+
     db.commit()
     return workout
 

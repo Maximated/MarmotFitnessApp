@@ -1,4 +1,7 @@
+import asyncio
+import logging
 import mimetypes
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, Request
@@ -11,7 +14,7 @@ from app.auth import router as auth_router
 from app.block_exercises import router as block_exercises_router
 from app.blocks import router as blocks_router
 from app.config import settings
-from app.database import get_db
+from app.database import SessionLocal, get_db
 from app.dependencies import get_current_user
 from app.exercise_ratings import router as exercise_ratings_router
 from app.exercises import router as exercises_router
@@ -21,6 +24,7 @@ from app.program_import import router as program_import_router
 from app.program_sessions import build_calendar_weeks, get_next_two_sessions
 from app.program_sessions import router as program_sessions_router
 from app.programs import router as programs_router
+from app.push import router as push_router, send_push_for_workout
 from app.templates import templates
 from app.workouts import router as workouts_router
 
@@ -30,8 +34,46 @@ mimetypes.add_type("font/woff2", ".woff2")
 mimetypes.add_type("image/webp", ".webp")
 
 NEXT_SESSION_LOCK_HOURS = 24
+PUSH_POLL_INTERVAL_SECONDS = 5
 
-app = FastAPI(title="Marmot Fitness App")
+
+async def rest_push_poller() -> None:
+    """Sends the Web Push for a rest period exactly once, as soon as it
+    ends, whether or not anyone has a page open to see it happen -- a
+    background countdown running on a page can't reach a locked phone or a
+    fully backgrounded app, this can."""
+    while True:
+        await asyncio.sleep(PUSH_POLL_INTERVAL_SECONDS)
+        db = SessionLocal()
+        try:
+            due = (
+                db.query(Workout)
+                .filter(
+                    Workout.rest_until.isnot(None),
+                    Workout.rest_until <= datetime.now(timezone.utc),
+                    Workout.rest_push_sent_at.is_(None),
+                )
+                .all()
+            )
+            for workout in due:
+                send_push_for_workout(db, workout)
+                workout.rest_push_sent_at = datetime.now(timezone.utc)
+            if due:
+                db.commit()
+        except Exception:
+            logging.getLogger(__name__).exception("rest_push_poller iteration failed")
+        finally:
+            db.close()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(rest_push_poller())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title="Marmot Fitness App", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
 app.include_router(auth_router)
 app.include_router(exercises_router)
@@ -43,6 +85,7 @@ app.include_router(programs_router)
 app.include_router(blocks_router)
 app.include_router(block_exercises_router)
 app.include_router(program_sessions_router)
+app.include_router(push_router)
 app.mount("/media", StaticFiles(directory="media"), name="media")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

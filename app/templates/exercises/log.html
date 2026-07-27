@@ -212,7 +212,11 @@
         const submitBtn = document.querySelector(".training-log-form .btn-add");
         if (submitBtn) {
           submitBtn.addEventListener("click", () => {
-            try { Notification.requestPermission(); } catch (err) { /* not supported in this context */ }
+            try {
+              Notification.requestPermission().then((permission) => {
+                if (permission === "granted" && window.subscribeToPush) window.subscribeToPush();
+              });
+            } catch (err) { /* not supported in this context */ }
           }, { once: true });
         }
       })();
@@ -339,7 +343,10 @@
             // rest period starts, so this persists correctly via localStorage.
             const alreadyNotifiedThisDeadline =
               notifyKey && window.localStorage.getItem("marmotLastRestNotify") === notifyKey;
-            if (notify && notifyText && !alreadyNotifiedThisDeadline && "Notification" in window && Notification.permission === "granted") {
+            // Only fire the instant local notification while this page is actually
+            // visible -- backgrounded or locked is exclusively the server's Web Push
+            // job now (app/push.py), so the two channels mostly don't double up.
+            if (notify && notifyText && !alreadyNotifiedThisDeadline && document.visibilityState === "visible" && "Notification" in window && Notification.permission === "granted") {
               try { new Notification(notifyText); } catch (err) { /* not supported in this context */ }
               if (notifyKey) window.localStorage.setItem("marmotLastRestNotify", notifyKey);
             }

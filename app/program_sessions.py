@@ -15,7 +15,7 @@ from app.workout_substitutions import apply_substitutions, get_substitution_map
 from app.models import Block, BlockExercise, DayTemplate, Exercise, User, Workout, WorkoutSet
 from app.programs import get_own_program
 from app.templates import templates
-from app.workouts import SCHEDULE_INTERVAL_DAYS, get_or_create_workout, recompute_schedule
+from app.workouts import SCHEDULE_INTERVAL_DAYS, count_sets, get_or_create_workout, recompute_schedule, resolve_rest_step
 
 router = APIRouter()
 
@@ -387,7 +387,34 @@ async def start_rest_timer(
     if workout is not None:
         workout.rest_until = datetime.now() + timedelta(seconds=seconds)
         workout.rest_total_seconds = seconds
+        # Manually-started timer (e.g. calentamiento): points back at itself,
+        # not "the next exercise" -- nothing has been completed yet, unlike
+        # the post-log rest timer in submit_workout_set.
         workout.active_block_exercise_id = block_exercise_id
+        workout.rest_notify_text = None
+        workout.rest_push_sent_at = None
+
+        block_exercise = (
+            db.get(BlockExercise, block_exercise_id) if block_exercise_id is not None else None
+        )
+        if block_exercise is not None:
+            block = db.get(Block, block_exercise.block_id)
+            day_exercises = (
+                db.query(BlockExercise)
+                .join(Block, BlockExercise.block_id == Block.id)
+                .filter(Block.day_template_id == block.day_template_id)
+                .order_by(Block.position, BlockExercise.position)
+                .all()
+            )
+            substitution_map = get_substitution_map(db, workout.id)
+            effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
+            sets_completed_today = count_sets(db, workout.id, effective_exercise_id, block_exercise.id)
+            notify_text, _target_be, _prompt_finish = resolve_rest_step(
+                db, block_exercise, block, day_exercises, workout.id, sets_completed_today
+            )
+            workout.rest_notify_text = notify_text
+            workout.rest_push_sent_at = None
+
         db.commit()
 
     return Response(status_code=204)

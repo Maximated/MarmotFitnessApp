@@ -11,6 +11,44 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js");
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+// Idempotent: safe to call on every page load. If a subscription already
+// exists, pushManager.subscribe() just returns it -- re-sending it to the
+// server is harmless and covers recovering from cleared browser storage.
+async function subscribeToPush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const keyResponse = await fetch("/push/public-key");
+    const { key } = await keyResponse.json();
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key),
+    });
+    await fetch("/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(subscription.toJSON()),
+    });
+  } catch (err) {
+    /* notification permission denied, or push not supported here */
+  }
+}
+
+if ("Notification" in window && Notification.permission === "granted") {
+  subscribeToPush();
+}
+
 (function () {
   let openRow = null;
 

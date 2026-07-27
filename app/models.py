@@ -64,6 +64,8 @@ class Workout(Base):
     active_block_exercise_id: Mapped[int | None] = mapped_column(
         ForeignKey("block_exercises.id", ondelete="SET NULL"), index=True
     )
+    rest_notify_text: Mapped[str | None] = mapped_column(Text)
+    rest_push_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
@@ -173,6 +175,21 @@ class ExerciseAlias(Base):
     raw_name: Mapped[str] = mapped_column(String)
     normalized_name: Mapped[str] = mapped_column(String, unique=True, index=True)
     exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    endpoint: Mapped[str] = mapped_column(String, unique=True)
+    p256dh: Mapped[str] = mapped_column(String)
+    auth: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
