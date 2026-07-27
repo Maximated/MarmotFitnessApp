@@ -418,6 +418,39 @@ async def render_training_log(
     training["auto_advance_url"] = build_nav_url(target_be) if target_be is not None else None
     training["prompt_finish"] = prompt_finish
 
+    # Ask what weight to start tracking the first time this exercise's sets
+    # are fully done for the day -- only right after the log action that
+    # completed it (gated by `logged`, same reasoning as resolve_rest_step),
+    # and only if nothing is tracked for it yet (an existing row is only
+    # ever incremented, in submit_workout_set/apply_weight_progression, not
+    # asked about again).
+    training["ask_weight_progress"] = False
+    training["suggested_weight"] = None
+    if (
+        logged
+        and exercise_id is not None
+        and block_exercise.modo_registro == "series"
+        and sets_completed_today == block.num_sets
+    ):
+        existing_progress = (
+            db.query(ExerciseUserProgress)
+            .filter(
+                ExerciseUserProgress.user_id == user.id,
+                ExerciseUserProgress.exercise_id == exercise_id,
+            )
+            .first()
+        )
+        if existing_progress is None and todays_workout is not None:
+            last_set = (
+                db.query(WorkoutSet)
+                .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.exercise_id == exercise_id)
+                .order_by(WorkoutSet.order.desc())
+                .first()
+            )
+            if last_set is not None and last_set.weight is not None:
+                training["ask_weight_progress"] = True
+                training["suggested_weight"] = last_set.weight
+
     if index is not None:
         if index > 0:
             prev_url = build_nav_url(day_exercises[index - 1])
@@ -653,6 +686,37 @@ async def log_block_exercise_submit(
     redirect_url += f"?{urlencode(params)}"
 
     return RedirectResponse(url=redirect_url, status_code=303)
+
+
+@router.post("/exercises/{exercise_id}/set-target-weight")
+async def set_target_weight(
+    exercise_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+    weight: float = Form(...),
+    block_exercise_id: int | None = Form(None),
+    next: str | None = Form(None),
+):
+    existing = (
+        db.query(ExerciseUserProgress)
+        .filter(
+            ExerciseUserProgress.user_id == user.id,
+            ExerciseUserProgress.exercise_id == exercise_id,
+        )
+        .first()
+    )
+    if existing is None:
+        db.add(ExerciseUserProgress(user_id=user.id, exercise_id=exercise_id, current_weight=weight))
+        db.commit()
+
+    redirect_params = {"logged": "1"}
+    if block_exercise_id is not None:
+        redirect_params["block_exercise_id"] = block_exercise_id
+    if next is not None:
+        redirect_params["next"] = next
+    return RedirectResponse(
+        url=training_url(block_exercise_id, exercise_id, redirect_params), status_code=303
+    )
 
 
 @router.get("/workout-sets/{set_id}/edit")
