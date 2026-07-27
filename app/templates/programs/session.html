@@ -17,7 +17,7 @@
       {% for block_exercise, exercise in exercises_by_block.get(block.id, []) %}
         <li>
           {% if exercise %}
-            <a href="/exercises/{{ exercise.id }}/log" class="exercise-row">
+            <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ current_page_url | urlencode }}" class="exercise-row">
               <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
               <span>{{ exercise.name }}</span>
             </a>

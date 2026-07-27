@@ -45,6 +45,7 @@ def compute_session_stats(db: Session, workout: Workout, day_template_id: int) -
         .filter(BlockExercise.block_id.in_(block_by_id.keys()))
         .all()
     )
+    substitution_map = get_substitution_map(db, workout.id)
 
     all_sets = db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).all()
     sets_by_exercise: dict[int, list[WorkoutSet]] = {}
@@ -65,8 +66,9 @@ def compute_session_stats(db: Session, workout: Workout, day_template_id: int) -
     exercises_completed = 0
 
     for block_exercise in block_exercises:
-        if block_exercise.exercise_id is not None:
-            exercise_sets = sets_by_exercise.get(block_exercise.exercise_id, [])
+        effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
+        if effective_exercise_id is not None:
+            exercise_sets = sets_by_exercise.get(effective_exercise_id, [])
         else:
             exercise_sets = sets_by_block_exercise.get(block_exercise.id, [])
         block = block_by_id[block_exercise.block_id]

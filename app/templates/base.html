@@ -33,35 +33,33 @@
           </a>
         {% endif %}
       </div>
-      {% if active_session_started_at or active_session_rest_until %}
-        <div class="global-timer-group">
-          {% if active_session_started_at %}
-            {% if active_program_id %}
-              <form method="post" action="/programs/{{ active_program_id }}/today/finish" class="global-timer-finish-form" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
-                <button type="submit" id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></button>
-              </form>
-            {% else %}
-              <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
-            {% endif %}
+      <div class="global-timer-group" id="global-timer-group"{% if not (active_session_started_at or active_session_rest_until) %} hidden{% endif %}>
+        {% if active_session_started_at %}
+          {% if active_program_id %}
+            <form method="post" action="/programs/{{ active_program_id }}/today/finish" class="global-timer-finish-form" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
+              <button type="submit" id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></button>
+            </form>
+          {% else %}
+            <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
           {% endif %}
-          {% if active_session_rest_until %}
-            {% set rest_timer_tag = "a" if active_exercise_url else "span" %}
-            <{{ rest_timer_tag }}
-              id="global-rest-timer"
-              class="global-timer-circle"
-              {% if active_exercise_url %}href="{{ active_exercise_url }}" aria-label="Ir al ejercicio en curso"{% endif %}
-              data-rest-until="{{ active_session_rest_until }}"
-              data-total-seconds="{{ active_session_rest_total_seconds or '' }}"
-            >
-              <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-                <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
-                <circle class="timer-ring-progress" id="global-rest-ring" cx="50" cy="50" r="44"></circle>
-              </svg>
-              <span class="global-timer-circle-value" id="global-rest-value"></span>
-            </{{ rest_timer_tag }}>
-          {% endif %}
-        </div>
-      {% endif %}
+        {% endif %}
+        {% if active_session_rest_until %}
+          {% set rest_timer_tag = "a" if active_exercise_url else "span" %}
+          <{{ rest_timer_tag }}
+            id="global-rest-timer"
+            class="global-timer-circle"
+            {% if active_exercise_url %}href="{{ active_exercise_url }}" aria-label="Ir al ejercicio en curso"{% endif %}
+            data-rest-until="{{ active_session_rest_until }}"
+            data-total-seconds="{{ active_session_rest_total_seconds or '' }}"
+          >
+            <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
+              <circle class="timer-ring-progress" id="global-rest-ring" cx="50" cy="50" r="44"></circle>
+            </svg>
+            <span class="global-timer-circle-value" id="global-rest-value"></span>
+          </{{ rest_timer_tag }}>
+        {% endif %}
+      </div>
     </header>
     <script>
       (function () {
@@ -126,26 +124,62 @@
       </nav>
     {% endif %}
     <script src="/static/js/app.js" defer></script>
-    {% if active_session_started_at %}
-      <script>
-        (function () {
-          const el = document.getElementById("global-session-timer");
-          const startedAt = new Date(el.dataset.startedAt).getTime();
+    <script>
+      function __startGlobalSessionTimer(el) {
+        const startedAt = new Date(el.dataset.startedAt).getTime();
 
-          function render() {
-            const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
-            const h = Math.floor(elapsed / 3600);
-            const m = Math.floor((elapsed % 3600) / 60);
-            const s = elapsed % 60;
-            const pad = (n) => String(n).padStart(2, "0");
-            el.textContent = h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+        function render() {
+          const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+          const h = Math.floor(elapsed / 3600);
+          const m = Math.floor((elapsed % 3600) / 60);
+          const s = elapsed % 60;
+          const pad = (n) => String(n).padStart(2, "0");
+          el.textContent = h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+        }
+
+        render();
+        setInterval(render, 1000);
+      }
+
+      // Called by other pages (e.g. starting the warmup timer) so the header
+      // reflects "session started" immediately, instead of only after the
+      // next full page navigation -- this is a background fetch, not a page
+      // load, so the server-rendered header has no chance to pick it up on
+      // its own.
+      function __showGlobalSessionTimer(startedAtIso, programId) {
+        const group = document.getElementById("global-timer-group");
+        if (!group) return;
+        group.hidden = false;
+        let pill = document.getElementById("global-session-timer");
+        if (!pill) {
+          if (programId) {
+            const form = document.createElement("form");
+            form.method = "post";
+            form.action = "/programs/" + programId + "/today/finish";
+            form.className = "global-timer-finish-form";
+            form.dataset.confirm = "¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.";
+            form.addEventListener("submit", (event) => {
+              if (!confirm(form.dataset.confirm)) event.preventDefault();
+            });
+            pill = document.createElement("button");
+            pill.type = "submit";
+            form.appendChild(pill);
+            group.insertBefore(form, group.firstChild);
+          } else {
+            pill = document.createElement("span");
+            group.insertBefore(pill, group.firstChild);
           }
+          pill.id = "global-session-timer";
+          pill.className = "global-timer";
+        }
+        pill.dataset.startedAt = startedAtIso;
+        __startGlobalSessionTimer(pill);
+      }
 
-          render();
-          setInterval(render, 1000);
-        })();
-      </script>
-    {% endif %}
+      {% if active_session_started_at %}
+        __startGlobalSessionTimer(document.getElementById("global-session-timer"));
+      {% endif %}
+    </script>
     {% if active_session_rest_until %}
       <script>
         (function () {

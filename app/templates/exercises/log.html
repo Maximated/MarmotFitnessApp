@@ -39,13 +39,31 @@
 
     <div class="training-header{% if logged %} fade-in{% endif %}" id="training-swipe-area">
       {% if training.is_superset %}<p class="superset-badge">SUPERSET</p>{% endif %}
-      {% if training.recycle_url %}
-        <div class="training-gif-toolbar">
-          <a href="{{ training.recycle_url }}" class="similar-toggle-btn" id="recycle-btn" aria-label="Cambiar por un ejercicio similar">
-            <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
-              <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-            </svg>
-          </a>
+      {% if training.recycle_url or training.revert_url %}
+        <div class="training-gif-toolbar{% if training.revert_url %} training-gif-toolbar-split{% endif %}">
+          {% if training.revert_url %}
+            <a href="{{ training.revert_url }}" class="similar-toggle-btn similar-revert-btn" id="revert-btn" aria-label="Volver al ejercicio original del programa">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+              </svg>
+            </a>
+          {% endif %}
+          <div class="similar-toggle-group">
+            {% if training.recycle_back_url %}
+              <a href="{{ training.recycle_back_url }}" class="similar-toggle-btn" id="recycle-back-btn" aria-label="Sugerencia anterior">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                  <path d="M15.5 5L8 12l7.5 7 1.4-1.4L10.8 12l6.1-5.6z"/>
+                </svg>
+              </a>
+            {% endif %}
+            {% if training.recycle_url %}
+              <a href="{{ training.recycle_url }}" class="similar-toggle-btn" id="recycle-btn" aria-label="Cambiar por un ejercicio similar">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+                  <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                </svg>
+              </a>
+            {% endif %}
+          </div>
         </div>
       {% endif %}
       {% if training.is_superset and training.superset_partner_name %}
@@ -151,13 +169,20 @@
       </div>
     </div>
 
-    {% if training.recycle_url %}
+    {% if training.recycle_url or training.recycle_back_url or training.revert_url %}
       <script>
         (function () {
-          const btn = document.getElementById("recycle-btn");
-          btn.addEventListener("click", (event) => {
-            event.preventDefault();
-            navigateWithSweep(btn.getAttribute("href"), "left");
+          [
+            ["recycle-btn", "left"],
+            ["recycle-back-btn", "right"],
+            ["revert-btn", "right"],
+          ].forEach(([id, direction]) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener("click", (event) => {
+              event.preventDefault();
+              navigateWithSweep(btn.getAttribute("href"), direction);
+            });
           });
         })();
       </script>
@@ -250,9 +275,17 @@
 
     <script>
         function createCountdownTimer({ circle, valueEl, iconEl, ringEl, totalSeconds, initialRemaining, autoStart, notifyText, onSettle, onStart }) {
+          // remaining/endTime: exactly one is authoritative at a time. While running,
+          // endTime (an absolute timestamp) is authoritative and remaining is derived
+          // from it on every render -- this way a throttled/suspended background tab
+          // catches up correctly instead of lagging (each missed tick used to just
+          // never get "un-decremented" from `remaining -= 1`). While paused/stopped,
+          // remaining is authoritative and endTime is null.
           let remaining = initialRemaining !== undefined ? initialRemaining : totalSeconds;
+          let endTime = null;
           let intervalId = null;
           let clickTimer = null;
+          let settled = false;
 
           const RING_CIRCUMFERENCE = 2 * Math.PI * 45;
           if (ringEl) ringEl.style.strokeDasharray = String(RING_CIRCUMFERENCE);
@@ -266,29 +299,45 @@
             return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
           }
 
-          function renderRing() {
+          function currentRemaining() {
+            return endTime === null ? remaining : Math.max(0, Math.round((endTime - Date.now()) / 1000));
+          }
+
+          function renderRing(r) {
             if (!ringEl) return;
-            const pct = totalSeconds > 0 ? Math.max(0, Math.min(1, remaining / totalSeconds)) : 0;
+            const pct = totalSeconds > 0 ? Math.max(0, Math.min(1, r / totalSeconds)) : 0;
             ringEl.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - pct));
             ringEl.style.stroke = `hsl(${Math.round(120 * pct)}, 80%, 45%)`;
           }
 
           function render() {
-            valueEl.textContent = formatTime(remaining);
-            renderRing();
+            const r = currentRemaining();
+            valueEl.textContent = formatTime(r);
+            renderRing(r);
+          }
+
+          // Fires exactly once when the countdown reaches zero WHILE it was genuinely
+          // being watched -- not for one that had already expired before we started
+          // paying attention to it (e.g. because you navigated here after it ended
+          // elsewhere), which would otherwise re-notify on every page/tap.
+          function settle(elapsedSeconds, notify) {
+            clearInterval(intervalId);
+            intervalId = null;
+            endTime = null;
+            remaining = 0;
+            valueEl.textContent = "¡Listo!";
+            renderRing(0);
+            iconEl.innerHTML = PLAY_ICON;
+            settled = true;
+            if (onSettle) onSettle(elapsedSeconds);
+            if (notify && notifyText && "Notification" in window && Notification.permission === "granted") {
+              try { new Notification(notifyText); } catch (err) { /* not supported in this context */ }
+            }
           }
 
           function tick() {
-            remaining -= 1;
-            if (remaining <= 0) {
-              clearInterval(intervalId);
-              intervalId = null;
-              valueEl.textContent = "¡Listo!";
-              iconEl.innerHTML = PLAY_ICON;
-              if (onSettle) onSettle(totalSeconds);
-              if (notifyText && "Notification" in window && Notification.permission === "granted") {
-                try { new Notification(notifyText); } catch (err) { /* not supported in this context */ }
-              }
+            if (currentRemaining() <= 0) {
+              settle(totalSeconds, true);
               return;
             }
             render();
@@ -296,6 +345,14 @@
 
           function start() {
             if (intervalId !== null) return;
+            const wasAlreadyExpired = currentRemaining() <= 0;
+            endTime = Date.now() + currentRemaining() * 1000;
+            settled = false;
+            if (wasAlreadyExpired) {
+              settle(totalSeconds, false);
+              if (onStart) onStart();
+              return;
+            }
             intervalId = setInterval(tick, 1000);
             iconEl.innerHTML = PAUSE_ICON;
             if (onStart) onStart();
@@ -303,18 +360,20 @@
 
           function pause() {
             if (intervalId === null) return;
+            remaining = currentRemaining();
+            endTime = null;
             clearInterval(intervalId);
             intervalId = null;
             iconEl.innerHTML = PLAY_ICON;
           }
 
           function stop() {
-            const elapsed = totalSeconds - remaining;
-            if (intervalId !== null) {
-              clearInterval(intervalId);
-              intervalId = null;
-            }
+            const elapsed = totalSeconds - currentRemaining();
+            clearInterval(intervalId);
+            intervalId = null;
+            endTime = null;
             remaining = totalSeconds;
+            settled = false;
             render();
             iconEl.innerHTML = PLAY_ICON;
             if (onSettle) onSettle(elapsed);
@@ -340,7 +399,7 @@
           render();
           if (autoStart) start();
 
-          return { start, pause, stop, getRemaining: () => remaining };
+          return { start, pause, stop, getRemaining: currentRemaining };
         }
       </script>
 
@@ -359,7 +418,7 @@
             totalSeconds: totalSeconds,
             initialRemaining: remaining,
             autoStart: true,
-            notifyText: "Descanso terminado",
+            notifyText: {{ training.rest_notify_text | tojson }},
           });
         })();
       </script>
@@ -374,7 +433,7 @@
             ringEl: document.getElementById("rest-ring"),
             totalSeconds: parseInt(circle.dataset.restSeconds, 10),
             autoStart: false,
-            notifyText: "Descanso terminado",
+            notifyText: {{ training.rest_notify_text | tojson }},
             onStart: () => {
               const seconds = parseInt(circle.dataset.restSeconds, 10);
               fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds + "&block_exercise_id={{ block_exercise_id }}", { method: "POST" }).catch(() => {});
@@ -400,7 +459,7 @@
             totalSeconds: totalSeconds,
             initialRemaining: remaining,
             autoStart: true,
-            notifyText: {% if training.is_superset and training.superset_is_first %}null{% else %}"Ejercicio completado"{% endif %},
+            notifyText: {% if training.is_superset and training.superset_is_first %}null{% else %}{{ training.rest_notify_text | tojson }}{% endif %},
             onSettle: (elapsedSeconds) => { durationInput.value = elapsedSeconds; },
           });
         })();
@@ -417,13 +476,16 @@
             ringEl: document.getElementById("duration-ring"),
             totalSeconds: parseInt(circle.dataset.durationSeconds, 10),
             autoStart: false,
-            notifyText: {% if training.is_superset and training.superset_is_first %}null{% else %}"Ejercicio completado"{% endif %},
+            notifyText: {% if training.is_superset and training.superset_is_first %}null{% else %}{{ training.rest_notify_text | tojson }}{% endif %},
             onSettle: (elapsedSeconds) => { durationInput.value = elapsedSeconds; },
             onStart: () => {
               const seconds = parseInt(circle.dataset.durationSeconds, 10);
               fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds + "&block_exercise_id={{ block_exercise_id }}", { method: "POST" }).catch(() => {});
               {% if training.is_warmup %}
               fetch("/programs/{{ training.program_id }}/today/mark-started", { method: "POST" }).catch(() => {});
+              if (!document.getElementById("global-session-timer")) {
+                __showGlobalSessionTimer(new Date().toISOString(), {{ training.program_id }});
+              }
               {% endif %}
             },
           });
@@ -504,7 +566,6 @@
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       document.querySelectorAll("form[data-preserve-scroll]").forEach((form) => {
         form.addEventListener("submit", (event) => {
-          sessionStorage.setItem("exerciseLogScrollY", String(window.scrollY));
           const area = document.getElementById("training-swipe-area");
           if (area && !reducedMotion && !form.dataset.sweeping) {
             event.preventDefault();
@@ -514,14 +575,6 @@
           }
         });
       });
-
-      const savedScrollY = sessionStorage.getItem("exerciseLogScrollY");
-      if (savedScrollY !== null) {
-        sessionStorage.removeItem("exerciseLogScrollY");
-        window.addEventListener("load", () => {
-          window.scrollTo(0, parseInt(savedScrollY, 10));
-        });
-      }
     })();
   </script>
 

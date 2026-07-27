@@ -71,7 +71,12 @@
           </div>
           <div class="swipe-row-content">
             <div class="history-row-main">
-              <a href="{{ link_url }}" class="history-exercise-link">{{ display_name }}</a>
+              {% if workout_set.is_superset %}<span class="superset-set-badge" aria-label="Serie de superserie">S</span>{% endif %}
+              {% if link_url %}
+                <a href="{{ link_url }}" class="history-exercise-link">{{ display_name }}</a>
+              {% else %}
+                <span class="history-exercise-link">{{ display_name }}</span>
+              {% endif %}
               <span class="history-time">{{ workout_set.time.strftime("%H:%M") }}</span>
             </div>
             <div class="history-row-detail">

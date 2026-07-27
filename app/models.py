@@ -78,8 +78,10 @@ class WorkoutSet(Base):
         ForeignKey("exercises.id"), index=True
     )
     block_exercise_id: Mapped[int | None] = mapped_column(
-        ForeignKey("block_exercises.id"), index=True
+        ForeignKey("block_exercises.id", ondelete="SET NULL"), index=True
     )
+    pending_name: Mapped[str | None] = mapped_column(String)
+    is_superset: Mapped[bool] = mapped_column(Boolean, default=False)
     weight: Mapped[float | None] = mapped_column(Float)
     reps: Mapped[int | None] = mapped_column(Integer)
     duration_seconds: Mapped[int | None] = mapped_column(Integer)

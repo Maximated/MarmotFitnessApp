@@ -139,6 +139,10 @@ a {
   view-transition-name: global-timer;
 }
 
+.global-timer-group[hidden] {
+  display: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-group(global-timer),
   ::view-transition-old(global-timer),
@@ -943,6 +947,10 @@ td.numeric {
 
 .cal-day-btn {
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .cal-dumbbell {
@@ -1125,6 +1133,15 @@ td.numeric {
   justify-content: flex-end;
 }
 
+.training-gif-toolbar-split {
+  justify-content: space-between;
+}
+
+.similar-toggle-group {
+  display: flex;
+  gap: 0.4rem;
+}
+
 .similar-toggle-btn {
   display: flex;
   background: var(--card-bg);
@@ -1133,6 +1150,10 @@ td.numeric {
   border-radius: 50%;
   color: var(--success);
   text-decoration: none;
+}
+
+.similar-revert-btn {
+  color: var(--muted);
 }
 
 .training-gif-row {
@@ -1257,6 +1278,13 @@ td.numeric {
   text-align: center;
 }
 
+/* iOS Safari auto-zooms on focus for any field rendering below 16px --
+   pin this explicitly in px (not rem) so no accessibility text-size
+   setting or inherited scale can push it under that threshold. */
+.training-log-form textarea {
+  font-size: 16px;
+}
+
 .btn-add {
   flex-shrink: 0;
   width: 3.5rem;
@@ -1340,6 +1368,20 @@ td.numeric {
 .history-number {
   color: var(--muted);
   font-weight: 600;
+}
+
+.superset-set-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  background: var(--primary);
+  color: var(--primary-text);
+  font-weight: 700;
+  font-size: 0.7rem;
 }
 
 .history-time {

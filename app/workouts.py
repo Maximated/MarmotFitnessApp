@@ -2,6 +2,7 @@ from datetime import date as date_type
 from datetime import datetime
 from datetime import time as time_type
 from datetime import timedelta
+from datetime import timezone
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -11,7 +12,12 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
-from app.exercise_ratings import get_next_similar_exercise, get_similar_exercises, get_user_rating
+from app.exercise_ratings import (
+    get_next_similar_exercise,
+    get_previous_similar_exercise,
+    get_similar_exercises,
+    get_user_rating,
+)
 from app.workout_substitutions import get_substitution_map, set_substitution
 from app.models import Block, BlockExercise, DayTemplate, Exercise, Program, User, Workout, WorkoutSet
 from app.templates import templates
@@ -172,11 +178,17 @@ async def render_training_log(
         return training_url(block_exercise.id, candidate_exercise_id, nav_params)
 
     recycle_url = None
+    recycle_back_url = None
+    revert_url = None
     user_rating = None
     similar_exercises = []
     if exercise_id is not None:
         next_similar = get_next_similar_exercise(db, user.id, exercise_id)
         recycle_url = build_recycle_url(next_similar.id) if next_similar is not None else None
+        prev_similar = get_previous_similar_exercise(db, user.id, exercise_id)
+        recycle_back_url = build_recycle_url(prev_similar.id) if prev_similar is not None else None
+        if block_exercise.exercise_id is not None and exercise_id != block_exercise.exercise_id:
+            revert_url = build_recycle_url(block_exercise.exercise_id)
         user_rating = get_user_rating(db, user.id, exercise_id)
         similar_exercises = get_similar_exercises(db, user.id, exercise_id)
 
@@ -237,6 +249,8 @@ async def render_training_log(
         "superset_partner_sets_completed": partner_sets_completed_today,
         "superset_partner_url": build_nav_url(superset_partner) if superset_partner is not None else None,
         "recycle_url": recycle_url,
+        "recycle_back_url": recycle_back_url,
+        "revert_url": revert_url,
     }
 
     day_exercises = (
@@ -262,25 +276,95 @@ async def render_training_log(
     )
 
     auto_advance_url = None
+    auto_advance_target_id = None
     prompt_finish = False
     prev_url = None
     next_exercise_url = None
     if superset_partner is not None and not superset_done:
         auto_advance_url = build_nav_url(superset_partner)
+        auto_advance_target_id = superset_partner.id
     elif block_exercise.modo_registro == "tiempo":
         if index is not None:
             if index < len(day_exercises) - 1:
                 auto_advance_url = build_nav_url(day_exercises[index + 1])
+                auto_advance_target_id = day_exercises[index + 1].id
             else:
                 prompt_finish = True
     elif superset_done or (block.num_sets and sets_completed_today >= block.num_sets and index is not None):
         exit_index = max(index, partner_index) if partner_index is not None else index
         if exit_index < len(day_exercises) - 1:
             auto_advance_url = build_nav_url(day_exercises[exit_index + 1])
+            auto_advance_target_id = day_exercises[exit_index + 1].id
         else:
             prompt_finish = True
     training["auto_advance_url"] = auto_advance_url
     training["prompt_finish"] = prompt_finish
+
+    def resolve_display_name(be: BlockExercise) -> str:
+        effective_id = substitution_map.get(be.id, be.exercise_id)
+        if effective_id is not None:
+            ex = db.get(Exercise, effective_id)
+            if ex is not None:
+                return ex.name
+        return be.pending_name or "el ejercicio"
+
+    current_name = exercise.name if exercise is not None else block_exercise.pending_name
+    next_name = None
+    if auto_advance_target_id is not None:
+        target_be = None
+        for d in day_exercises:
+            if d.id == auto_advance_target_id:
+                target_be = d
+                break
+        if target_be is not None:
+            next_name = resolve_display_name(target_be)
+
+    if block_exercise.modo_registro == "tiempo":
+        if next_name:
+            training["rest_notify_text"] = f"{current_name} completado. Siguiente: {next_name}."
+        else:
+            training["rest_notify_text"] = f"{current_name} completado. ¡Entrenamiento terminado!"
+    else:
+        sets_remaining = None
+        if block.num_sets is not None:
+            sets_remaining = max(0, block.num_sets - sets_completed_today)
+        if sets_remaining and next_name:
+            training["rest_notify_text"] = (
+                f"El tiempo de descanso del ejercicio {current_name} ha terminado. "
+                f"Te quedan {sets_remaining} series para pasar al ejercicio {next_name}."
+            )
+        elif sets_remaining:
+            training["rest_notify_text"] = (
+                f"El tiempo de descanso del ejercicio {current_name} ha terminado. "
+                f"Te quedan {sets_remaining} series."
+            )
+        elif next_name:
+            training["rest_notify_text"] = (
+                f"Descanso terminado. {current_name} completado — pasa al ejercicio {next_name}."
+            )
+        else:
+            training["rest_notify_text"] = f"Descanso terminado. {current_name} completado."
+
+    # The header timer's "jump back" link and its auto-navigate-on-zero both
+    # read workout.active_block_exercise_id. Resolve it here (not at the
+    # moment the rest started) because only here do we know where the day
+    # actually leads next -- back to the superset partner while a round is
+    # still in progress, to the next exercise once this one (or the whole
+    # pair) is fully done, or nowhere new if we're just mid-set on the same
+    # exercise. Only touch it right after a genuine logging action actually
+    # left an active rest running, so idle browsing elsewhere never clobbers
+    # it.
+    if (
+        logged
+        and todays_workout is not None
+        and block_exercise.modo_registro != "tiempo"
+        and todays_workout.rest_until is not None
+        and todays_workout.rest_until > datetime.now(timezone.utc)
+    ):
+        target_id = auto_advance_target_id if auto_advance_url is not None else block_exercise_id
+        if todays_workout.active_block_exercise_id != target_id:
+            todays_workout.active_block_exercise_id = target_id
+            db.commit()
 
     if index is not None:
         if index > 0:
@@ -399,8 +483,23 @@ def submit_workout_set(
         db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).count() + 1
     )
 
+    pending_name_snapshot = None
+    is_superset = False
     if block_exercise_id is not None:
         block_exercise = db.get(BlockExercise, block_exercise_id)
+        if block_exercise is not None and exercise_id is None:
+            pending_name_snapshot = block_exercise.pending_name
+        if block_exercise is not None:
+            is_superset = block_exercise.is_superset_with_next or (
+                db.query(BlockExercise)
+                .filter(
+                    BlockExercise.block_id == block_exercise.block_id,
+                    BlockExercise.position == block_exercise.position - 1,
+                    BlockExercise.is_superset_with_next.is_(True),
+                )
+                .first()
+                is not None
+            )
         if block_exercise is not None and block_exercise.modo_registro == "tiempo":
             workout.rest_until = None
             workout.rest_total_seconds = None
@@ -409,13 +508,21 @@ def submit_workout_set(
             block = db.get(Block, block_exercise.block_id)
             workout.rest_until = now + timedelta(seconds=block.rest_seconds)
             workout.rest_total_seconds = block.rest_seconds
-            workout.active_block_exercise_id = block_exercise_id
+            # active_block_exercise_id (which exercise the header timer/rest
+            # countdown "belongs to" and returns you to) is resolved properly
+            # in render_training_log right after this redirect, once we know
+            # whether the day auto-advances you to a superset partner or the
+            # next exercise -- setting it here would only ever point back to
+            # whichever exercise just closed a superset round, not where the
+            # user is actually headed next.
 
     db.add(
         WorkoutSet(
             workout_id=workout.id,
             exercise_id=exercise_id,
             block_exercise_id=block_exercise_id if exercise_id is None else None,
+            pending_name=pending_name_snapshot,
+            is_superset=is_superset,
             weight=parse_optional_weight(weight),
             reps=reps,
             duration_seconds=duration_seconds,
@@ -500,16 +607,21 @@ async def edit_workout_set_form(
         else None
     )
 
-    default_next = (
-        f"/exercises/{exercise.id}/log" if exercise is not None else f"/block-exercises/{block_exercise.id}/log"
-    )
+    if exercise is not None:
+        default_next = f"/exercises/{exercise.id}/log"
+    elif block_exercise is not None:
+        default_next = f"/block-exercises/{block_exercise.id}/log"
+    else:
+        # The program/block-exercise this was logged against no longer exists
+        # (e.g. the program was deleted) -- fall back to the global history.
+        default_next = "/history"
 
     return templates.TemplateResponse(
         request=request,
         name="exercises/edit_set.html",
         context={
             "exercise": exercise,
-            "pending_name": block_exercise.pending_name if block_exercise else None,
+            "pending_name": block_exercise.pending_name if block_exercise else workout_set.pending_name,
             "workout_set": workout_set,
             "date": workout.date.isoformat(),
             "next": next or default_next,

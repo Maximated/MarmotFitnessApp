@@ -19,6 +19,7 @@
         </div>
         <div class="swipe-row-content">
           <div class="history-row-main">
+            {% if workout_set.is_superset %}<span class="superset-set-badge" aria-label="Serie de superserie">S</span>{% endif %}
             <span class="history-number">#{{ number }}</span>
             {% if workout_set.duration_seconds is not none %}
               <span>{% if workout_set.weight is not none %}{{ workout_set.weight }} kg · {% endif %}{{ workout_set.duration_seconds }}s</span>

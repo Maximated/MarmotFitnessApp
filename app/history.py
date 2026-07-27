@@ -47,6 +47,7 @@ async def history(
                 or_(
                     Exercise.name.ilike(f"%{q}%"),
                     BlockExercise.pending_name.ilike(f"%{q}%"),
+                    WorkoutSet.pending_name.ilike(f"%{q}%"),
                 )
             )
         )
@@ -74,6 +75,7 @@ async def history(
                 or_(
                     Exercise.name.ilike(f"%{q}%"),
                     BlockExercise.pending_name.ilike(f"%{q}%"),
+                    WorkoutSet.pending_name.ilike(f"%{q}%"),
                 )
             )
         rows = sets_query.order_by(Workout.date.desc(), WorkoutSet.order.asc()).all()
@@ -93,12 +95,18 @@ async def history(
                 else:
                     elapsed_display = "-"
             prev_time_by_workout[workout.id] = workout_set.time
-            display_name = exercise.name if exercise is not None else block_exercise.pending_name
-            link_url = (
-                f"/exercises/{exercise.id}/log"
-                if exercise is not None
-                else f"/block-exercises/{workout_set.block_exercise_id}/log"
-            )
+            if exercise is not None:
+                display_name = exercise.name
+                link_url = f"/exercises/{exercise.id}/log"
+            elif block_exercise is not None:
+                display_name = block_exercise.pending_name
+                link_url = f"/block-exercises/{workout_set.block_exercise_id}/log"
+            else:
+                # The program/block-exercise this was logged against no longer
+                # exists (e.g. the program was deleted) -- the set itself must
+                # still survive, using the name snapshotted at logging time.
+                display_name = workout_set.pending_name or "Ejercicio eliminado"
+                link_url = None
             enriched_rows.append(
                 (workout_set, workout, display_name, link_url, elapsed_display)
             )
