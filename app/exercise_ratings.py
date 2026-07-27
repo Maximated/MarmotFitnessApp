@@ -13,6 +13,19 @@ router = APIRouter()
 
 UNRATED_PRIORITY = 3
 
+# dorsales/espalda alta are separate target_muscle values in the catalog,
+# but the two are naturally lopsided (dorsales skews pulldowns/pull-ups,
+# espalda alta skews rows) -- for "ejercicios similares" they're treated as
+# one combined pool, with `variante` (vertical/horizontal) doing the actual
+# distinguishing.
+BACK_MUSCLE_GROUP = {"dorsales", "espalda alta"}
+
+
+def muscle_pool(target_muscle: str) -> tuple[str, ...]:
+    if target_muscle in BACK_MUSCLE_GROUP:
+        return tuple(BACK_MUSCLE_GROUP)
+    return (target_muscle,)
+
 
 def rating_order_case():
     """Order by best-rated-first, with unrated exercises placed right after
@@ -52,7 +65,7 @@ def get_similar_exercises(db: Session, user_id: int, exercise_id: int, limit: in
     if exercise is None:
         return []
 
-    return (
+    query = (
         db.query(Exercise)
         .outerjoin(
             ExerciseRating,
@@ -61,34 +74,42 @@ def get_similar_exercises(db: Session, user_id: int, exercise_id: int, limit: in
                 ExerciseRating.user_id == user_id,
             ),
         )
-        .filter(Exercise.target_muscle == exercise.target_muscle, Exercise.id != exercise_id)
-        .order_by(rating_order_case(), Exercise.name)
-        .limit(limit)
-        .all()
+        .filter(
+            Exercise.target_muscle.in_(muscle_pool(exercise.target_muscle)),
+            Exercise.id != exercise_id,
+        )
     )
+    if exercise.variante is not None:
+        query = query.filter(Exercise.variante == exercise.variante)
+    return query.order_by(rating_order_case(), Exercise.name).limit(limit).all()
+
+
+def _ranked_similar(db: Session, user_id: int, exercise: Exercise):
+    query = (
+        db.query(Exercise)
+        .outerjoin(
+            ExerciseRating,
+            and_(
+                ExerciseRating.exercise_id == Exercise.id,
+                ExerciseRating.user_id == user_id,
+            ),
+        )
+        .filter(Exercise.target_muscle.in_(muscle_pool(exercise.target_muscle)))
+    )
+    if exercise.variante is not None:
+        query = query.filter(Exercise.variante == exercise.variante)
+    return query.order_by(rating_order_case(), Exercise.name).all()
 
 
 def get_next_similar_exercise(db: Session, user_id: int, exercise_id: int) -> Exercise | None:
-    """Cycle to the next exercise in the same target_muscle group, ranked by
-    the user's rating (best first). The group forms a loop: cycling past the
-    last one wraps back to the exercise the user started from."""
+    """Cycle to the next exercise in the same similar-exercises group, ranked
+    by the user's rating (best first). The group forms a loop: cycling past
+    the last one wraps back to the exercise the user started from."""
     exercise = db.get(Exercise, exercise_id)
     if exercise is None:
         return None
 
-    ranked = (
-        db.query(Exercise)
-        .outerjoin(
-            ExerciseRating,
-            and_(
-                ExerciseRating.exercise_id == Exercise.id,
-                ExerciseRating.user_id == user_id,
-            ),
-        )
-        .filter(Exercise.target_muscle == exercise.target_muscle)
-        .order_by(rating_order_case(), Exercise.name)
-        .all()
-    )
+    ranked = _ranked_similar(db, user_id, exercise)
     if len(ranked) <= 1:
         return None
 
@@ -104,19 +125,7 @@ def get_previous_similar_exercise(db: Session, user_id: int, exercise_id: int) -
     if exercise is None:
         return None
 
-    ranked = (
-        db.query(Exercise)
-        .outerjoin(
-            ExerciseRating,
-            and_(
-                ExerciseRating.exercise_id == Exercise.id,
-                ExerciseRating.user_id == user_id,
-            ),
-        )
-        .filter(Exercise.target_muscle == exercise.target_muscle)
-        .order_by(rating_order_case(), Exercise.name)
-        .all()
-    )
+    ranked = _ranked_similar(db, user_id, exercise)
     if len(ranked) <= 1:
         return None
 

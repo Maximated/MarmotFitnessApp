@@ -39,6 +39,7 @@ class Exercise(Base):
     name: Mapped[str] = mapped_column(String)
     category: Mapped[str] = mapped_column(String)
     target_muscle: Mapped[str] = mapped_column(String)
+    variante: Mapped[str | None] = mapped_column(String)
     equipment: Mapped[str] = mapped_column(String)
     gif_url: Mapped[str] = mapped_column(String)
     instructions: Mapped[str] = mapped_column(Text)
