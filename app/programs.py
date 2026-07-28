@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -181,25 +183,31 @@ async def activate_program(
     program_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
+    starting_day_number: int = Form(1),
 ):
     program = get_own_program(db, program_id, user.id)
+    if not (1 <= starting_day_number <= program.cycle_days):
+        raise HTTPException(status_code=400, detail="Número de jornada inválido")
+
     db.query(Program).filter(Program.user_id == user.id, Program.id != program.id).update(
         {"is_active": False}
     )
     program.is_active = True
+    program.current_day_number = starting_day_number
+    program.next_due_date = date.today()
     db.commit()
 
     return RedirectResponse(url=f"/programs/{program.id}", status_code=303)
 
 
-@router.post("/programs/{program_id}/delete")
-async def delete_program(
+@router.post("/programs/{program_id}/archive")
+async def archive_program(
     program_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
     program = get_own_program(db, program_id, user.id)
-    db.delete(program)
+    program.is_active = False
     db.commit()
 
     return RedirectResponse(url="/programs", status_code=303)

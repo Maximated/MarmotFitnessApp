@@ -8,9 +8,9 @@
     {% for program in programs %}
       <li class="program-banner-item {% if program.is_active %}program-banner-item-active{% else %}program-banner-item-inactive{% endif %} swipe-row swipe-row-single-action">
         <div class="swipe-row-actions swipe-row-actions-single">
-          <form method="post" action="/programs/{{ program.id }}/delete" class="delete-form swipe-action-form" data-confirm="¿Seguro que quieres eliminar el programa &quot;{{ program.name }}&quot;? Se perderán también sus días y bloques.">
-            <button type="submit" class="swipe-action swipe-action-delete" aria-label="Eliminar programa">
-              {% include "_icon_trash.html" %}
+          <form method="post" action="/programs/{{ program.id }}/archive" class="delete-form swipe-action-form" data-confirm="¿Archivar el programa &quot;{{ program.name }}&quot;? Dejará de estar activo, pero se queda guardado en tu historial. Podrás volver a activarlo cuando quieras.">
+            <button type="submit" class="swipe-action swipe-action-archive" aria-label="Archivar programa">
+              {% include "_icon_archive.html" %}
             </button>
           </form>
         </div>

@@ -10,6 +10,9 @@
 
   {% if not program.is_active %}
     <form method="post" action="/programs/{{ program.id }}/activate">
+      <label>Empezar desde la jornada
+        <input type="number" name="starting_day_number" min="1" max="{{ program.cycle_days }}" value="1" required />
+      </label>
       <button type="submit">Marcar como activo</button>
     </form>
   {% endif %}
@@ -21,7 +24,11 @@
   <ul class="exercise-grid">
     {% for day_template in day_templates %}
       <li>
-        <p><a href="/days/{{ day_template.id }}">Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}</a></p>
+        <p>
+          Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
+          · <a href="/days/{{ day_template.id }}">Editar</a>
+          · <a href="/days/{{ day_template.id }}/preview">Ver</a>
+        </p>
         <p class="day-summary">{{ day_summaries[day_template.id] }}</p>
         <div class="actions">
           {% if copy_from and copy_from != day_template.id %}
@@ -40,8 +47,8 @@
     {% endfor %}
   </ul>
 
-  <form method="post" action="/programs/{{ program.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar el programa &quot;{{ program.name }}&quot;? Se perderán también sus días y bloques.">
-    <button type="submit" class="btn-danger">Eliminar programa</button>
+  <form method="post" action="/programs/{{ program.id }}/archive" class="delete-form" data-confirm="¿Archivar el programa &quot;{{ program.name }}&quot;? Dejará de estar activo, pero se queda guardado en tu historial. Podrás volver a activarlo cuando quieras.">
+    <button type="submit">Archivar programa</button>
   </form>
 
   <script>

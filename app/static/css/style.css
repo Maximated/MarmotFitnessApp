@@ -1687,3 +1687,7 @@ td.numeric {
 .swipe-action-delete {
   background: var(--danger);
 }
+
+.swipe-action-archive {
+  background: var(--muted);
+}
