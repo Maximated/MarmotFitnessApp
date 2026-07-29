@@ -1266,6 +1266,13 @@ td.numeric {
   font-size: 16px;
 }
 
+/* readonly + editado vía prompt() (ver app.js) -- se ve tocable en vez de
+   deshabilitado. */
+.prompt-input {
+  cursor: pointer;
+  background: var(--card-bg);
+}
+
 .btn-add {
   flex-shrink: 0;
   width: 3.5rem;

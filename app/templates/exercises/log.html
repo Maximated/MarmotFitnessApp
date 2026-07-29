@@ -211,7 +211,7 @@
         {% endif %}
         <button type="submit" class="btn-add" aria-label="Añadir serie">+</button>
       </div>
-      <label>Notas <textarea name="comment"></textarea></label>
+      <label>Notas <textarea name="comment" readonly class="prompt-input" data-prompt-label="Notas"></textarea></label>
       <input type="hidden" name="block_exercise_id" value="{{ block_exercise_id }}" />
       {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
     </form>

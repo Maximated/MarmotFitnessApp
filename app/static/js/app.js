@@ -153,3 +153,18 @@ if ("Notification" in window && Notification.permission === "granted") {
   window.visualViewport.addEventListener("scroll", reposition);
   reposition();
 })();
+
+// Casillas de solo lectura que se editan con prompt() en vez de foco directo
+// -- un input/textarea normal hace que el móvil abra teclado y haga zoom a
+// la casilla, molesto para escribir algo puntual como el peso o una nota.
+// prompt() es un diálogo nativo, no forma parte del layout de la página, así
+// que no hay zoom ni scroll raro.
+document.querySelectorAll(".prompt-input").forEach((field) => {
+  field.addEventListener("click", () => {
+    field.blur();
+    const label = field.dataset.promptLabel || "Valor";
+    const value = prompt(label + ":", field.value);
+    if (value === null) return;
+    field.value = value;
+  });
+});
