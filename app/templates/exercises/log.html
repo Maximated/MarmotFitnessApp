@@ -289,14 +289,16 @@
       <script>
         (function () {
           const suggested = {{ training.suggested_weight | tojson }};
-          let weight = confirm("Usar " + suggested + " kg como peso objetivo para este ejercicio?")
-            ? suggested
-            : (() => {
-                const custom = prompt("Indica el peso objetivo (kg):", String(suggested));
-                if (custom === null) return null;
-                const parsed = parseFloat(custom.replace(",", "."));
-                return isNaN(parsed) ? suggested : parsed;
-              })();
+          let weight = null;
+          if (confirm("Usar " + suggested + " kg como peso objetivo para este ejercicio?")) {
+            weight = suggested;
+          } else if (confirm("¿Quieres indicar otro peso objetivo?")) {
+            const custom = prompt("Indica el peso objetivo (kg):", String(suggested));
+            if (custom !== null) {
+              const parsed = parseFloat(custom.replace(",", "."));
+              if (!isNaN(parsed)) weight = parsed;
+            }
+          }
           if (weight === null) return;
           const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
           {% if next %}params.set("next", {{ next | tojson }});{% endif %}
