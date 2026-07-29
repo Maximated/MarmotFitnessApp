@@ -7,7 +7,7 @@
   <ul class="exercise-row-list">
     {% for similar in similar_exercises %}
       <li>
-        <a href="/exercises/{{ similar.id }}/log" class="exercise-row">
+        <a href="/exercises/{{ similar.id }}/log{% if next %}?{{ {'next': next} | urlencode }}{% endif %}" class="exercise-row">
           <img src="{{ similar.gif_url }}" alt="{{ similar.name }}" />
           <span>{{ similar.name }}</span>
         </a>
