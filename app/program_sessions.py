@@ -578,11 +578,14 @@ def build_calendar_weeks(db: Session, program, year: int, month: int):
     first_day = date(year, month, 1)
     last_day = date(year, month, calendar.monthrange(year, month)[1])
 
+    # Los días "hechos" son del usuario, no del programa concreto que esté
+    # activo ahora -- un entrenamiento no debe desaparecer del calendario
+    # solo porque después se archivó el programa con el que se hizo.
     completed_dates = {
         row[0]
         for row in db.query(Workout.date)
         .filter(
-            Workout.program_id == program.id,
+            Workout.user_id == program.user_id,
             Workout.date >= first_day,
             Workout.date <= last_day,
         )
@@ -678,17 +681,25 @@ async def view_session(
 ):
     program = get_own_program(db, program_id, user.id)
 
+    # El workout de ese día puede pertenecer a un programa distinto del que
+    # se está navegando ahora mismo (por ejemplo, uno ya archivado) -- se
+    # busca solo por usuario+fecha, nunca por program_id.
     workout = (
         db.query(Workout)
         .filter(
             Workout.user_id == user.id,
             Workout.date == session_date,
-            Workout.program_id == program.id,
         )
         .first()
     )
     if workout is None:
         raise HTTPException(status_code=404)
+
+    owning_program = None
+    if workout.program_id is not None:
+        owning_program = db.get(Program, workout.program_id)
+    if owning_program is None:
+        owning_program = program
 
     day_template = db.get(DayTemplate, workout.day_template_id)
     blocks, exercises_by_block = get_day_content(db, day_template.id) if day_template else ([], {})
@@ -707,7 +718,7 @@ async def view_session(
         request=request,
         name="programs/session.html",
         context={
-            "program": program,
+            "program": owning_program,
             "session_date": session_date,
             "day_template": day_template,
             "blocks": blocks,
@@ -728,19 +739,29 @@ async def delete_session(
 ):
     program = get_own_program(db, program_id, user.id)
 
+    # Igual que en view_session: el workout de esa fecha puede pertenecer a
+    # un programa distinto (uno ya archivado), así que se busca solo por
+    # usuario+fecha.
     workout = (
         db.query(Workout)
         .filter(
             Workout.user_id == user.id,
             Workout.date == session_date,
-            Workout.program_id == program.id,
         )
         .first()
     )
     if workout is not None:
+        owning_program_id = workout.program_id
         db.delete(workout)
         db.flush()
-        recompute_schedule(db, program)
+        # El recálculo de progreso tiene que aplicarse al programa dueño del
+        # workout borrado, no al que se estaba navegando -- si son distintos
+        # (p. ej. borrando una sesión antigua de un programa ya archivado),
+        # recalcular el programa activo actual lo desincronizaría sin motivo.
+        if owning_program_id is not None:
+            owning_program = db.get(Program, owning_program_id)
+            if owning_program is not None:
+                recompute_schedule(db, owning_program)
         db.commit()
 
     return RedirectResponse(url=f"/programs/{program.id}/calendar", status_code=303)
