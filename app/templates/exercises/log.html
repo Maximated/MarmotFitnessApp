@@ -257,6 +257,12 @@
         // series, cronómetro de descanso, avisos de peso objetivo/siguiente
         // ejercicio/finalizar) se actualiza con el JSON que devuelve el
         // servidor, no con una recarga.
+        //
+        // Envuelto en DOMContentLoaded porque #exercise-history-list vive
+        // en _history.html, incluido MÁS ABAJO en esta misma página --
+        // buscarlo aquí arriba sin esperar devolvía null y rompía el botón
+        // de guardar en cuanto se intentaba insertar la fila optimista.
+      document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("training-log-form");
         const historyList = document.getElementById("exercise-history-list");
         const emptyPlaceholder = document.getElementById("history-empty-placeholder");
@@ -401,6 +407,7 @@
             .then((data) => { if (data) applyServerState(data); })
             .catch(() => {});
         });
+      });
       })();
     </script>
 
