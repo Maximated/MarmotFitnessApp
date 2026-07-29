@@ -270,6 +270,49 @@ def resolve_weight_progress_prompt(
     return True, last_set.weight
 
 
+def resolve_weight_target(
+    db: Session, user_id: int, exercise_id: int | None, block_exercise: BlockExercise
+) -> float | None:
+    """The weight to show/suggest for this exercise -- ExerciseUserProgress
+    once it exists, falling back to the block's initial manual suggestion."""
+    weight_target = block_exercise.target_weight
+    if exercise_id is not None:
+        progress = (
+            db.query(ExerciseUserProgress)
+            .filter(
+                ExerciseUserProgress.user_id == user_id,
+                ExerciseUserProgress.exercise_id == exercise_id,
+            )
+            .first()
+        )
+        if progress is not None:
+            weight_target = progress.current_weight
+    return weight_target
+
+
+def build_training_state(
+    todays_workout: Workout | None,
+    block: Block,
+    sets_completed_today: int,
+) -> dict:
+    """Read-only snapshot of the server's current truth for the ring and
+    the rest timer -- used both by the optimistic-log JSON response and by
+    a passive client-side re-sync (e.g. after the tab was backgrounded),
+    so the client is never left trusting its own drifted idea of these
+    values instead of asking the server again."""
+    return {
+        "sets_completed": sets_completed_today,
+        "sets_target": block.num_sets,
+        "rest_until": (
+            todays_workout.rest_until.isoformat()
+            if todays_workout is not None and todays_workout.rest_until is not None
+            else None
+        ),
+        "rest_total_seconds": todays_workout.rest_total_seconds if todays_workout is not None else None,
+        "rest_notify_text": todays_workout.rest_notify_text if todays_workout is not None else None,
+    }
+
+
 async def render_training_log(
     request: Request,
     db: Session,
@@ -333,6 +376,15 @@ async def render_training_log(
     sets_completed_today = 0
     if todays_workout is not None:
         sets_completed_today = count_sets(db, todays_workout.id, exercise_id, block_exercise.id)
+
+    # Passive re-sync: the client asks for this (instead of a full page
+    # reload) when the tab regains focus after being backgrounded, or
+    # whenever it wants to double-check the ring/rest-timer against the
+    # server's actual state instead of trusting whatever it was showing
+    # while unattended. No `next`/nav/similar-exercise computation needed
+    # for this, so it returns before any of that gets built below.
+    if wants_json(request):
+        return JSONResponse(build_training_state(todays_workout, block, sets_completed_today))
 
     def build_nav_url(neighbor: BlockExercise) -> str:
         nav_params = {"block_exercise_id": neighbor.id}
@@ -398,18 +450,7 @@ async def render_training_log(
                 db, todays_workout.id, partner_exercise_id, superset_partner.id
             )
 
-    weight_target = block_exercise.target_weight
-    if exercise_id is not None:
-        progress = (
-            db.query(ExerciseUserProgress)
-            .filter(
-                ExerciseUserProgress.user_id == user.id,
-                ExerciseUserProgress.exercise_id == exercise_id,
-            )
-            .first()
-        )
-        if progress is not None:
-            weight_target = progress.current_weight
+    weight_target = resolve_weight_target(db, user.id, exercise_id, block_exercise)
 
     training = {
         "modo_registro": block_exercise.modo_registro,
@@ -723,18 +764,11 @@ def build_optimistic_log_response(
         else (False, None)
     )
 
-    weight_target = block_exercise.target_weight if block_exercise is not None else None
-    if exercise_id is not None:
-        progress = (
-            db.query(ExerciseUserProgress)
-            .filter(
-                ExerciseUserProgress.user_id == user.id,
-                ExerciseUserProgress.exercise_id == exercise_id,
-            )
-            .first()
-        )
-        if progress is not None:
-            weight_target = progress.current_weight
+    weight_target = (
+        resolve_weight_target(db, user.id, exercise_id, block_exercise)
+        if block_exercise is not None
+        else None
+    )
 
     return {
         "row_html": row_html,
