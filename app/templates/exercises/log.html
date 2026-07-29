@@ -161,10 +161,20 @@
           {% endif %}
         {% endif %}
         {% if training.modo_registro != "tiempo" %}
-          <div class="stat-circle">
-            <span class="stat-value">{{ training.sets_completed }}/{{ training.sets_target or "-" }}</span>
-            <span class="stat-label">Series completadas</span>
-          </div>
+          {% if training.sets_target %}
+            <div class="stat-circle stat-circle-timer" id="sets-progress-circle">
+              {{ timer_ring("sets-ring") }}
+              <div class="stat-circle-content">
+                <span class="stat-value">{{ training.sets_completed }}/{{ training.sets_target }}</span>
+                <span class="stat-label">Series completadas</span>
+              </div>
+            </div>
+          {% else %}
+            <div class="stat-circle">
+              <span class="stat-value">{{ training.sets_completed }}/-</span>
+              <span class="stat-label">Series completadas</span>
+            </div>
+          {% endif %}
         {% endif %}
       </div>
     </div>
@@ -252,6 +262,25 @@
               }
             });
           }
+        })();
+      </script>
+    {% endif %}
+
+    {% if training.sets_target %}
+      <script>
+        (function () {
+          // Mismo anillo que el del descanso, pero al revés: aquí el
+          // progreso es "series ya hechas", así que empieza vacío/rojo y se
+          // va llenando de verde según se acerca al objetivo (el del
+          // descanso hace lo contrario: empieza lleno/verde y se vacía).
+          const ringEl = document.getElementById("sets-ring");
+          const circumference = 2 * Math.PI * 45;
+          const completed = {{ training.sets_completed | tojson }};
+          const target = {{ training.sets_target | tojson }};
+          const pct = target > 0 ? Math.max(0, Math.min(1, completed / target)) : 0;
+          ringEl.style.strokeDasharray = String(circumference);
+          ringEl.style.strokeDashoffset = String(circumference * (1 - pct));
+          ringEl.style.stroke = `hsl(${Math.round(120 * pct)}, 80%, 45%)`;
         })();
       </script>
     {% endif %}
