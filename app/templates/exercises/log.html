@@ -608,7 +608,7 @@
             intervalId = null;
             endTime = null;
             remaining = 0;
-            valueEl.textContent = "¡Listo! (" + formatTime(totalSeconds) + ")";
+            valueEl.innerHTML = "¡Listo!<br>" + formatTime(totalSeconds);
             renderRing(0);
             iconEl.innerHTML = PLAY_ICON;
             settled = true;
