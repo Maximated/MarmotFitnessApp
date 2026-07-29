@@ -329,6 +329,7 @@
           historyList.insertBefore(realRow, rowEl);
           rowEl.remove();
           window.wireSwipeRow(realRow);
+          wireHistoryRowCopy(realRow);
           hasTodayGroup = true;
         }
 
@@ -502,7 +503,32 @@
       // auto_advance_url > prompt_finish), pero como función normal en vez
       // de condicionales de página cargada -- la usa el guardado
       // optimista de una serie tras un fetch con éxito, sin recargar nada.
+      //
+      // A diferencia del bloque de página cargada de arriba, aquí
+      // ask_weight_progress YA NO es un punto muerto: tanto si el usuario
+      // fija un peso como si no, se continúa igualmente hacia
+      // auto_advance_url/prompt_finish -- si no, cada primera vez que se
+      // completaba un ejercicio sin ExerciseUserProgress todavía (lo
+      // normal, casi ninguno tiene uno guardado aún) el aviso de peso
+      // dejaba al usuario varado en el mismo ejercicio ya terminado en vez
+      // de avanzar (esto también afectaba a la alternancia de
+      // superseries, donde cada mitad puede completar su única serie y
+      // disparar este mismo aviso en cada salto).
       function runPostLogFlow(data) {
+        function advanceOrFinish() {
+          if (data.auto_advance_url) {
+            setTimeout(() => { navigateWithSweep(data.auto_advance_url, "left"); }, 2000);
+          } else if (data.prompt_finish) {
+            setTimeout(() => {
+              if (confirm("¿Quieres finalizar el entrenamiento?")) {
+                fetch("/programs/{{ training.program_id }}/today/finish", { method: "POST" })
+                  .then(() => { window.location = "/programs/{{ training.program_id }}/today"; })
+                  .catch(() => {});
+              }
+            }, 2000);
+          }
+        }
+
         if (data.ask_weight_progress) {
           const suggested = data.suggested_weight;
           let weight = null;
@@ -515,22 +541,17 @@
               if (!isNaN(parsed)) weight = parsed;
             }
           }
-          if (weight === null) return;
+          if (weight === null) {
+            advanceOrFinish();
+            return;
+          }
           const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
           {% if next %}params.set("next", {{ next | tojson }});{% endif %}
           fetch("/exercises/{{ exercise.id if exercise else '' }}/set-target-weight", { method: "POST", body: params })
-            .then((r) => { window.location = r.url; })
-            .catch(() => {});
-        } else if (data.auto_advance_url) {
-          setTimeout(() => { navigateWithSweep(data.auto_advance_url, "left"); }, 2000);
-        } else if (data.prompt_finish) {
-          setTimeout(() => {
-            if (confirm("¿Quieres finalizar el entrenamiento?")) {
-              fetch("/programs/{{ training.program_id }}/today/finish", { method: "POST" })
-                .then(() => { window.location = "/programs/{{ training.program_id }}/today"; })
-                .catch(() => {});
-            }
-          }, 2000);
+            .then(() => { advanceOrFinish(); })
+            .catch(() => { advanceOrFinish(); });
+        } else {
+          advanceOrFinish();
         }
       }
     </script>
@@ -876,18 +897,21 @@
   </script>
 
   <script>
-    (function () {
-      document.querySelectorAll(".history-row").forEach((row) => {
-        row.addEventListener("click", (event) => {
-          if (event.target.closest(".actions")) return;
-          const weightInput = document.getElementById("weight-input");
-          if (weightInput && row.dataset.weight) weightInput.value = row.dataset.weight;
-          const repsInput = document.getElementById("reps-input");
-          if (repsInput && row.dataset.reps) repsInput.value = row.dataset.reps;
-          const durationInput = document.getElementById("duration-input");
-          if (durationInput && row.dataset.duration) durationInput.value = row.dataset.duration;
-        });
+    // Reutilizable: se llama tanto sobre las filas presentes al cargar la
+    // página como sobre cualquier fila insertada después por el guardado
+    // optimista (reconcileRow) -- si no, las series recién guardadas hoy
+    // se quedaban sin este click-to-copy.
+    function wireHistoryRowCopy(row) {
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".actions")) return;
+        const weightInput = document.getElementById("weight-input");
+        if (weightInput && row.dataset.weight) weightInput.value = row.dataset.weight;
+        const repsInput = document.getElementById("reps-input");
+        if (repsInput && row.dataset.reps) repsInput.value = row.dataset.reps;
+        const durationInput = document.getElementById("duration-input");
+        if (durationInput && row.dataset.duration) durationInput.value = row.dataset.duration;
       });
-    })();
+    }
+    document.querySelectorAll(".history-row").forEach(wireHistoryRowCopy);
   </script>
 {% endblock %}
