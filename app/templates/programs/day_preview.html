@@ -15,7 +15,7 @@
 
   {% for block in blocks %}
     <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}{% if block.num_sets %} · {{ block.num_sets }} series{% endif %}</h2>
-    <ul class="exercise-row-list">
+    <ul class="exercise-row-list{% if not loop.last %} exercise-row-list-block{% endif %}">
       {% for group in exercise_groups_by_block.get(block.id, []) %}
         <li{% if group|length == 2 %} class="today-superset-group"{% endif %}>
           {% for block_exercise, exercise in group %}

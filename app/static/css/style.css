@@ -1459,6 +1459,21 @@ td.numeric {
   padding: 0;
 }
 
+/* En pantallas agrupadas por bloque (hoy/sesión/vista previa) la línea
+   debe separar un bloque del siguiente, no cada ejercicio entre sí --
+   se quita el borde de cada fila y se pone uno solo al final de la
+   lista completa del bloque (el macro/plantilla no la añade al último
+   bloque, para no dejar una línea colgando antes del botón de
+   finalizar). */
+.exercise-row-list-block .exercise-row {
+  border-bottom: none;
+}
+
+.exercise-row-list-block {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
 .exercise-row {
   display: flex;
   align-items: center;
