@@ -6,12 +6,12 @@ from datetime import timezone
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_user
-from app.exercise_history import build_exercise_history
+from app.exercise_history import build_exercise_history, format_day_header
 from app.exercise_ratings import (
     get_next_similar_exercise,
     get_previous_similar_exercise,
@@ -226,6 +226,50 @@ def resolve_rest_step(
     return notify_text, target_be, prompt_finish
 
 
+def resolve_weight_progress_prompt(
+    db: Session,
+    user_id: int,
+    exercise_id: int | None,
+    block_exercise: BlockExercise,
+    block: Block,
+    todays_workout: Workout | None,
+    sets_completed_today: int,
+) -> tuple[bool, float | None]:
+    """Whether to ask what weight to start tracking for this exercise --
+    only right after the log action that completed all of today's sets for
+    it, and only if nothing is tracked yet (an existing row is only ever
+    incremented, in apply_weight_progression, not asked about again)."""
+    if (
+        exercise_id is None
+        or block_exercise.modo_registro != "series"
+        or sets_completed_today != block.num_sets
+        or todays_workout is None
+    ):
+        return False, None
+
+    existing_progress = (
+        db.query(ExerciseUserProgress)
+        .filter(
+            ExerciseUserProgress.user_id == user_id,
+            ExerciseUserProgress.exercise_id == exercise_id,
+        )
+        .first()
+    )
+    if existing_progress is not None:
+        return False, None
+
+    last_set = (
+        db.query(WorkoutSet)
+        .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.exercise_id == exercise_id)
+        .order_by(WorkoutSet.order.desc())
+        .first()
+    )
+    if last_set is None or last_set.weight is None:
+        return False, None
+
+    return True, last_set.weight
+
+
 async def render_training_log(
     request: Request,
     db: Session,
@@ -421,38 +465,18 @@ async def render_training_log(
     training["auto_advance_url"] = build_nav_url(target_be) if target_be is not None else None
     training["prompt_finish"] = prompt_finish
 
-    # Ask what weight to start tracking the first time this exercise's sets
-    # are fully done for the day -- only right after the log action that
-    # completed it (gated by `logged`, same reasoning as resolve_rest_step),
-    # and only if nothing is tracked for it yet (an existing row is only
-    # ever incremented, in submit_workout_set/apply_weight_progression, not
-    # asked about again).
-    training["ask_weight_progress"] = False
-    training["suggested_weight"] = None
-    if (
-        logged
-        and exercise_id is not None
-        and block_exercise.modo_registro == "series"
-        and sets_completed_today == block.num_sets
-    ):
-        existing_progress = (
-            db.query(ExerciseUserProgress)
-            .filter(
-                ExerciseUserProgress.user_id == user.id,
-                ExerciseUserProgress.exercise_id == exercise_id,
-            )
-            .first()
+    # Gated by `logged`, same reasoning as resolve_rest_step: only ask right
+    # after the log action that actually completed today's sets, not on
+    # every subsequent page view of an already-finished exercise.
+    ask_weight_progress, suggested_weight = (
+        resolve_weight_progress_prompt(
+            db, user.id, exercise_id, block_exercise, block, todays_workout, sets_completed_today
         )
-        if existing_progress is None and todays_workout is not None:
-            last_set = (
-                db.query(WorkoutSet)
-                .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.exercise_id == exercise_id)
-                .order_by(WorkoutSet.order.desc())
-                .first()
-            )
-            if last_set is not None and last_set.weight is not None:
-                training["ask_weight_progress"] = True
-                training["suggested_weight"] = last_set.weight
+        if logged
+        else (False, None)
+    )
+    training["ask_weight_progress"] = ask_weight_progress
+    training["suggested_weight"] = suggested_weight
 
     if index is not None:
         if index > 0:
@@ -559,7 +583,13 @@ def submit_workout_set(
     workout_date: date_type | None,
     set_time: time_type | None,
     comment: str | None,
-) -> Workout:
+) -> tuple[Workout, WorkoutSet, BlockExercise | None, bool, int]:
+    """Returns (workout, workout_set, target_be, prompt_finish,
+    sets_completed_today) -- target_be/prompt_finish/sets_completed_today
+    are always resolved (needed for the optimistic-UI JSON response: what
+    to auto-advance to, whether the day is done, and the sets-ring), even
+    though only some of that also gets written onto `workout.rest_*` as a
+    side effect, exactly like before this was exposed."""
     if reps is None and duration_seconds is None:
         raise HTTPException(status_code=400, detail="Indica repeticiones o duración.")
 
@@ -592,30 +622,26 @@ def submit_workout_set(
                 is not None
             )
 
-    db.add(
-        WorkoutSet(
-            workout_id=workout.id,
-            exercise_id=exercise_id,
-            block_exercise_id=block_exercise_id if exercise_id is None else None,
-            pending_name=pending_name_snapshot,
-            is_superset=is_superset,
-            weight=parse_optional_weight(weight),
-            reps=reps,
-            duration_seconds=duration_seconds,
-            time=set_time,
-            comment=comment or None,
-            order=next_order,
-        )
+    workout_set = WorkoutSet(
+        workout_id=workout.id,
+        exercise_id=exercise_id,
+        block_exercise_id=block_exercise_id if exercise_id is None else None,
+        pending_name=pending_name_snapshot,
+        is_superset=is_superset,
+        weight=parse_optional_weight(weight),
+        reps=reps,
+        duration_seconds=duration_seconds,
+        time=set_time,
+        comment=comment or None,
+        order=next_order,
     )
+    db.add(workout_set)
     db.flush()
 
-    if block_exercise is not None and block_exercise.modo_registro == "tiempo":
-        workout.rest_until = None
-        workout.rest_total_seconds = None
-        workout.rest_notify_text = None
-        workout.rest_push_sent_at = None
-        workout.active_block_exercise_id = None
-    elif block_exercise is not None and not block_exercise.is_superset_with_next:
+    target_be = None
+    prompt_finish = False
+    sets_completed_today = 0
+    if block_exercise is not None:
         block = db.get(Block, block_exercise.block_id)
         day_exercises = (
             db.query(BlockExercise)
@@ -625,22 +651,112 @@ def submit_workout_set(
             .all()
         )
         sets_completed_today = count_sets(db, workout.id, exercise_id, block_exercise_id)
-        notify_text, target_be, _prompt_finish = resolve_rest_step(
+        notify_text, target_be, prompt_finish = resolve_rest_step(
             db, block_exercise, block, day_exercises, workout.id, sets_completed_today
         )
-        workout.rest_until = now + timedelta(seconds=block.rest_seconds)
-        workout.rest_total_seconds = block.rest_seconds
-        workout.rest_notify_text = notify_text
-        workout.rest_push_sent_at = None
-        workout.active_block_exercise_id = target_be.id if target_be is not None else block_exercise_id
+
+        if block_exercise.modo_registro == "tiempo":
+            workout.rest_until = None
+            workout.rest_total_seconds = None
+            workout.rest_notify_text = None
+            workout.rest_push_sent_at = None
+            workout.active_block_exercise_id = None
+        elif not block_exercise.is_superset_with_next:
+            workout.rest_until = now + timedelta(seconds=block.rest_seconds)
+            workout.rest_total_seconds = block.rest_seconds
+            workout.rest_notify_text = notify_text
+            workout.rest_push_sent_at = None
+            workout.active_block_exercise_id = target_be.id if target_be is not None else block_exercise_id
 
     db.commit()
-    return workout
+    return workout, workout_set, target_be, prompt_finish, sets_completed_today
+
+
+def wants_json(request: Request) -> bool:
+    return "application/json" in request.headers.get("accept", "")
+
+
+def build_optimistic_log_response(
+    db: Session,
+    user: User,
+    exercise_id: int | None,
+    block_exercise_id: int,
+    next: str | None,
+    workout: Workout,
+    workout_set: WorkoutSet,
+    target_be: BlockExercise | None,
+    prompt_finish: bool,
+    sets_completed_today: int,
+) -> dict:
+    """The JSON payload the optimistic-UI fetch() needs to update the whole
+    training screen (row, ring, rest timer, next-step prompts) without a
+    page reload -- everything a full page render would otherwise have
+    recomputed from scratch after the redirect."""
+    block_exercise = db.get(BlockExercise, block_exercise_id)
+    block = db.get(Block, block_exercise.block_id) if block_exercise is not None else None
+
+    is_first_set_of_day = sets_completed_today == 1
+    day_header = format_day_header(date_type.today()) if is_first_set_of_day else None
+
+    self_params = {"block_exercise_id": block_exercise_id}
+    if next is not None:
+        self_params["next"] = next
+    self_url = training_url(block_exercise_id, exercise_id, self_params)
+
+    row_template = templates.get_template("exercises/_history_row.html")
+    row_html = row_template.module.history_row(sets_completed_today, workout_set, self_url)
+
+    auto_advance_url = None
+    if target_be is not None:
+        substitution_map = get_substitution_map(db, workout.id)
+        target_exercise_id = substitution_map.get(target_be.id, target_be.exercise_id)
+        nav_params = {"block_exercise_id": target_be.id}
+        if next is not None:
+            nav_params["next"] = next
+        auto_advance_url = training_url(target_be.id, target_exercise_id, nav_params)
+
+    ask_weight_progress, suggested_weight = (
+        resolve_weight_progress_prompt(
+            db, user.id, exercise_id, block_exercise, block, workout, sets_completed_today
+        )
+        if block_exercise is not None and block is not None
+        else (False, None)
+    )
+
+    weight_target = block_exercise.target_weight if block_exercise is not None else None
+    if exercise_id is not None:
+        progress = (
+            db.query(ExerciseUserProgress)
+            .filter(
+                ExerciseUserProgress.user_id == user.id,
+                ExerciseUserProgress.exercise_id == exercise_id,
+            )
+            .first()
+        )
+        if progress is not None:
+            weight_target = progress.current_weight
+
+    return {
+        "row_html": row_html,
+        "is_first_set_of_day": is_first_set_of_day,
+        "day_header": day_header,
+        "sets_completed": sets_completed_today,
+        "sets_target": block.num_sets if block is not None else None,
+        "rest_until": workout.rest_until.isoformat() if workout.rest_until is not None else None,
+        "rest_total_seconds": workout.rest_total_seconds,
+        "rest_notify_text": workout.rest_notify_text,
+        "ask_weight_progress": ask_weight_progress,
+        "suggested_weight": suggested_weight,
+        "auto_advance_url": auto_advance_url,
+        "prompt_finish": prompt_finish,
+        "weight_target": weight_target,
+    }
 
 
 @router.post("/exercises/{exercise_id}/log")
 async def log_exercise_submit(
     exercise_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     weight: str = Form(""),
@@ -652,9 +768,17 @@ async def log_exercise_submit(
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
 ):
-    submit_workout_set(
+    workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
         db, user, exercise_id, block_exercise_id, weight, reps, duration_seconds, workout_date, set_time, comment
     )
+
+    if block_exercise_id is not None and wants_json(request):
+        return JSONResponse(
+            build_optimistic_log_response(
+                db, user, exercise_id, block_exercise_id, next,
+                workout, workout_set, target_be, prompt_finish, sets_completed_today,
+            )
+        )
 
     redirect_url = f"/exercises/{exercise_id}/log"
     params = {"logged": "1"}
@@ -670,6 +794,7 @@ async def log_exercise_submit(
 @router.post("/block-exercises/{block_exercise_id}/log")
 async def log_block_exercise_submit(
     block_exercise_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     weight: str = Form(""),
@@ -680,9 +805,17 @@ async def log_block_exercise_submit(
     comment: str | None = Form(None),
     next: str | None = Form(None),
 ):
-    submit_workout_set(
+    workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
         db, user, None, block_exercise_id, weight, reps, duration_seconds, workout_date, set_time, comment
     )
+
+    if wants_json(request):
+        return JSONResponse(
+            build_optimistic_log_response(
+                db, user, None, block_exercise_id, next,
+                workout, workout_set, target_be, prompt_finish, sets_completed_today,
+            )
+        )
 
     redirect_url = f"/block-exercises/{block_exercise_id}/log"
     params = {"logged": "1"}

@@ -1,42 +1,15 @@
+  {% from "exercises/_history_row.html" import history_row %}
   <h2>Tus series de este ejercicio</h2>
-  {% for group in day_groups %}
-    <h3 class="history-day-header">{{ group.header }}</h3>
-    {% for number, workout_set in group.sets %}
-      <div class="history-row swipe-row"
-           data-weight="{{ workout_set.weight if workout_set.weight is not none else '' }}"
-           data-reps="{{ workout_set.reps if workout_set.reps is not none else '' }}"
-           data-duration="{{ workout_set.duration_seconds if workout_set.duration_seconds is not none else '' }}">
-        <div class="swipe-row-actions actions">
-          <a href="/workout-sets/{{ workout_set.id }}/edit?next={{ self_url | urlencode }}" class="swipe-action swipe-action-edit" aria-label="Editar">
-            {% include "_icon_pencil.html" %}
-          </a>
-          <form method="post" action="/workout-sets/{{ workout_set.id }}/delete" class="delete-form swipe-action-form" data-confirm="¿Seguro que quieres eliminar esta serie?">
-            <input type="hidden" name="next" value="{{ self_url }}" />
-            <button type="submit" class="swipe-action swipe-action-delete" aria-label="Eliminar">
-              {% include "_icon_trash.html" %}
-            </button>
-          </form>
-        </div>
-        <div class="swipe-row-content">
-          <div class="history-row-main">
-            {% if workout_set.is_superset %}<span class="superset-set-badge" aria-label="Serie de superserie">S</span>{% endif %}
-            <span class="history-number">#{{ number }}</span>
-            {% if workout_set.duration_seconds is not none %}
-              <span>{% if workout_set.weight is not none %}{{ workout_set.weight }} kg · {% endif %}{{ workout_set.duration_seconds }}s</span>
-            {% else %}
-              <span>{{ workout_set.weight if workout_set.weight is not none else "-" }} kg x {{ workout_set.reps }} reps</span>
-            {% endif %}
-            <span class="history-time">{{ workout_set.time.strftime("%H:%M") }}</span>
-          </div>
-          {% if workout_set.comment %}
-            <p class="history-note">{{ workout_set.comment }}</p>
-          {% endif %}
-        </div>
-      </div>
+  <div id="exercise-history-list">
+    {% for group in day_groups %}
+      <h3 class="history-day-header">{{ group.header }}</h3>
+      {% for number, workout_set in group.sets %}
+        {{ history_row(number, workout_set, self_url) }}
+      {% endfor %}
+    {% else %}
+      <p id="history-empty-placeholder">Todavía no has registrado ninguna serie.</p>
     {% endfor %}
-  {% else %}
-    <p>Todavía no has registrado ninguna serie.</p>
-  {% endfor %}
+  </div>
 
   {% if has_progress %}
     <h2>Progreso</h2>

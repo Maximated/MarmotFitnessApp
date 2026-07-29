@@ -165,13 +165,13 @@
             <div class="stat-circle stat-circle-timer" id="sets-progress-circle">
               {{ timer_ring("sets-ring") }}
               <div class="stat-circle-content">
-                <span class="stat-value">{{ training.sets_completed }}/{{ training.sets_target }}</span>
+                <span class="stat-value" id="sets-completed-value">{{ training.sets_completed }}/{{ training.sets_target }}</span>
                 <span class="stat-label">Series completadas</span>
               </div>
             </div>
           {% else %}
             <div class="stat-circle">
-              <span class="stat-value">{{ training.sets_completed }}/-</span>
+              <span class="stat-value" id="sets-completed-value">{{ training.sets_completed }}/-</span>
               <span class="stat-label">Series completadas</span>
             </div>
           {% endif %}
@@ -198,7 +198,7 @@
       </script>
     {% endif %}
 
-    <form method="post" action="{% if exercise %}/exercises/{{ exercise.id }}/log{% else %}/block-exercises/{{ block_exercise_id }}/log{% endif %}" class="training-log-form" data-preserve-scroll
+    <form method="post" action="{% if exercise %}/exercises/{{ exercise.id }}/log{% else %}/block-exercises/{{ block_exercise_id }}/log{% endif %}" class="training-log-form" id="training-log-form"
       {% if training.is_superset %}
       data-superset-warn="1" data-sets-completed="{{ training.sets_completed }}" data-partner-sets-completed="{{ training.superset_partner_sets_completed }}"
       {% endif %}>
@@ -248,6 +248,139 @@
       </script>
     {% endif %}
 
+    <script>
+      (function () {
+        // Guardado optimista: pinta la serie al instante (sin esperar al
+        // servidor), manda la petición real en paralelo, y solo si falla se
+        // revierte -- elimina el "microcorte" de recargar toda la pantalla
+        // de entrenamiento en cada serie. El resto de la pantalla (anillo de
+        // series, cronómetro de descanso, avisos de peso objetivo/siguiente
+        // ejercicio/finalizar) se actualiza con el JSON que devuelve el
+        // servidor, no con una recarga.
+        const form = document.getElementById("training-log-form");
+        const historyList = document.getElementById("exercise-history-list");
+        const emptyPlaceholder = document.getElementById("history-empty-placeholder");
+        const modoRegistro = {{ training.modo_registro | tojson }};
+        const noRest = {{ training.no_rest | tojson }};
+        let hasTodayGroup = {{ (training.sets_completed > 0) | tojson }};
+
+        function escapeHtml(str) {
+          const div = document.createElement("div");
+          div.textContent = str;
+          return div.innerHTML;
+        }
+
+        function buildOptimisticRow(weight, reps, durationSeconds, comment) {
+          const timeStr = new Date().toTimeString().slice(0, 5);
+          let mainLine;
+          if (durationSeconds) {
+            mainLine = (weight ? weight + " kg · " : "") + durationSeconds + "s";
+          } else {
+            mainLine = (weight ? weight : "-") + " kg x " + reps + " reps";
+          }
+          const noteHtml = comment ? `<p class="history-note">${escapeHtml(comment)}</p>` : "";
+          const wrap = document.createElement("div");
+          wrap.innerHTML = `<div class="history-row" style="opacity: 0.55;">
+            <div class="swipe-row-content">
+              <div class="history-row-main">
+                <span class="history-number">#</span>
+                <span>${mainLine}</span>
+                <span class="history-time">${escapeHtml(timeStr)}</span>
+              </div>
+              ${noteHtml}
+            </div>
+          </div>`;
+          return wrap.firstElementChild;
+        }
+
+        function insertOptimisticRow(rowEl) {
+          if (emptyPlaceholder) emptyPlaceholder.hidden = true;
+          if (hasTodayGroup) {
+            const firstHeader = historyList.querySelector(".history-day-header");
+            historyList.insertBefore(rowEl, firstHeader ? firstHeader.nextSibling : historyList.firstChild);
+          } else {
+            historyList.insertBefore(rowEl, historyList.firstChild);
+          }
+        }
+
+        function rollbackOptimisticRow(rowEl) {
+          rowEl.remove();
+          if (!historyList.querySelector(".history-row") && emptyPlaceholder) {
+            emptyPlaceholder.hidden = false;
+          }
+        }
+
+        function reconcileRow(rowEl, data) {
+          const wrap = document.createElement("div");
+          wrap.innerHTML = data.row_html.trim();
+          const realRow = wrap.firstElementChild;
+          if (data.is_first_set_of_day) {
+            const header = document.createElement("h3");
+            header.className = "history-day-header";
+            header.textContent = data.day_header;
+            historyList.insertBefore(header, historyList.firstChild);
+          }
+          historyList.insertBefore(realRow, rowEl);
+          rowEl.remove();
+          window.wireSwipeRow(realRow);
+          hasTodayGroup = true;
+        }
+
+        function resetInputs(defaultReps) {
+          const weightInput = document.getElementById("weight-input");
+          const repsInput = document.getElementById("reps-input");
+          const durationInput = document.getElementById("duration-input");
+          const commentInput = form.querySelector('[name="comment"]');
+          if (weightInput) weightInput.value = "";
+          if (repsInput) repsInput.value = defaultReps || "";
+          if (durationInput) durationInput.value = "";
+          if (commentInput) commentInput.value = "";
+        }
+
+        form.addEventListener("submit", (event) => {
+          if (event.defaultPrevented) return;
+          event.preventDefault();
+
+          const weightInput = document.getElementById("weight-input");
+          const repsInput = document.getElementById("reps-input");
+          const durationInput = document.getElementById("duration-input");
+          const commentInput = form.querySelector('[name="comment"]');
+          const weight = weightInput ? weightInput.value : "";
+          const reps = repsInput ? repsInput.value : "";
+          const durationSeconds = durationInput ? durationInput.value : "";
+          const comment = commentInput ? commentInput.value : "";
+          const defaultReps = repsInput ? repsInput.value : "";
+
+          const optimisticRow = buildOptimisticRow(weight, reps, durationSeconds, comment);
+          insertOptimisticRow(optimisticRow);
+
+          fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),
+            headers: { Accept: "application/json" },
+          })
+            .then((response) => {
+              if (!response.ok) throw new Error("bad response");
+              return response.json();
+            })
+            .then((data) => {
+              reconcileRow(optimisticRow, data);
+              updateSetsProgress(data.sets_completed, data.sets_target);
+              if (modoRegistro !== "tiempo" && !noRest && data.rest_until && window.__restTimer) {
+                const remaining = Math.max(0, Math.round((new Date(data.rest_until).getTime() - Date.now()) / 1000));
+                window.__restTimer.reset(data.rest_total_seconds, remaining, data.rest_notify_text, data.rest_until);
+              }
+              resetInputs(defaultReps);
+              runPostLogFlow(data);
+            })
+            .catch(() => {
+              rollbackOptimisticRow(optimisticRow);
+              alert("No se pudo guardar la serie. Inténtalo de nuevo.");
+            });
+        });
+      })();
+    </script>
+
     {% if training.modo_registro != "tiempo" %}
       <script>
         (function () {
@@ -266,24 +399,30 @@
       </script>
     {% endif %}
 
-    {% if training.sets_target %}
-      <script>
-        (function () {
-          // Mismo anillo que el del descanso, pero al revés: aquí el
-          // progreso es "series ya hechas", así que empieza vacío/rojo y se
-          // va llenando de verde según se acerca al objetivo (el del
-          // descanso hace lo contrario: empieza lleno/verde y se vacía).
-          const ringEl = document.getElementById("sets-ring");
-          const circumference = 2 * Math.PI * 45;
-          const completed = {{ training.sets_completed | tojson }};
-          const target = {{ training.sets_target | tojson }};
-          const pct = target > 0 ? Math.max(0, Math.min(1, completed / target)) : 0;
-          ringEl.style.strokeDasharray = String(circumference);
-          ringEl.style.strokeDashoffset = String(circumference * (1 - pct));
-          ringEl.style.stroke = `hsl(${Math.round(120 * pct)}, 80%, 45%)`;
-        })();
-      </script>
-    {% endif %}
+    <script>
+      // Mismo anillo que el del descanso, pero al revés: aquí el progreso
+      // es "series ya hechas", así que empieza vacío/rojo y se va llenando
+      // de verde según se acerca al objetivo (el del descanso hace lo
+      // contrario: empieza lleno/verde y se vacía). Reutilizable tanto al
+      // cargar la página como tras guardar una serie sin recargar -- se
+      // define siempre (incluso en modo tiempo, donde no hay ring/valor que
+      // tocar) porque el guardado optimista la llama sin condicionarla al
+      // modo, y los guardas internos ya la hacen un no-op segura ahí.
+      function updateSetsProgress(completed, target) {
+        const valueEl = document.getElementById("sets-completed-value");
+        if (valueEl) valueEl.textContent = completed + "/" + (target || "-");
+        const ringEl = document.getElementById("sets-ring");
+        if (!ringEl || !target) return;
+        const circumference = 2 * Math.PI * 45;
+        const pct = Math.max(0, Math.min(1, completed / target));
+        ringEl.style.strokeDasharray = String(circumference);
+        ringEl.style.strokeDashoffset = String(circumference * (1 - pct));
+        ringEl.style.stroke = `hsl(${Math.round(120 * pct)}, 80%, 45%)`;
+      }
+      {% if training.modo_registro != "tiempo" %}
+        updateSetsProgress({{ training.sets_completed | tojson }}, {{ training.sets_target | tojson }});
+      {% endif %}
+    </script>
 
     {% if logged and training.ask_weight_progress %}
       <script>
@@ -327,6 +466,44 @@
         })();
       </script>
     {% endif %}
+
+    <script>
+      // Misma cadena de prioridad que arriba (ask_weight_progress >
+      // auto_advance_url > prompt_finish), pero como función normal en vez
+      // de condicionales de página cargada -- la usa el guardado
+      // optimista de una serie tras un fetch con éxito, sin recargar nada.
+      function runPostLogFlow(data) {
+        if (data.ask_weight_progress) {
+          const suggested = data.suggested_weight;
+          let weight = null;
+          if (confirm("Usar " + suggested + " kg como peso objetivo para este ejercicio?")) {
+            weight = suggested;
+          } else if (confirm("¿Quieres indicar otro peso objetivo?")) {
+            const custom = prompt("Indica el peso objetivo (kg):", String(suggested));
+            if (custom !== null) {
+              const parsed = parseFloat(custom.replace(",", "."));
+              if (!isNaN(parsed)) weight = parsed;
+            }
+          }
+          if (weight === null) return;
+          const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
+          {% if next %}params.set("next", {{ next | tojson }});{% endif %}
+          fetch("/exercises/{{ exercise.id if exercise else '' }}/set-target-weight", { method: "POST", body: params })
+            .then((r) => { window.location = r.url; })
+            .catch(() => {});
+        } else if (data.auto_advance_url) {
+          setTimeout(() => { navigateWithSweep(data.auto_advance_url, "left"); }, 2000);
+        } else if (data.prompt_finish) {
+          setTimeout(() => {
+            if (confirm("¿Quieres finalizar el entrenamiento?")) {
+              fetch("/programs/{{ training.program_id }}/today/finish", { method: "POST" })
+                .then(() => { window.location = "/programs/{{ training.program_id }}/today"; })
+                .catch(() => {});
+            }
+          }, 2000);
+        }
+      }
+    </script>
 
     <script>
         function createCountdownTimer({ circle, valueEl, iconEl, ringEl, totalSeconds, initialRemaining, autoStart, notifyText, notifyKey, onSettle, onStart }) {
@@ -464,10 +641,30 @@
             }, 300);
           });
 
+          // Reutiliza la misma instancia (y su único listener de click) con
+          // un nuevo deadline -- tras guardar una serie sin recargar la
+          // página, el círculo de descanso necesita arrancar de nuevo con
+          // otro total/aviso, y crear una instancia nueva sobre el mismo
+          // círculo apilaría un listener de click duplicado por cada serie.
+          function reset(newTotalSeconds, newInitialRemaining, newNotifyText, newNotifyKey) {
+            clearInterval(intervalId);
+            intervalId = null;
+            clearTimeout(clickTimer);
+            clickTimer = null;
+            totalSeconds = newTotalSeconds;
+            notifyText = newNotifyText;
+            notifyKey = newNotifyKey;
+            remaining = newInitialRemaining !== undefined ? newInitialRemaining : newTotalSeconds;
+            endTime = null;
+            settled = false;
+            render();
+            start();
+          }
+
           render();
           if (autoStart) start();
 
-          return { start, pause, stop, getRemaining: currentRemaining };
+          return { start, pause, stop, getRemaining: currentRemaining, reset };
         }
       </script>
 

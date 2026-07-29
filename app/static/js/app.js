@@ -59,7 +59,11 @@ if ("Notification" in window && Notification.permission === "granted") {
     if (openRow === row) openRow = null;
   }
 
-  document.querySelectorAll(".swipe-row").forEach((row) => {
+  // Enganchado tanto a las filas presentes al cargar la página como a
+  // cualquier fila insertada después por fetch() (el guardado optimista de
+  // una serie, por ejemplo) -- de ahí que viva en su propia función en vez
+  // de inline en el forEach de abajo.
+  function wireSwipeRow(row) {
     const content = row.querySelector(".swipe-row-content");
     const actions = row.querySelector(".swipe-row-actions");
     if (!content || !actions) return;
@@ -124,7 +128,10 @@ if ("Notification" in window && Notification.permission === "granted") {
 
     content.addEventListener("pointerup", finishDrag);
     content.addEventListener("pointercancel", finishDrag);
-  });
+  }
+
+  window.wireSwipeRow = wireSwipeRow;
+  document.querySelectorAll(".swipe-row").forEach(wireSwipeRow);
 
   document.addEventListener("click", (event) => {
     if (openRow && !openRow.contains(event.target)) {
