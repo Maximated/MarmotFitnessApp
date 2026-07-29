@@ -132,3 +132,24 @@ if ("Notification" in window && Notification.permission === "granted") {
     }
   });
 })();
+
+(function () {
+  // position:fixed se calcula contra el viewport de layout, que en iOS
+  // Safari NO se encoge cuando aparece el teclado (solo el viewport
+  // visual sí) -- sin esto, el panel inferior se queda "flotando" a
+  // mitad de pantalla, tapando las casillas de registro, hasta que el
+  // teclado se cierra. Se corrige compensando con la diferencia real
+  // entre ambos viewports en cada resize/scroll del teclado.
+  const nav = document.querySelector(".bottom-nav");
+  if (!nav || !window.visualViewport) return;
+
+  function reposition() {
+    const vv = window.visualViewport;
+    const offsetBottom = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    nav.style.transform = `translate(-50%, -${offsetBottom}px)`;
+  }
+
+  window.visualViewport.addEventListener("resize", reposition);
+  window.visualViewport.addEventListener("scroll", reposition);
+  reposition();
+})();
