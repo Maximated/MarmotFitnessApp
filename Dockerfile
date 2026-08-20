@@ -11,6 +11,13 @@ COPY . .
 RUN uv sync --frozen
 RUN chmod +x docker-entrypoint.sh
 
+# Baked in at build time so the running app can report its own version even
+# when deployed by pulling this image (no .git directory available then) --
+# see app/version.py. Empty on a local `docker build` with no --build-arg;
+# the app falls back to reading .git directly in that case.
+ARG GIT_SHA=""
+RUN echo "$GIT_SHA" > VERSION
+
 RUN groupadd --gid 1000 app \
     && useradd --uid 1000 --gid app --shell /bin/sh --create-home app \
     && chown -R app:app /code

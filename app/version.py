@@ -3,6 +3,7 @@ from pathlib import Path
 
 import httpx
 
+VERSION_FILE = Path("/code/VERSION")
 GIT_DIR = Path("/code/.git")
 
 GITHUB_REPO = "Maximated/MarmotFitnessApp"
@@ -15,16 +16,27 @@ _remote_commit_cache: dict = {}
 
 
 def get_current_commit() -> str | None:
-    """The commit this running instance is actually serving -- read live
-    from the repo's .git directory (mounted read-only into the container)
-    rather than baked in at build time, since this project deploys by
-    `git pull` + restart, with no separate build/release step. Parses the
-    .git files directly instead of shelling out to `git`, which isn't
-    installed in the (deliberately slim) app image."""
+    """The commit this running instance is actually serving.
+
+    The real deployment pulls a prebuilt image from GHCR (see
+    .github/workflows/publish.yml) rather than building from a checked-out
+    repo, so there's no .git directory available there at all -- the
+    commit SHA is instead baked into the image at build time as
+    /code/VERSION (via the GIT_SHA build-arg). Local dev (docker-compose.yml
+    bind-mounts .git and builds from source, no VERSION file produced)
+    falls back to reading .git/HEAD directly, parsed without shelling out
+    to `git`, which isn't installed in the (deliberately slim) app image."""
     global _current_commit_cache, _current_commit_fetched
     if _current_commit_fetched:
         return _current_commit_cache
     _current_commit_fetched = True
+    try:
+        version = VERSION_FILE.read_text().strip()
+        if version:
+            _current_commit_cache = version
+            return _current_commit_cache
+    except OSError:
+        pass
     try:
         head = (GIT_DIR / "HEAD").read_text().strip()
         if head.startswith("ref:"):
