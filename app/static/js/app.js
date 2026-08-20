@@ -175,3 +175,81 @@ document.querySelectorAll(".prompt-input").forEach((field) => {
     field.value = value;
   });
 });
+
+// Valorar/bloquear un ejercicio pintaba el cambio recargando la página
+// entera vía submit nativo -- se pinta al instante y el POST real viaja en
+// paralelo, igual que el guardado de series (app/workouts.py); si falla, se
+// revierte al estado que confirmó el servidor por última vez.
+(function () {
+  function paintStars(container, rating) {
+    container.querySelectorAll(".star-btn").forEach((btn) => {
+      const i = parseInt(btn.dataset.starIndex, 10);
+      btn.classList.toggle("star-filled", rating > 0 && i <= rating);
+    });
+  }
+
+  function paintBan(container, banned) {
+    const btn = container.querySelector(".ban-btn");
+    if (!btn) return;
+    btn.classList.toggle("ban-active", banned);
+    btn.setAttribute("aria-label", banned ? "Quitar del bloqueo" : "Bloquear ejercicio (no sugerir nunca)");
+  }
+
+  document.querySelectorAll(".star-rating").forEach((container) => {
+    container.querySelectorAll(".star-form").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const previousRating = parseInt(container.dataset.rating, 10) || 0;
+        const newRating = parseInt(form.querySelector(".star-btn").dataset.starIndex, 10);
+
+        paintStars(container, newRating);
+        container.dataset.rating = String(newRating);
+
+        fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        })
+          .then((response) => {
+            if (!response.ok) throw new Error("rate failed");
+          })
+          .catch(() => {
+            paintStars(container, previousRating);
+            container.dataset.rating = String(previousRating);
+            alert("No se pudo guardar la valoración. Inténtalo de nuevo.");
+          });
+      });
+    });
+
+    const banForm = container.querySelector(".ban-form");
+    if (banForm) {
+      banForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const previousBanned = container.dataset.banned === "true";
+        const newBanned = !previousBanned;
+        // The hidden input always holds "the value to send to flip to the
+        // opposite of the currently-displayed state" -- must be set to the
+        // target state right before snapshotting FormData, since paintBan
+        // only touches the visible button, not this input.
+        banForm.querySelector('input[name="banned"]').value = String(newBanned);
+
+        paintBan(container, newBanned);
+        container.dataset.banned = String(newBanned);
+
+        fetch(banForm.action, {
+          method: "POST",
+          body: new FormData(banForm),
+          headers: { Accept: "application/json" },
+        })
+          .then((response) => {
+            if (!response.ok) throw new Error("ban failed");
+          })
+          .catch(() => {
+            paintBan(container, previousBanned);
+            container.dataset.banned = String(previousBanned);
+            alert("No se pudo actualizar el bloqueo. Inténtalo de nuevo.");
+          });
+      });
+    }
+  });
+})();

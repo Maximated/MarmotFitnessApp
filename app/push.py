@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -25,6 +26,10 @@ class SubscriptionKeys(BaseModel):
 class SubscriptionIn(BaseModel):
     endpoint: str
     keys: SubscriptionKeys
+
+
+class AckRestNotifyIn(BaseModel):
+    rest_until: datetime
 
 
 @router.get("/public-key")
@@ -60,6 +65,32 @@ async def subscribe(
     return {"ok": True}
 
 
+@router.post("/ack-rest-notify")
+async def ack_rest_notify(
+    ack: AckRestNotifyIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Called right when the client shows the instant local notification for
+    a rest deadline, so rest_push_poller (app/main.py) finds the row already
+    marked and skips sending a duplicate Web Push for the same deadline a
+    few seconds later. Matches on rest_until so a stale/late call can never
+    suppress the push for a newer rest period that's already replaced it."""
+    workout = (
+        db.query(Workout)
+        .filter(
+            Workout.user_id == user.id,
+            Workout.rest_until == ack.rest_until,
+            Workout.rest_push_sent_at.is_(None),
+        )
+        .first()
+    )
+    if workout is not None:
+        workout.rest_push_sent_at = datetime.now(timezone.utc)
+        db.commit()
+    return {"ok": True}
+
+
 def send_push_for_workout(db: Session, workout: Workout) -> None:
     if not workout.rest_notify_text:
         return
@@ -74,11 +105,13 @@ def send_push_for_workout(db: Session, workout: Workout) -> None:
     if workout.active_block_exercise_id is not None:
         block_exercise = db.get(BlockExercise, workout.active_block_exercise_id)
         if block_exercise is not None:
-            url = training_url(
-                block_exercise.id,
-                block_exercise.exercise_id,
-                {"block_exercise_id": block_exercise.id},
-            )
+            params = {"block_exercise_id": block_exercise.id}
+            if workout.program_id is not None:
+                # Sin esto, el botón "<<" de la pantalla a la que lleva la
+                # notificación cae a /exercises (el listado general) en vez
+                # de volver al día de entrenamiento de hoy.
+                params["next"] = f"/programs/{workout.program_id}/today"
+            url = training_url(block_exercise.id, block_exercise.exercise_id, params)
 
     payload = {
         "title": "Descanso terminado",

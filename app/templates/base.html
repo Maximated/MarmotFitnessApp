@@ -14,15 +14,12 @@
   <body>
     <header class="site-header">
       <div class="top-bar">
-        <form action="/exercises/search" method="get" class="header-search" id="header-search-form">
-          <input type="text" name="q" id="header-search-input" class="header-search-input" placeholder="Buscar ejercicios" autocomplete="off" />
-          <button type="submit" class="icon-btn" id="header-search-toggle" aria-label="Buscar ejercicios">
-            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </button>
-        </form>
+        <a href="{% block top_back_url %}/{% endblock %}" class="icon-btn icon-btn-orange" id="header-back-btn" aria-label="Volver">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="18 6 12 12 18 18"></polyline>
+            <polyline points="11 6 5 12 11 18"></polyline>
+          </svg>
+        </a>
         {% if header_user %}
           <a href="/profile" class="header-avatar-link" aria-label="Perfil">
             {% if header_user.avatar_updated_at %}
@@ -61,25 +58,6 @@
         {% endif %}
       </div>
     </header>
-    <script>
-      (function () {
-        const form = document.getElementById("header-search-form");
-        const input = document.getElementById("header-search-input");
-        const toggle = document.getElementById("header-search-toggle");
-        toggle.addEventListener("click", (event) => {
-          if (!form.classList.contains("expanded")) {
-            event.preventDefault();
-            form.classList.add("expanded");
-            input.focus();
-          }
-        });
-        document.addEventListener("click", (event) => {
-          if (form.classList.contains("expanded") && !form.contains(event.target) && !input.value) {
-            form.classList.remove("expanded");
-          }
-        });
-      })();
-    </script>
     {% block full_width %}{% endblock %}
     <main class="container">
       {% block content %}{% endblock %}

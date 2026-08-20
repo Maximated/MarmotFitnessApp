@@ -1,12 +1,13 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Form, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import and_, case, or_
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_user
+from app.http_utils import safe_next, wants_json
 from app.models import Exercise, ExerciseRating, User
 
 router = APIRouter()
@@ -154,11 +155,13 @@ def get_previous_similar_exercise(db: Session, user_id: int, exercise_id: int) -
 @router.post("/exercises/{exercise_id}/rate")
 async def rate_exercise(
     exercise_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     rating: int = Form(...),
     next: str | None = Form(None),
 ):
+    next = safe_next(next)
     if rating < 1 or rating > 5:
         raise HTTPException(status_code=400, detail="La valoración debe estar entre 1 y 5.")
 
@@ -174,17 +177,21 @@ async def rate_exercise(
         db.add(ExerciseRating(user_id=user.id, exercise_id=exercise_id, rating=rating))
     db.commit()
 
+    if wants_json(request):
+        return JSONResponse({"rating": rating})
     return RedirectResponse(url=next or f"/exercises/{exercise_id}/log", status_code=303)
 
 
 @router.post("/exercises/{exercise_id}/ban")
 async def ban_exercise(
     exercise_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     banned: bool = Form(...),
     next: str | None = Form(None),
 ):
+    next = safe_next(next)
     existing = (
         db.query(ExerciseRating)
         .filter(ExerciseRating.user_id == user.id, ExerciseRating.exercise_id == exercise_id)
@@ -196,4 +203,6 @@ async def ban_exercise(
         db.add(ExerciseRating(user_id=user.id, exercise_id=exercise_id, rating=None, banned=banned))
     db.commit()
 
+    if wants_json(request):
+        return JSONResponse({"banned": banned})
     return RedirectResponse(url=next or f"/exercises/{exercise_id}/log", status_code=303)

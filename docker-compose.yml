@@ -25,6 +25,7 @@ services:
       - ./app:/code/app
       - ./migrations:/code/migrations
       - ./media:/code/media
+      - ./.git:/code/.git:ro
     ports:
       - "8000:8000"
     command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--proxy-headers", "--forwarded-allow-ips=*"]

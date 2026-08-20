@@ -1,10 +1,10 @@
 {% macro star_rating(exercise_id, rating, next_url, size="normal", banned=False) %}
-  <div class="star-rating{% if size == "sm" %} star-rating-sm{% endif %}">
+  <div class="star-rating{% if size == "sm" %} star-rating-sm{% endif %}" data-exercise-id="{{ exercise_id }}" data-rating="{{ rating or 0 }}" data-banned="{{ 'true' if banned else 'false' }}">
     {% for i in range(1, 6) %}
       <form method="post" action="/exercises/{{ exercise_id }}/rate" class="star-form">
         <input type="hidden" name="rating" value="{{ i }}" />
         <input type="hidden" name="next" value="{{ next_url }}" />
-        <button type="submit" class="star-btn{% if rating and i <= rating %} star-filled{% endif %}" aria-label="{{ i }} estrellas">★</button>
+        <button type="submit" class="star-btn{% if rating and i <= rating %} star-filled{% endif %}" data-star-index="{{ i }}" aria-label="{{ i }} estrellas">★</button>
       </form>
     {% endfor %}
     {% if size != "sm" %}

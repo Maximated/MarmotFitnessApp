@@ -68,5 +68,12 @@
       <p>No tienes ningún programa activo.</p>
       <p><a href="/programs">Ver programas</a></p>
     {% endif %}
+
+    {% if version_status.current_short %}
+      <p class="app-version{% if not version_status.up_to_date %} app-version-outdated{% endif %}">
+        v{{ version_status.current_short }}
+        {% if not version_status.up_to_date %}— hay una nueva actualización{% endif %}
+      </p>
+    {% endif %}
   {% endif %}
 {% endblock %}

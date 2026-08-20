@@ -26,6 +26,7 @@ from app.program_sessions import router as program_sessions_router
 from app.programs import router as programs_router
 from app.push import router as push_router, send_push_for_workout
 from app.templates import templates
+from app.version import get_version_status
 from app.workouts import router as workouts_router
 
 # El Debian slim de la imagen base no trae .woff2 ni .webp en /etc/mime.types,
@@ -74,7 +75,11 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Marmot Fitness App", lifespan=lifespan)
-app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.session_secret_key,
+    https_only=settings.session_cookie_secure,
+)
 app.include_router(auth_router)
 app.include_router(exercises_router)
 app.include_router(exercise_ratings_router)
@@ -96,7 +101,7 @@ async def home(
     db: Session = Depends(get_db),
     user: User | None = Depends(get_current_user),
 ):
-    context = {"user": user}
+    context = {"user": user, "version_status": get_version_status()}
 
     if user is not None:
         active_program = (

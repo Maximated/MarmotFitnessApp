@@ -17,7 +17,7 @@
 
     {% if has_weight_progress %}
       <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
-      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+      <svg class="chart chart-weight" width="600" height="200" viewBox="0 0 600 200">
         <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ weight_line }}" />
         {% for x, y in weight_points %}
           <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
@@ -29,7 +29,7 @@
 
     {% if has_reps_progress %}
       <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
-      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
+      <svg class="chart chart-reps" width="600" height="200" viewBox="0 0 600 200">
         <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ reps_line }}" />
         {% for x, y in reps_points %}
           <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />

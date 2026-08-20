@@ -9,6 +9,7 @@ from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
 from app.exercise_ratings import get_similar_exercises, get_user_ban, get_user_rating, get_user_ratings_map
+from app.http_utils import safe_next
 from app.models import Exercise, User
 from app.templates import templates
 
@@ -139,6 +140,7 @@ async def view_exercise_gif(
     user: User = Depends(require_user),
     next: str | None = None,
 ):
+    next = safe_next(next)
     exercise = db.get(Exercise, exercise_id)
     history = build_exercise_history(db, user.id, exercise_id)
 

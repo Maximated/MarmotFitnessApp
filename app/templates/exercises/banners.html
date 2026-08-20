@@ -3,6 +3,10 @@
 {% block content %}
   <h1>Ejercicios</h1>
 
+  <form action="/exercises/search" method="get" class="exercise-search-form">
+    <input type="text" name="q" class="exercise-search-input" placeholder="Buscar ejercicios" autocomplete="off" />
+  </form>
+
   <ul class="muscle-banner-grid">
     {% for muscle in muscles %}
       <li>

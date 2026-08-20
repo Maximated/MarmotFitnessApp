@@ -80,6 +80,21 @@ async def history(
             )
         rows = sets_query.order_by(Workout.date.desc(), WorkoutSet.order.asc()).all()
 
+        history_next_params = {
+            k: v
+            for k, v in {
+                "date_from": date_from.isoformat() if date_from else None,
+                "date_to": date_to.isoformat() if date_to else None,
+                "q": q,
+                "page": page if page > 1 else None,
+            }.items()
+            if v
+        }
+        history_next_url = "/history" + (
+            f"?{urlencode(history_next_params)}" if history_next_params else ""
+        )
+        next_qs = urlencode({"next": history_next_url})
+
         prev_time_by_workout: dict[int, object] = {}
         enriched_rows = []
         for workout_set, workout, exercise, block_exercise in rows:
@@ -97,10 +112,10 @@ async def history(
             prev_time_by_workout[workout.id] = workout_set.time
             if exercise is not None:
                 display_name = exercise.name
-                link_url = f"/exercises/{exercise.id}/log"
+                link_url = f"/exercises/{exercise.id}/log?{next_qs}"
             elif block_exercise is not None:
                 display_name = block_exercise.pending_name
-                link_url = f"/block-exercises/{workout_set.block_exercise_id}/log"
+                link_url = f"/block-exercises/{workout_set.block_exercise_id}/log?{next_qs}"
             else:
                 # The program/block-exercise this was logged against no longer
                 # exists (e.g. the program was deleted) -- the set itself must

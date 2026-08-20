@@ -581,14 +581,20 @@ def build_calendar_weeks(db: Session, program, year: int, month: int):
     # Los días "hechos" son del usuario, no del programa concreto que esté
     # activo ahora -- un entrenamiento no debe desaparecer del calendario
     # solo porque después se archivó el programa con el que se hizo.
+    # Se exige al menos una serie registrada: la fila Workout se crea ya al
+    # pulsar "Iniciar entrenamiento" (begin_today_session), antes de haber
+    # entrenado nada, así que su mera existencia no puede ser el criterio o
+    # el día quedaría marcado como realizado sin haberlo hecho.
     completed_dates = {
         row[0]
         for row in db.query(Workout.date)
+        .join(WorkoutSet, WorkoutSet.workout_id == Workout.id)
         .filter(
             Workout.user_id == program.user_id,
             Workout.date >= first_day,
             Workout.date <= last_day,
         )
+        .distinct()
         .all()
     }
 

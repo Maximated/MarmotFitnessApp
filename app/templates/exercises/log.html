@@ -13,17 +13,10 @@
   {% if training %}<meta name="view-transition" content="same-origin" />{% endif %}
 {% endblock %}
 
+{% block top_back_url %}{{ next or '/exercises' }}{% endblock %}
+
 {% block content %}
-  <div class="page-nav-row">{{ nav_arrow(next or '/exercises', "back", "Volver" if next else "Volver al listado", double=True if training else False) }}</div>
-
   {% if training %}
-    {% if prev_url or next_exercise_url %}
-      <div class="pagination">
-        {% if prev_url %}{{ nav_arrow(prev_url, "back", "Ejercicio anterior", id="prev-exercise-link") }}{% endif %}
-        {% if next_exercise_url %}{{ nav_arrow(next_exercise_url, "next", "Ejercicio siguiente", id="next-exercise-link") }}{% endif %}
-      </div>
-    {% endif %}
-
     <script>
       function navigateWithSweep(url, direction) {
         const area = document.getElementById("training-swipe-area");
@@ -68,11 +61,15 @@
       {% endif %}
       {% if training.is_superset and training.superset_partner_name %}
         <div class="training-gif-row{% if not training.superset_is_first %} training-gif-row-reverse{% endif %}">
-          {% if exercise %}
-            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
-          {% else %}
-            <div class="training-gif training-gif-placeholder"></div>
-          {% endif %}
+          <div class="training-gif-wrap">
+            {% if exercise %}
+              <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+            {% else %}
+              <div class="training-gif training-gif-placeholder"></div>
+            {% endif %}
+            {% if prev_url %}{{ nav_arrow(prev_url, "back", "Ejercicio anterior", id="prev-exercise-link", extra_class="gif-nav-arrow gif-nav-arrow-prev") }}{% endif %}
+            {% if next_exercise_url %}{{ nav_arrow(next_exercise_url, "next", "Ejercicio siguiente", id="next-exercise-link", extra_class="gif-nav-arrow gif-nav-arrow-next") }}{% endif %}
+          </div>
           <span class="superset-arrow">{% if training.superset_is_first %}→{% else %}←{% endif %}</span>
           <a href="{{ training.superset_partner_url }}" class="training-gif-thumb-link">
             {% if training.superset_partner_gif_url %}
@@ -82,10 +79,16 @@
             {% endif %}
           </a>
         </div>
-      {% elif exercise %}
-        <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
       {% else %}
-        <div class="training-gif training-gif-placeholder"></div>
+        <div class="training-gif-wrap">
+          {% if exercise %}
+            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="training-gif" />
+          {% else %}
+            <div class="training-gif training-gif-placeholder"></div>
+          {% endif %}
+          {% if prev_url %}{{ nav_arrow(prev_url, "back", "Ejercicio anterior", id="prev-exercise-link", extra_class="gif-nav-arrow gif-nav-arrow-prev") }}{% endif %}
+          {% if next_exercise_url %}{{ nav_arrow(next_exercise_url, "next", "Ejercicio siguiente", id="next-exercise-link", extra_class="gif-nav-arrow gif-nav-arrow-next") }}{% endif %}
+        </div>
       {% endif %}
       <h1>{{ exercise.name if exercise else pending_name }}</h1>
       {% if exercise %}{{ star_rating(exercise.id, user_rating, self_url, banned=user_banned) }}{% endif %}
@@ -390,7 +393,7 @@
         function applyServerState(data, { forceRestReset = false } = {}) {
           updateSetsProgress(data.sets_completed, data.sets_target);
           const restTimer = window.__restTimer;
-          if (modoRegistro === "tiempo" || noRest || !restTimer || !data.rest_until) return;
+          if (noRest || !restTimer || !data.rest_until) return;
           // Un pause() manual del usuario es intencional -- no lo
           // pisamos solo porque volvió a mirar la pestaña. Si el
           // guardado de una serie SÍ acaba de fijar un descanso nuevo
@@ -628,6 +631,18 @@
             if (notify && notifyText && !alreadyNotifiedThisDeadline && document.visibilityState === "visible" && "Notification" in window && Notification.permission === "granted") {
               try { new Notification(notifyText); } catch (err) { /* not supported in this context */ }
               if (notifyKey) window.localStorage.setItem("marmotLastRestNotify", notifyKey);
+              // Tells the server this deadline was already shown locally, so the
+              // rest_push_poller (app/main.py) doesn't also fire a Web Push for
+              // the same rest period a few seconds later -- without this, staying
+              // on a visible tab until the countdown ends produces two
+              // notifications for one event instead of one.
+              if (notifyKey) {
+                fetch("/push/ack-rest-notify", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ rest_until: notifyKey }),
+                }).catch(() => {});
+              }
             }
           }
 
@@ -754,6 +769,10 @@
             onStart: () => {
               const seconds = parseInt(circle.dataset.restSeconds, 10);
               fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds + "&block_exercise_id={{ block_exercise_id }}", { method: "POST" }).catch(() => {});
+              fetch("/programs/{{ training.program_id }}/today/mark-started", { method: "POST" }).catch(() => {});
+              if (!document.getElementById("global-session-timer")) {
+                __showGlobalSessionTimer(new Date().toISOString(), {{ training.program_id }});
+              }
             },
           });
         })();
@@ -799,12 +818,10 @@
             onStart: () => {
               const seconds = parseInt(circle.dataset.durationSeconds, 10);
               fetch("/programs/{{ training.program_id }}/today/start-rest?seconds=" + seconds + "&block_exercise_id={{ block_exercise_id }}", { method: "POST" }).catch(() => {});
-              {% if training.is_warmup %}
               fetch("/programs/{{ training.program_id }}/today/mark-started", { method: "POST" }).catch(() => {});
               if (!document.getElementById("global-session-timer")) {
                 __showGlobalSessionTimer(new Date().toISOString(), {{ training.program_id }});
               }
-              {% endif %}
             },
           });
         })();

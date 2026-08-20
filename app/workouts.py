@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_user
 from app.exercise_history import build_exercise_history, format_day_header
+from app.http_utils import safe_next, wants_json
 from app.exercise_ratings import (
     get_next_similar_exercise,
     get_previous_similar_exercise,
@@ -76,8 +77,8 @@ def get_or_create_workout(db: Session, user_id: int, workout_date: date_type) ->
     return workout
 
 
-def parse_optional_weight(raw: str) -> float | None:
-    return float(raw) if raw.strip() else None
+def parse_optional_weight(raw: str) -> float:
+    return float(raw) if raw.strip() else 0.0
 
 
 def get_own_workout_set(db: Session, set_id: int, user_id: int) -> WorkoutSet:
@@ -264,7 +265,7 @@ def resolve_weight_progress_prompt(
         .order_by(WorkoutSet.order.desc())
         .first()
     )
-    if last_set is None or last_set.weight is None:
+    if last_set is None or not last_set.weight:
         return False, None
 
     return True, last_set.weight
@@ -564,6 +565,7 @@ async def log_exercise_form(
     logged: bool = False,
     substitute: bool = False,
 ):
+    next = safe_next(next)
     if block_exercise_id is None:
         # Ficha de catálogo, fuera de una jornada de entrenamiento.
         exercise = db.get(Exercise, exercise_id)
@@ -608,6 +610,7 @@ async def log_block_exercise_form(
     next: str | None = None,
     logged: bool = False,
 ):
+    next = safe_next(next)
     return await render_training_log(
         request, db, user, None, block_exercise_id, next, logged, False
     )
@@ -713,10 +716,6 @@ def submit_workout_set(
     return workout, workout_set, target_be, prompt_finish, sets_completed_today
 
 
-def wants_json(request: Request) -> bool:
-    return "application/json" in request.headers.get("accept", "")
-
-
 def build_optimistic_log_response(
     db: Session,
     user: User,
@@ -802,6 +801,7 @@ async def log_exercise_submit(
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
 ):
+    next = safe_next(next)
     workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
         db, user, exercise_id, block_exercise_id, weight, reps, duration_seconds, workout_date, set_time, comment
     )
@@ -839,6 +839,7 @@ async def log_block_exercise_submit(
     comment: str | None = Form(None),
     next: str | None = Form(None),
 ):
+    next = safe_next(next)
     workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
         db, user, None, block_exercise_id, weight, reps, duration_seconds, workout_date, set_time, comment
     )
@@ -869,6 +870,7 @@ async def set_target_weight(
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
 ):
+    next = safe_next(next)
     existing = (
         db.query(ExerciseUserProgress)
         .filter(
@@ -899,6 +901,7 @@ async def edit_workout_set_form(
     user: User = Depends(require_user),
     next: str | None = None,
 ):
+    next = safe_next(next) or "/history"
     workout_set = get_own_workout_set(db, set_id, user.id)
     workout = db.get(Workout, workout_set.workout_id)
     exercise = db.get(Exercise, workout_set.exercise_id) if workout_set.exercise_id is not None else None
@@ -943,6 +946,7 @@ async def edit_workout_set_submit(
     comment: str | None = Form(None),
     next: str = Form(...),
 ):
+    next = safe_next(next) or "/history"
     if reps is None and duration_seconds is None:
         raise HTTPException(status_code=400, detail="Indica repeticiones o duración.")
 
@@ -983,6 +987,7 @@ async def delete_workout_set(
     user: User = Depends(require_user),
     next: str = Form(...),
 ):
+    next = safe_next(next) or "/history"
     workout_set = get_own_workout_set(db, set_id, user.id)
     workout_id = workout_set.workout_id
 

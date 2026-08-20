@@ -46,6 +46,8 @@ async def auth_callback(request: Request, db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.google_id == userinfo["sub"]).first()
     if user is None:
+        if settings.allowed_email is not None and userinfo["email"] != settings.allowed_email:
+            raise HTTPException(status_code=403, detail="Cuenta no autorizada")
         user = User(
             google_id=userinfo["sub"],
             email=userinfo["email"],
