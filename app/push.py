@@ -32,6 +32,10 @@ class AckRestNotifyIn(BaseModel):
     rest_until: datetime
 
 
+class UnsubscribeIn(BaseModel):
+    endpoint: str
+
+
 @router.get("/public-key")
 async def public_key():
     return {"key": settings.vapid_public_key}
@@ -61,6 +65,24 @@ async def subscribe(
                 auth=subscription.keys.auth,
             )
         )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/unsubscribe")
+async def unsubscribe(
+    payload: UnsubscribeIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """The profile screen's notifications toggle, switched off -- removes
+    this device's subscription so the poll-based senders (rest_push_poller,
+    inactivity_poller) stop reaching it. Scoped to the current user so one
+    account can never delete another's subscription by guessing an
+    endpoint."""
+    db.query(PushSubscription).filter(
+        PushSubscription.user_id == user.id, PushSubscription.endpoint == payload.endpoint
+    ).delete()
     db.commit()
     return {"ok": True}
 

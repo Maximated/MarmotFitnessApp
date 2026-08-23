@@ -201,8 +201,43 @@ async def profile_page(request: Request, user: User | None = Depends(get_current
     return templates.TemplateResponse(
         request=request,
         name="profile.html",
-        context={"user": user},
+        context={"user": user, "password_updated": request.query_params.get("password_updated")},
     )
+
+
+@router.post("/profile/password")
+async def update_password(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user),
+    current_password: str = Form(""),
+    new_password: str = Form(...),
+    new_password_confirm: str = Form(...),
+):
+    if user is None:
+        raise HTTPException(status_code=401)
+
+    error = None
+    if user.password_hash and not verify_password(current_password, user.password_hash):
+        error = "La contraseña actual no es correcta."
+    elif len(new_password.encode("utf-8")) > MAX_PASSWORD_BYTES:
+        error = "La contraseña es demasiado larga."
+    elif len(new_password) < MIN_PASSWORD_LENGTH:
+        error = f"La contraseña debe tener al menos {MIN_PASSWORD_LENGTH} caracteres."
+    elif new_password != new_password_confirm:
+        error = "Las contraseñas no coinciden."
+
+    if error is not None:
+        return templates.TemplateResponse(
+            request=request,
+            name="profile.html",
+            context={"user": user, "password_error": error},
+            status_code=400,
+        )
+
+    user.password_hash = hash_password(new_password)
+    db.commit()
+    return RedirectResponse(url="/profile?password_updated=1", status_code=303)
 
 
 @router.post("/profile/avatar")

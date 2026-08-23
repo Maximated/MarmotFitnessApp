@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "exercises/_star_rating_macro.html" import star_rating %}
 
 {% block content %}
   <h1>{{ program.name }}</h1>
@@ -36,6 +37,7 @@
                 {% endif %}
               </span>
             </a>
+            {% if exercise %}{{ star_rating(exercise.id, ratings.get(exercise.id), self_url, "sm") }}{% endif %}
             {% if not loop.last %}<div class="superset-connector"></div><span class="superset-label">⇅ Superserie</span>{% endif %}
           {% endfor %}
         </li>

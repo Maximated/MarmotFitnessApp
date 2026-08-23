@@ -2004,3 +2004,84 @@ td.numeric {
   color: var(--muted);
   border-color: transparent;
 }
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.settings-row-label {
+  font-weight: 600;
+}
+
+.settings-row-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Interruptor estilo iOS -- reutilizable: <label class="ios-switch">
+   <input type="checkbox" /><span class="ios-switch-track"><span
+   class="ios-switch-thumb"></span></span></label> */
+.ios-switch {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  flex-shrink: 0;
+}
+
+.ios-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ios-switch-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  pointer-events: none;
+}
+
+.ios-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.ios-switch input:checked ~ .ios-switch-track {
+  background: var(--success);
+}
+
+.ios-switch input:checked ~ .ios-switch-track .ios-switch-thumb {
+  transform: translateX(20px);
+}
+
+.ios-switch input:disabled ~ .ios-switch-track {
+  opacity: 0.5;
+}
+
+.ios-switch input:disabled {
+  cursor: not-allowed;
+}

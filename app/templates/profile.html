@@ -63,8 +63,99 @@
 
     <p>{{ user.name }} · {{ user.email }}</p>
     <p><a href="/logout">Cerrar sesión</a></p>
-    <h2>Próximamente</h2>
-    <p>Ajustes y otras opciones de la cuenta.</p>
+
+    <h2>Ajustes</h2>
+
+    <div class="settings-row">
+      <div class="settings-row-text">
+        <span class="settings-row-label">Notificaciones</span>
+        <span class="settings-row-note" id="push-toggle-note">Comprobando…</span>
+      </div>
+      <label class="ios-switch">
+        <input type="checkbox" id="push-toggle" disabled />
+        <span class="ios-switch-track"><span class="ios-switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <script>
+      (function () {
+        const toggle = document.getElementById("push-toggle");
+        const note = document.getElementById("push-toggle-note");
+        if (!toggle) return;
+
+        function setNote(text) {
+          note.textContent = text;
+        }
+
+        async function refresh() {
+          if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+            toggle.disabled = true;
+            toggle.checked = false;
+            setNote("No disponible en este navegador");
+            return;
+          }
+          if (Notification.permission === "denied") {
+            toggle.disabled = true;
+            toggle.checked = false;
+            setNote("Bloqueadas en el navegador -- actívalas desde sus ajustes");
+            return;
+          }
+          try {
+            const registration = await navigator.serviceWorker.ready;
+            const sub = await registration.pushManager.getSubscription();
+            toggle.checked = !!sub;
+            toggle.disabled = false;
+            setNote(sub ? "Activadas en este dispositivo" : "Desactivadas en este dispositivo");
+          } catch (err) {
+            toggle.disabled = true;
+            setNote("No disponible en este navegador");
+          }
+        }
+
+        toggle.addEventListener("change", async () => {
+          toggle.disabled = true;
+          setNote("Actualizando…");
+          if (toggle.checked) {
+            if (Notification.permission === "default") {
+              const permission = await Notification.requestPermission();
+              if (permission !== "granted") {
+                await refresh();
+                return;
+              }
+            }
+            if (window.subscribeToPush) await window.subscribeToPush();
+          } else {
+            try {
+              const registration = await navigator.serviceWorker.ready;
+              const sub = await registration.pushManager.getSubscription();
+              if (sub) {
+                await fetch("/push/unsubscribe", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ endpoint: sub.endpoint }),
+                });
+                await sub.unsubscribe();
+              }
+            } catch (err) { /* nothing to unsubscribe from */ }
+          }
+          await refresh();
+        });
+
+        refresh();
+      })();
+    </script>
+
+    <h3>Contraseña</h3>
+    {% if password_error %}<p class="login-error">{{ password_error }}</p>{% endif %}
+    {% if password_updated %}<p class="settings-row-note">Contraseña actualizada.</p>{% endif %}
+    <form method="post" action="/profile/password" class="login-form">
+      {% if user.password_hash %}
+        <input type="password" name="current_password" placeholder="Contraseña actual" required autocomplete="current-password" />
+      {% endif %}
+      <input type="password" name="new_password" placeholder="{{ 'Contraseña nueva' if user.password_hash else 'Crea una contraseña (mínimo 8 caracteres)' }}" required autocomplete="new-password" minlength="8" />
+      <input type="password" name="new_password_confirm" placeholder="Repite la contraseña" required autocomplete="new-password" minlength="8" />
+      <button type="submit" class="btn-modal btn-modal-primary">{{ 'Cambiar contraseña' if user.password_hash else 'Crear contraseña' }}</button>
+    </form>
   {% else %}
     <p><a href="/login">Login con Google</a></p>
   {% endif %}

@@ -424,6 +424,8 @@ async def preview_day_template(
             "blocks": blocks,
             "exercise_groups_by_block": exercise_groups_by_block,
             "weight_targets": weight_targets,
+            "ratings": get_user_ratings_map(db, user.id, exercise_ids),
+            "self_url": f"/days/{day_template_id}/preview",
         },
     )
 
