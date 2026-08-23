@@ -20,6 +20,7 @@ RUN echo "$GIT_SHA" > VERSION
 
 RUN groupadd --gid 1000 app \
     && useradd --uid 1000 --gid app --shell /bin/sh --create-home app \
+    && mkdir -p media/avatars \
     && chown -R app:app /code
 USER app
 

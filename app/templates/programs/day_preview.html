@@ -1,17 +1,12 @@
 {% extends "base.html" %}
-{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <div class="page-nav-row">
-    {{ nav_arrow("/", "back", "Volver a inicio", double=True) }}
-  </div>
-
   <h1>{{ program.name }}</h1>
   <p>
     Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
     (vista previa)
   </p>
-  <p>Todavía no puedes empezar esta rutina. Así es como se vería, en orden.</p>
+  <p>Todavía no puedes empezar esta rutina, pero puedes prepararla: valora o cambia ejercicios por otros sin que cuente como realizado.</p>
 
   {% for block in blocks %}
     <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}{% if block.num_sets %} · {{ block.num_sets }} series{% endif %}</h2>
@@ -19,7 +14,7 @@
       {% for group in exercise_groups_by_block.get(block.id, []) %}
         <li{% if group|length == 2 %} class="today-superset-group"{% endif %}>
           {% for block_exercise, exercise in group %}
-            <div class="exercise-row">
+            <a href="/days/{{ day_template.id }}/preview/{{ block_exercise.id }}{% if exercise %}?exercise_id={{ exercise.id }}{% endif %}" class="exercise-row">
               {% if exercise %}
                 <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
                 <span>{{ exercise.name }}</span>
@@ -40,7 +35,7 @@
                   <span class="exercise-row-progress">{{ weight_target }} kg</span>
                 {% endif %}
               </span>
-            </div>
+            </a>
             {% if not loop.last %}<div class="superset-connector"></div><span class="superset-label">⇅ Superserie</span>{% endif %}
           {% endfor %}
         </li>

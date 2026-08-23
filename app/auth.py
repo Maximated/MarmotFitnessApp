@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime, timezone
 from io import BytesIO
@@ -20,6 +21,7 @@ from app.templates import templates
 pillow_heif.register_heif_opener()
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 AVATAR_DIR = Path("media/avatars")
 AVATAR_SIZE = 480
@@ -225,8 +227,14 @@ async def upload_avatar(
     except Exception:
         raise HTTPException(status_code=400, detail="No se pudo procesar la imagen")
 
-    AVATAR_DIR.mkdir(parents=True, exist_ok=True)
-    image.save(AVATAR_DIR / f"{user.id}.webp", format="WEBP", quality=85)
+    try:
+        AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+        image.save(AVATAR_DIR / f"{user.id}.webp", format="WEBP", quality=85)
+    except OSError:
+        logger.exception("Failed to save avatar for user %s", user.id)
+        raise HTTPException(
+            status_code=500, detail="No se pudo guardar la foto. Inténtalo más tarde."
+        )
 
     user.avatar_updated_at = datetime.now(timezone.utc)
     db.commit()

@@ -38,6 +38,58 @@ def set_substitution(db: Session, workout_id: int, block_exercise_id: int, exerc
         )
 
 
+def get_day_template_substitution_map(db: Session, day_template_id: int) -> dict[int, int]:
+    """Same shape as get_substitution_map, but for exercises "prepared" on a
+    future day's preview screen -- before any Workout exists for it."""
+    rows = (
+        db.query(WorkoutSubstitution.block_exercise_id, WorkoutSubstitution.exercise_id)
+        .filter(WorkoutSubstitution.day_template_id == day_template_id)
+        .all()
+    )
+    return dict(rows)
+
+
+def set_day_template_substitution(
+    db: Session, day_template_id: int, block_exercise_id: int, exercise_id: int
+) -> None:
+    existing = (
+        db.query(WorkoutSubstitution)
+        .filter(
+            WorkoutSubstitution.day_template_id == day_template_id,
+            WorkoutSubstitution.block_exercise_id == block_exercise_id,
+        )
+        .first()
+    )
+    if existing is not None:
+        existing.exercise_id = exercise_id
+    else:
+        db.add(
+            WorkoutSubstitution(
+                day_template_id=day_template_id,
+                block_exercise_id=block_exercise_id,
+                exercise_id=exercise_id,
+            )
+        )
+
+
+def promote_day_template_substitutions_to_workout(
+    db: Session, day_template_id: int, workout_id: int
+) -> None:
+    """Called once, right when a day actually starts (begin_today_session):
+    turns whatever was prepared on the preview screen into real,
+    workout-scoped substitutions, then clears the day-template ones so they
+    don't silently reapply the next time this same day comes around in the
+    cycle."""
+    prepared = (
+        db.query(WorkoutSubstitution)
+        .filter(WorkoutSubstitution.day_template_id == day_template_id)
+        .all()
+    )
+    for row in prepared:
+        set_substitution(db, workout_id, row.block_exercise_id, row.exercise_id)
+        db.delete(row)
+
+
 def apply_substitutions(
     db: Session,
     exercises_by_block: dict[int, list[tuple[BlockExercise, Exercise | None]]],

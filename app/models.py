@@ -2,6 +2,7 @@ from datetime import date, datetime, time
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     Float,
@@ -157,14 +158,33 @@ class BlockExercise(Base):
 
 
 class WorkoutSubstitution(Base):
+    """A swapped exercise for one slot -- either scoped to a real, dated
+    Workout (the normal case, set while actually training) or to a
+    DayTemplate with no Workout yet (set while "preparing" a future day
+    from its preview screen, before it's ever started -- see
+    app/workout_substitutions.py's day-template functions). Exactly one of
+    workout_id/day_template_id is set; promote_day_template_substitutions_to_workout
+    converts the latter into the former the moment that day is actually
+    started, so prep never silently reapplies on a later cycle."""
+
     __tablename__ = "workout_substitutions"
     __table_args__ = (
         UniqueConstraint("workout_id", "block_exercise_id", name="uq_workout_substitution"),
+        UniqueConstraint(
+            "day_template_id", "block_exercise_id", name="uq_day_template_substitution"
+        ),
+        CheckConstraint(
+            "(workout_id is not null) != (day_template_id is not null)",
+            name="ck_workout_substitution_exactly_one_scope",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    workout_id: Mapped[int] = mapped_column(
+    workout_id: Mapped[int | None] = mapped_column(
         ForeignKey("workouts.id", ondelete="CASCADE"), index=True
+    )
+    day_template_id: Mapped[int | None] = mapped_column(
+        ForeignKey("day_templates.id", ondelete="CASCADE"), index=True
     )
     block_exercise_id: Mapped[int] = mapped_column(
         ForeignKey("block_exercises.id", ondelete="CASCADE")

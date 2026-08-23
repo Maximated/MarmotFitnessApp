@@ -1292,6 +1292,17 @@ td.numeric {
   border-radius: 0.4rem;
 }
 
+.preview-edit-badge {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--card-bg);
+  border: 1px dashed var(--border);
+  border-radius: 0.6rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 .training-gif-toolbar {
   display: flex;
   justify-content: flex-end;

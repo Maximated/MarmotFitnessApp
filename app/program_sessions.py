@@ -1,5 +1,6 @@
 import calendar
 import math
+from urllib.parse import urlencode
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -10,8 +11,20 @@ from sqlalchemy.orm import Session
 from app.block_exercises import group_by_superset
 from app.database import get_db
 from app.dependencies import require_user
-from app.exercise_ratings import get_user_ratings_map
-from app.workout_substitutions import apply_substitutions, get_substitution_map
+from app.exercise_ratings import (
+    get_next_similar_exercise,
+    get_previous_similar_exercise,
+    get_user_ban,
+    get_user_rating,
+    get_user_ratings_map,
+)
+from app.workout_substitutions import (
+    apply_substitutions,
+    get_day_template_substitution_map,
+    get_substitution_map,
+    promote_day_template_substitutions_to_workout,
+    set_day_template_substitution,
+)
 from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, Program, User, Workout, WorkoutSet
 from app.programs import get_own_day_template, get_own_program
 from app.templates import templates
@@ -368,14 +381,19 @@ async def preview_day_template(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
-    """Read-only look at a not-yet-startable day: same exercise-in-order
-    layout as /today, but rows aren't links and there's no start/finish
-    form -- used by the home page's "day after next" preview slots, which
-    must stay non-actionable (see the 24h-lock/same-date-collision
-    reasoning in program_sessions history)."""
+    """Look at a not-yet-startable day: same exercise-in-order layout as
+    /today, but there's no start/finish form and nothing here ever creates
+    or touches a Workout -- see the 24h-lock/same-date-collision reasoning
+    in program_sessions history for why /today/start must stay the only
+    way to actually begin a day. Rows ARE links now, into
+    preview_block_exercise below: rating and swapping exercises ahead of
+    time is safe (it never counts the day as done), it just wasn't wired
+    up before."""
     day_template = get_own_day_template(db, day_template_id, user.id)
     program = db.get(Program, day_template.program_id)
     blocks, exercises_by_block = get_day_content(db, day_template.id)
+    substitution_map = get_day_template_substitution_map(db, day_template.id)
+    exercises_by_block = apply_substitutions(db, exercises_by_block, substitution_map)
     exercise_groups_by_block = {
         block_id: group_by_superset(attached)
         for block_id, attached in exercises_by_block.items()
@@ -406,6 +424,121 @@ async def preview_day_template(
             "blocks": blocks,
             "exercise_groups_by_block": exercise_groups_by_block,
             "weight_targets": weight_targets,
+        },
+    )
+
+
+def _day_preview_exercise_url(
+    day_template_id: int, block_exercise_id: int, exercise_id: int | None = None, substitute: bool = False
+) -> str:
+    params = {}
+    if exercise_id is not None:
+        params["exercise_id"] = exercise_id
+    if substitute:
+        params["substitute"] = "1"
+    url = f"/days/{day_template_id}/preview/{block_exercise_id}"
+    return f"{url}?{urlencode(params)}" if params else url
+
+
+@router.get("/days/{day_template_id}/preview/{block_exercise_id}")
+async def preview_block_exercise(
+    day_template_id: int,
+    block_exercise_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+    exercise_id: int | None = None,
+    substitute: bool = False,
+):
+    """Rate or swap a single exercise on a day that hasn't started yet --
+    the "prep" counterpart to the real training screen. Deliberately
+    minimal: no sets, no timers, no weight targets, nothing that implies a
+    session is in progress. Substitutions made here are day-template-scoped
+    (see app/workout_substitutions.py) until the day is actually started,
+    at which point begin_today_session promotes them onto the real
+    Workout."""
+    day_template = get_own_day_template(db, day_template_id, user.id)
+    block_exercise = (
+        db.query(BlockExercise)
+        .join(Block, BlockExercise.block_id == Block.id)
+        .filter(BlockExercise.id == block_exercise_id, Block.day_template_id == day_template.id)
+        .first()
+    )
+    if block_exercise is None:
+        raise HTTPException(status_code=404)
+    block = db.get(Block, block_exercise.block_id)
+
+    if substitute and exercise_id is not None:
+        set_day_template_substitution(db, day_template.id, block_exercise.id, exercise_id)
+        db.commit()
+        return RedirectResponse(
+            url=_day_preview_exercise_url(day_template_id, block_exercise_id, exercise_id),
+            status_code=303,
+        )
+
+    substitution_map = get_day_template_substitution_map(db, day_template.id)
+    effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
+    if exercise_id is None:
+        exercise_id = effective_exercise_id
+    elif exercise_id != effective_exercise_id:
+        return RedirectResponse(
+            url=_day_preview_exercise_url(day_template_id, block_exercise_id, effective_exercise_id),
+            status_code=303,
+        )
+
+    exercise = db.get(Exercise, exercise_id) if exercise_id is not None else None
+
+    day_exercises = (
+        db.query(BlockExercise)
+        .join(Block, BlockExercise.block_id == Block.id)
+        .filter(Block.day_template_id == day_template.id)
+        .order_by(Block.position, BlockExercise.position)
+        .all()
+    )
+    day_exercise_ids = {
+        substitution_map.get(be.id, be.exercise_id)
+        for be in day_exercises
+        if be.id != block_exercise.id
+    } - {None}
+
+    recycle_url = None
+    recycle_back_url = None
+    revert_url = None
+    user_rating = None
+    user_banned = False
+    if exercise_id is not None:
+        next_similar = get_next_similar_exercise(db, user.id, exercise_id, exclude_ids=day_exercise_ids)
+        if next_similar is not None:
+            recycle_url = _day_preview_exercise_url(
+                day_template_id, block_exercise_id, next_similar.id, substitute=True
+            )
+        prev_similar = get_previous_similar_exercise(db, user.id, exercise_id, exclude_ids=day_exercise_ids)
+        if prev_similar is not None:
+            recycle_back_url = _day_preview_exercise_url(
+                day_template_id, block_exercise_id, prev_similar.id, substitute=True
+            )
+        if block_exercise.exercise_id is not None and exercise_id != block_exercise.exercise_id:
+            revert_url = _day_preview_exercise_url(
+                day_template_id, block_exercise_id, block_exercise.exercise_id, substitute=True
+            )
+        user_rating = get_user_rating(db, user.id, exercise_id)
+        user_banned = get_user_ban(db, user.id, exercise_id)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="programs/day_preview_exercise.html",
+        context={
+            "program": db.get(Program, day_template.program_id),
+            "day_template": day_template,
+            "block": block,
+            "block_exercise": block_exercise,
+            "exercise": exercise,
+            "self_url": _day_preview_exercise_url(day_template_id, block_exercise_id, exercise_id),
+            "recycle_url": recycle_url,
+            "recycle_back_url": recycle_back_url,
+            "revert_url": revert_url,
+            "user_rating": user_rating,
+            "user_banned": user_banned,
         },
     )
 
@@ -446,6 +579,7 @@ def begin_today_session(db: Session, program, user_id: int) -> None:
     workout.program_id = program.id
     workout.day_template_id = day_template.id
     touch_workout_activity(workout)
+    promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
 
 
 @router.post("/programs/{program_id}/today/start")
