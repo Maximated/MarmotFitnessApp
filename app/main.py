@@ -162,6 +162,8 @@ async def home(
     user: User | None = Depends(get_current_user),
 ):
     context = {"user": user, "version_status": get_version_status()}
+    if user is None and request.query_params.get("login_error"):
+        context["login_error"] = "Email o contraseña incorrectos."
 
     if user is not None:
         active_program = (

@@ -12,15 +12,15 @@
     {% block head_extra %}{% endblock %}
   </head>
   <body>
-    <header class="site-header">
-      <div class="top-bar">
-        <a href="{% block top_back_url %}/{% endblock %}" class="icon-btn icon-btn-orange" id="header-back-btn" aria-label="Volver">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="18 6 12 12 18 18"></polyline>
-            <polyline points="11 6 5 12 11 18"></polyline>
-          </svg>
-        </a>
-        {% if header_user %}
+    {% if header_user %}
+      <header class="site-header">
+        <div class="top-bar">
+          <a href="{% block top_back_url %}/{% endblock %}" class="icon-btn icon-btn-orange" id="header-back-btn" aria-label="Volver">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="18 6 12 12 18 18"></polyline>
+              <polyline points="11 6 5 12 11 18"></polyline>
+            </svg>
+          </a>
           <a href="/profile" class="header-avatar-link" aria-label="Perfil">
             {% if header_user.avatar_updated_at %}
               <img src="/media/avatars/{{ header_user.id }}.webp?v={{ header_user.avatar_updated_at.timestamp() | int }}" alt="" class="header-avatar" />
@@ -28,36 +28,36 @@
               <span class="header-avatar header-avatar-placeholder">{{ (header_user.name[0] if header_user.name else "?") | upper }}</span>
             {% endif %}
           </a>
-        {% endif %}
-      </div>
-      <div class="global-timer-group" id="global-timer-group"{% if not (active_session_started_at or active_session_rest_until) %} hidden{% endif %}>
-        {% if active_session_started_at %}
-          {% if active_program_id %}
-            <form method="post" action="/programs/{{ active_program_id }}/today/finish" class="global-timer-finish-form" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
-              <button type="submit" id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></button>
-            </form>
-          {% else %}
-            <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
+        </div>
+        <div class="global-timer-group" id="global-timer-group"{% if not (active_session_started_at or active_session_rest_until) %} hidden{% endif %}>
+          {% if active_session_started_at %}
+            {% if active_program_id %}
+              <form method="post" action="/programs/{{ active_program_id }}/today/finish" class="global-timer-finish-form" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
+                <button type="submit" id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></button>
+              </form>
+            {% else %}
+              <span id="global-session-timer" class="global-timer" data-started-at="{{ active_session_started_at }}"></span>
+            {% endif %}
           {% endif %}
-        {% endif %}
-        {% if active_session_rest_until %}
-          {% set rest_timer_tag = "a" if active_exercise_url else "span" %}
-          <{{ rest_timer_tag }}
-            id="global-rest-timer"
-            class="global-timer-circle"
-            {% if active_exercise_url %}href="{{ active_exercise_url }}" aria-label="Ir al ejercicio en curso"{% endif %}
-            data-rest-until="{{ active_session_rest_until }}"
-            data-total-seconds="{{ active_session_rest_total_seconds or '' }}"
-          >
-            <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
-              <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
-              <circle class="timer-ring-progress" id="global-rest-ring" cx="50" cy="50" r="44"></circle>
-            </svg>
-            <span class="global-timer-circle-value" id="global-rest-value"></span>
-          </{{ rest_timer_tag }}>
-        {% endif %}
-      </div>
-    </header>
+          {% if active_session_rest_until %}
+            {% set rest_timer_tag = "a" if active_exercise_url else "span" %}
+            <{{ rest_timer_tag }}
+              id="global-rest-timer"
+              class="global-timer-circle"
+              {% if active_exercise_url %}href="{{ active_exercise_url }}" aria-label="Ir al ejercicio en curso"{% endif %}
+              data-rest-until="{{ active_session_rest_until }}"
+              data-total-seconds="{{ active_session_rest_total_seconds or '' }}"
+            >
+              <svg class="timer-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
+                <circle class="timer-ring-progress" id="global-rest-ring" cx="50" cy="50" r="44"></circle>
+              </svg>
+              <span class="global-timer-circle-value" id="global-rest-value"></span>
+            </{{ rest_timer_tag }}>
+          {% endif %}
+        </div>
+      </header>
+    {% endif %}
     {% block full_width %}{% endblock %}
     <main class="container">
       {% block content %}{% endblock %}

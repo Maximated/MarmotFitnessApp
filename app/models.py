@@ -22,9 +22,10 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    google_id: Mapped[str] = mapped_column(String, unique=True, index=True)
+    google_id: Mapped[str | None] = mapped_column(String, unique=True, index=True)
     email: Mapped[str] = mapped_column(String, unique=True)
     name: Mapped[str] = mapped_column(String)
+    password_hash: Mapped[str | None] = mapped_column(String)
     avatar_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
