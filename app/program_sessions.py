@@ -15,7 +15,14 @@ from app.workout_substitutions import apply_substitutions, get_substitution_map
 from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, Program, User, Workout, WorkoutSet
 from app.programs import get_own_day_template, get_own_program
 from app.templates import templates
-from app.workouts import SCHEDULE_INTERVAL_DAYS, count_sets, get_or_create_workout, recompute_schedule, resolve_rest_step
+from app.workouts import (
+    SCHEDULE_INTERVAL_DAYS,
+    count_sets,
+    get_or_create_workout,
+    recompute_schedule,
+    resolve_rest_step,
+    touch_workout_activity,
+)
 
 router = APIRouter()
 
@@ -419,6 +426,11 @@ async def start_program(
 
 
 def begin_today_session(db: Session, program, user_id: int) -> None:
+    """Associates today's Workout row with the day that's due -- but does
+    NOT advance the schedule (current_day_number/next_due_date). That only
+    happens in finish_today_session: starting a session (even by accident,
+    e.g. tapping a home-page banner) must never make the calendar think a
+    day was completed. Only actually finishing one can."""
     today = date.today()
 
     day_template = (
@@ -433,9 +445,7 @@ def begin_today_session(db: Session, program, user_id: int) -> None:
     workout = get_or_create_workout(db, user_id, today)
     workout.program_id = program.id
     workout.day_template_id = day_template.id
-
-    program.current_day_number = (program.current_day_number % program.cycle_days) + 1
-    program.next_due_date = today + timedelta(days=SCHEDULE_INTERVAL_DAYS)
+    touch_workout_activity(workout)
 
 
 @router.post("/programs/{program_id}/today/start")
@@ -467,6 +477,7 @@ async def mark_today_started(
     )
     if workout is not None and workout.started_at is None:
         workout.started_at = datetime.now()
+        touch_workout_activity(workout)
         db.commit()
 
     return Response(status_code=204)
@@ -489,6 +500,7 @@ async def start_rest_timer(
         .first()
     )
     if workout is not None:
+        touch_workout_activity(workout)
         workout.rest_until = datetime.now() + timedelta(seconds=seconds)
         workout.rest_total_seconds = seconds
         # Manually-started timer (e.g. calentamiento): points back at itself,
@@ -546,6 +558,22 @@ async def begin_program_now(
     return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
 
 
+def finish_workout(db: Session, program: Program, workout: Workout) -> None:
+    """The one and only place a workout is marked done and the schedule
+    advances -- called from the explicit finish button/prompt AND from
+    inactivity_poller's auto-finish (app/main.py). Never called just from
+    starting a session or from passive viewing/rating/recycling."""
+    if workout.finished_at is not None:
+        return
+    if workout.day_template_id is not None:
+        apply_weight_progression(db, workout, workout.day_template_id)
+        day_template = db.get(DayTemplate, workout.day_template_id)
+        if day_template is not None:
+            program.current_day_number = (day_template.day_number % program.cycle_days) + 1
+    program.next_due_date = date.today() + timedelta(days=SCHEDULE_INTERVAL_DAYS)
+    workout.finished_at = datetime.now()
+
+
 @router.post("/programs/{program_id}/today/finish")
 async def finish_today_session(
     program_id: int,
@@ -564,13 +592,35 @@ async def finish_today_session(
         )
         .first()
     )
-    if todays_workout is not None and todays_workout.finished_at is None:
-        if todays_workout.day_template_id is not None:
-            apply_weight_progression(db, todays_workout, todays_workout.day_template_id)
-        todays_workout.finished_at = datetime.now()
+    if todays_workout is not None:
+        finish_workout(db, program, todays_workout)
         db.commit()
 
     return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
+
+
+@router.post("/programs/{program_id}/today/keep-going")
+async def keep_today_session_going(
+    program_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """The user answered "no, not done yet" to the inactivity prompt (or is
+    otherwise still active) -- resets the inactivity clock so
+    inactivity_poller doesn't auto-finish a session that's still in use."""
+    program = get_own_program(db, program_id, user.id)
+    today = date.today()
+
+    workout = (
+        db.query(Workout)
+        .filter(Workout.user_id == user.id, Workout.date == today, Workout.program_id == program.id)
+        .first()
+    )
+    if workout is not None:
+        touch_workout_activity(workout)
+        db.commit()
+
+    return Response(status_code=204)
 
 
 def build_calendar_weeks(db: Session, program, year: int, month: int):

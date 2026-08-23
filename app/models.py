@@ -68,6 +68,8 @@ class Workout(Base):
     rest_notify_text: Mapped[str | None] = mapped_column(Text)
     rest_push_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_activity_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    inactivity_prompt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class WorkoutSet(Base):

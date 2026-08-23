@@ -92,10 +92,20 @@ def get_similar_exercises(db: Session, user_id: int, exercise_id: int, limit: in
     )
     if exercise.variante is not None:
         query = query.filter(Exercise.variante == exercise.variante)
-    return query.order_by(rating_order_case(), Exercise.name).limit(limit).all()
+    return query.order_by(rating_order_case(), Exercise.name, Exercise.id).limit(limit).all()
 
 
-def _ranked_similar(db: Session, user_id: int, exercise: Exercise):
+# Cycling ("recycle") stays within this many top-ranked candidates instead of
+# the whole muscle/variante pool (which can be 50-100+ exercises) -- most of
+# that pool is unrated, so without a cap the cycle spends nearly every step
+# on unrated exercises just because they're the majority, drowning out the
+# ones the user actually rated highly.
+RECYCLE_WINDOW = 10
+
+
+def _ranked_similar(
+    db: Session, user_id: int, exercise: Exercise, exclude_ids: set[int] | None = None
+) -> list[Exercise]:
     # The current exercise always stays in its own pool (even if the user
     # banned it) so get_next_similar_exercise/get_previous_similar_exercise
     # can still find its position to cycle from -- only OTHER banned
@@ -116,10 +126,23 @@ def _ranked_similar(db: Session, user_id: int, exercise: Exercise):
     )
     if exercise.variante is not None:
         query = query.filter(Exercise.variante == exercise.variante)
-    return query.order_by(rating_order_case(), Exercise.name).all()
+    if exclude_ids:
+        query = query.filter(or_(Exercise.id == exercise.id, Exercise.id.notin_(exclude_ids)))
+    ranked = query.order_by(rating_order_case(), Exercise.name, Exercise.id).all()
+
+    if len(ranked) > RECYCLE_WINDOW:
+        window = ranked[:RECYCLE_WINDOW]
+        if exercise.id not in {e.id for e in window}:
+            current = next((e for e in ranked if e.id == exercise.id), None)
+            if current is not None:
+                window.append(current)
+        ranked = window
+    return ranked
 
 
-def get_next_similar_exercise(db: Session, user_id: int, exercise_id: int) -> Exercise | None:
+def get_next_similar_exercise(
+    db: Session, user_id: int, exercise_id: int, exclude_ids: set[int] | None = None
+) -> Exercise | None:
     """Cycle to the next exercise in the same similar-exercises group, ranked
     by the user's rating (best first). The group forms a loop: cycling past
     the last one wraps back to the exercise the user started from."""
@@ -127,7 +150,7 @@ def get_next_similar_exercise(db: Session, user_id: int, exercise_id: int) -> Ex
     if exercise is None:
         return None
 
-    ranked = _ranked_similar(db, user_id, exercise)
+    ranked = _ranked_similar(db, user_id, exercise, exclude_ids)
     if len(ranked) <= 1:
         return None
 
@@ -136,14 +159,16 @@ def get_next_similar_exercise(db: Session, user_id: int, exercise_id: int) -> Ex
     return ranked[(current_index + 1) % len(ranked)]
 
 
-def get_previous_similar_exercise(db: Session, user_id: int, exercise_id: int) -> Exercise | None:
+def get_previous_similar_exercise(
+    db: Session, user_id: int, exercise_id: int, exclude_ids: set[int] | None = None
+) -> Exercise | None:
     """Cycle to the previous exercise in the same ranked group -- the mirror
     of get_next_similar_exercise, for a "go back one suggestion" control."""
     exercise = db.get(Exercise, exercise_id)
     if exercise is None:
         return None
 
-    ranked = _ranked_similar(db, user_id, exercise)
+    ranked = _ranked_similar(db, user_id, exercise, exclude_ids)
     if len(ranked) <= 1:
         return None
 

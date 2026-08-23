@@ -48,6 +48,17 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Edge legacy */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge Chromium */
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -327,6 +338,12 @@ button.home-banner {
   background: #000;
   color: var(--primary);
   border: 1px dashed var(--primary);
+}
+
+.home-banner-start {
+  background: var(--primary);
+  color: var(--primary-text);
+  border: 1px solid var(--primary);
 }
 
 .home-banner-locked {
@@ -886,6 +903,24 @@ td.numeric {
 
 .chart-reps {
   color: var(--chart-secondary);
+}
+
+.chart-grid-line {
+  stroke: var(--border);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+.chart-axis {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart-drop-line {
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.35;
 }
 
 .pagination {
@@ -1777,4 +1812,77 @@ td.numeric {
   .app-version-outdated {
     animation: none;
   }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 24rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+
+.modal-step[hidden] {
+  display: none;
+}
+
+.modal-step p {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.modal-step label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.modal-step input {
+  width: 100%;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn-modal {
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-modal-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+.btn-modal-cancel {
+  color: var(--muted);
+  border-color: transparent;
 }

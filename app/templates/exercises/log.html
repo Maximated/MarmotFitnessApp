@@ -273,6 +273,29 @@
         const noRest = {{ training.no_rest | tojson }};
         let hasTodayGroup = {{ (training.sets_completed > 0) | tojson }};
 
+        // Si pasan 30 min sin registrar nada, se pregunta si el
+        // entrenamiento ha terminado -- espejo cliente de
+        // inactivity_poller (app/main.py), que hace lo mismo por Web Push
+        // para cuando la app no está abierta/en primer plano. Si el
+        // usuario dice que no, o simplemente sigue registrando series, el
+        // reloj se reinicia; si no contesta en absoluto, el poller del
+        // servidor lo da por finalizado a los 5 minutos igualmente.
+        let inactivityTimer = null;
+        function resetInactivityTimer() {
+          if (inactivityTimer) clearTimeout(inactivityTimer);
+          inactivityTimer = setTimeout(() => {
+            if (confirm("Llevas media hora sin registrar ninguna serie. ¿Damos por finalizado el entrenamiento?")) {
+              fetch("/programs/{{ training.program_id }}/today/finish", { method: "POST" })
+                .then(() => { window.location = "/programs/{{ training.program_id }}/today"; })
+                .catch(() => {});
+            } else {
+              fetch("/programs/{{ training.program_id }}/today/keep-going", { method: "POST" }).catch(() => {});
+              resetInactivityTimer();
+            }
+          }, 30 * 60 * 1000);
+        }
+        resetInactivityTimer();
+
         function escapeHtml(str) {
           const div = document.createElement("div");
           div.textContent = str;
@@ -377,6 +400,7 @@
               reconcileRow(optimisticRow, data);
               applyServerState(data, { forceRestReset: true });
               resetInputs(defaultReps);
+              resetInactivityTimer();
               runPostLogFlow(data);
             })
             .catch(() => {
@@ -458,26 +482,102 @@
       {% endif %}
     </script>
 
+    <div class="modal-overlay" id="weight-modal" hidden>
+      <div class="modal-box">
+        <div class="modal-step" id="weight-modal-step1">
+          <p id="weight-modal-question"></p>
+          <div class="modal-actions">
+            <button type="button" class="btn-modal btn-modal-primary" id="weight-modal-yes">Sí</button>
+            <button type="button" class="btn-modal" id="weight-modal-other">Otro</button>
+            <button type="button" class="btn-modal btn-modal-cancel" id="weight-modal-cancel">Cancelar</button>
+          </div>
+        </div>
+        <div class="modal-step" id="weight-modal-step2" hidden>
+          <label for="weight-modal-input">Peso objetivo (kg)</label>
+          <input type="number" step="0.5" min="0" inputmode="decimal" id="weight-modal-input" class="training-input" />
+          <div class="modal-actions">
+            <button type="button" class="btn-modal btn-modal-primary" id="weight-modal-save">Guardar</button>
+            <button type="button" class="btn-modal" id="weight-modal-back">Volver</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Sustituye la cadena de confirm()/prompt() nativos (solo Aceptar/
+      // Cancelar, sin poder rotular botones ni volver atrás) por un modal
+      // propio con 3 opciones reales: Sí (usa el peso sugerido), Otro
+      // (pide un peso distinto, con opción de volver al paso anterior) y
+      // Cancelar (no guarda nada). Devuelve una Promise para que ambos
+      // sitios que preguntan por el peso objetivo (carga de página y
+      // guardado optimista de una serie) compartan la misma lógica.
+      function askWeightProgress(suggested) {
+        return new Promise((resolve) => {
+          const modal = document.getElementById("weight-modal");
+          const step1 = document.getElementById("weight-modal-step1");
+          const step2 = document.getElementById("weight-modal-step2");
+          const question = document.getElementById("weight-modal-question");
+          const input = document.getElementById("weight-modal-input");
+          const yesBtn = document.getElementById("weight-modal-yes");
+          const otherBtn = document.getElementById("weight-modal-other");
+          const cancelBtn = document.getElementById("weight-modal-cancel");
+          const saveBtn = document.getElementById("weight-modal-save");
+          const backBtn = document.getElementById("weight-modal-back");
+
+          question.textContent = "¿Usar " + suggested + " kg como peso objetivo para este ejercicio?";
+          input.value = suggested;
+          step1.hidden = false;
+          step2.hidden = true;
+          modal.hidden = false;
+
+          function cleanup() {
+            yesBtn.removeEventListener("click", onYes);
+            otherBtn.removeEventListener("click", onOther);
+            cancelBtn.removeEventListener("click", onCancel);
+            saveBtn.removeEventListener("click", onSave);
+            backBtn.removeEventListener("click", onBack);
+          }
+          function close(result) {
+            modal.hidden = true;
+            cleanup();
+            resolve(result);
+          }
+          function onYes() { close(suggested); }
+          function onOther() {
+            step1.hidden = true;
+            step2.hidden = false;
+            input.focus();
+          }
+          function onCancel() { close(null); }
+          function onSave() {
+            const parsed = parseFloat(String(input.value).replace(",", "."));
+            close(isNaN(parsed) ? null : parsed);
+          }
+          function onBack() {
+            step2.hidden = true;
+            step1.hidden = false;
+          }
+
+          yesBtn.addEventListener("click", onYes);
+          otherBtn.addEventListener("click", onOther);
+          cancelBtn.addEventListener("click", onCancel);
+          saveBtn.addEventListener("click", onSave);
+          backBtn.addEventListener("click", onBack);
+        });
+      }
+    </script>
+
     {% if logged and training.ask_weight_progress %}
       <script>
         (function () {
           const suggested = {{ training.suggested_weight | tojson }};
-          let weight = null;
-          if (confirm("Usar " + suggested + " kg como peso objetivo para este ejercicio?")) {
-            weight = suggested;
-          } else if (confirm("¿Quieres indicar otro peso objetivo?")) {
-            const custom = prompt("Indica el peso objetivo (kg):", String(suggested));
-            if (custom !== null) {
-              const parsed = parseFloat(custom.replace(",", "."));
-              if (!isNaN(parsed)) weight = parsed;
-            }
-          }
-          if (weight === null) return;
-          const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
-          {% if next %}params.set("next", {{ next | tojson }});{% endif %}
-          fetch("/exercises/{{ exercise.id }}/set-target-weight", { method: "POST", body: params })
-            .then((r) => { window.location = r.url; })
-            .catch(() => {});
+          askWeightProgress(suggested).then((weight) => {
+            if (weight === null) return;
+            const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
+            {% if next %}params.set("next", {{ next | tojson }});{% endif %}
+            fetch("/exercises/{{ exercise.id }}/set-target-weight", { method: "POST", body: params })
+              .then((r) => { window.location = r.url; })
+              .catch(() => {});
+          });
         })();
       </script>
     {% elif logged and training.auto_advance_url %}
@@ -533,26 +633,17 @@
         }
 
         if (data.ask_weight_progress) {
-          const suggested = data.suggested_weight;
-          let weight = null;
-          if (confirm("Usar " + suggested + " kg como peso objetivo para este ejercicio?")) {
-            weight = suggested;
-          } else if (confirm("¿Quieres indicar otro peso objetivo?")) {
-            const custom = prompt("Indica el peso objetivo (kg):", String(suggested));
-            if (custom !== null) {
-              const parsed = parseFloat(custom.replace(",", "."));
-              if (!isNaN(parsed)) weight = parsed;
+          askWeightProgress(data.suggested_weight).then((weight) => {
+            if (weight === null) {
+              advanceOrFinish();
+              return;
             }
-          }
-          if (weight === null) {
-            advanceOrFinish();
-            return;
-          }
-          const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
-          {% if next %}params.set("next", {{ next | tojson }});{% endif %}
-          fetch("/exercises/{{ exercise.id if exercise else '' }}/set-target-weight", { method: "POST", body: params })
-            .then(() => { advanceOrFinish(); })
-            .catch(() => { advanceOrFinish(); });
+            const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
+            {% if next %}params.set("next", {{ next | tojson }});{% endif %}
+            fetch("/exercises/{{ exercise.id if exercise else '' }}/set-target-weight", { method: "POST", body: params })
+              .then(() => { advanceOrFinish(); })
+              .catch(() => { advanceOrFinish(); });
+          });
         } else {
           advanceOrFinish();
         }

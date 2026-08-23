@@ -31,9 +31,13 @@ SCHEDULE_INTERVAL_DAYS = 2
 
 
 def recompute_schedule(db: Session, program: Program) -> None:
+    """Re-anchors the schedule on the most recently FINISHED workout --
+    never on one that's merely in progress or was left open. Same rule as
+    begin_today_session/finish_today_session: only a genuine finish can
+    move current_day_number/next_due_date forward."""
     last_workout = (
         db.query(Workout)
-        .filter(Workout.program_id == program.id)
+        .filter(Workout.program_id == program.id, Workout.finished_at.isnot(None))
         .order_by(Workout.date.desc())
         .first()
     )
@@ -62,6 +66,15 @@ def delete_workout_if_empty(db: Session, workout_id: int) -> None:
         program = db.get(Program, program_id)
         if program is not None:
             recompute_schedule(db, program)
+
+
+def touch_workout_activity(workout: Workout) -> None:
+    """Marks the workout as just having had real user activity -- resets
+    the inactivity-prompt clock (see inactivity_poller in app/main.py) so a
+    session the user is actually still using never gets auto-finished out
+    from under them."""
+    workout.last_activity_at = datetime.now(timezone.utc)
+    workout.inactivity_prompt_sent_at = None
 
 
 def get_or_create_workout(db: Session, user_id: int, workout_date: date_type) -> Workout:
@@ -400,6 +413,23 @@ async def render_training_log(
             nav_params["next"] = next
         return training_url(block_exercise.id, candidate_exercise_id, nav_params)
 
+    day_exercises = (
+        db.query(BlockExercise)
+        .join(Block, BlockExercise.block_id == Block.id)
+        .filter(Block.day_template_id == block.day_template_id)
+        .order_by(Block.position, BlockExercise.position)
+        .all()
+    )
+    # Never suggest, as a "similar" recycle candidate, an exercise that's
+    # already sitting elsewhere in today's day (resolved through any active
+    # substitutions) -- excludes the current slot itself so recycling still
+    # offers alternatives even when re-cycling back toward it.
+    day_exercise_ids = {
+        substitution_map.get(be.id, be.exercise_id)
+        for be in day_exercises
+        if be.id != block_exercise.id
+    } - {None}
+
     recycle_url = None
     recycle_back_url = None
     revert_url = None
@@ -407,9 +437,9 @@ async def render_training_log(
     user_banned = False
     similar_exercises = []
     if exercise_id is not None:
-        next_similar = get_next_similar_exercise(db, user.id, exercise_id)
+        next_similar = get_next_similar_exercise(db, user.id, exercise_id, exclude_ids=day_exercise_ids)
         recycle_url = build_recycle_url(next_similar.id) if next_similar is not None else None
-        prev_similar = get_previous_similar_exercise(db, user.id, exercise_id)
+        prev_similar = get_previous_similar_exercise(db, user.id, exercise_id, exclude_ids=day_exercise_ids)
         recycle_back_url = build_recycle_url(prev_similar.id) if prev_similar is not None else None
         if block_exercise.exercise_id is not None and exercise_id != block_exercise.exercise_id:
             revert_url = build_recycle_url(block_exercise.exercise_id)
@@ -480,13 +510,6 @@ async def render_training_log(
         "revert_url": revert_url,
     }
 
-    day_exercises = (
-        db.query(BlockExercise)
-        .join(Block, BlockExercise.block_id == Block.id)
-        .filter(Block.day_template_id == block.day_template_id)
-        .order_by(Block.position, BlockExercise.position)
-        .all()
-    )
     index = None
     for i, day_exercise in enumerate(day_exercises):
         if day_exercise.id == block_exercise.id:
@@ -642,6 +665,7 @@ def submit_workout_set(
     if workout.started_at is None:
         workout.started_at = now
     set_time = set_time or now.time().replace(microsecond=0)
+    touch_workout_activity(workout)
 
     next_order = (
         db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).count() + 1

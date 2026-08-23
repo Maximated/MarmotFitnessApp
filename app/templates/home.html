@@ -33,9 +33,9 @@
         {% endfor %}
       {% elif next_sessions %}
         <form method="post" action="/programs/{{ active_program.id }}/today/start"
-          {% if next_session_locked %}data-confirm="Aún no han pasado 24 horas desde el último entrenamiento. ¿Estás seguro de que quieres empezar esta rutina?"{% endif %}>
-          <button type="submit" class="home-banner home-banner-next">
-            Siguiente: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
+          data-confirm="{% if next_session_locked %}Aún no han pasado 24 horas desde el último entrenamiento. ¿Estás seguro de que quieres empezar esta rutina?{% else %}¿Empezar el entrenamiento de {{ next_sessions[0].date }}?{% endif %}">
+          <button type="submit" class="home-banner home-banner-start">
+            ▶ Empezar: {{ next_sessions[0].date }}{% if next_sessions[0].day_template %} — Día {{ next_sessions[0].day_template.day_number }}{% if next_sessions[0].day_template.subtitle %} · {{ next_sessions[0].day_template.subtitle }}{% endif %}{% endif %}
           </button>
         </form>
         {% if next_session_locked %}

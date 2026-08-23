@@ -95,12 +95,6 @@ def send_push_for_workout(db: Session, workout: Workout) -> None:
     if not workout.rest_notify_text:
         return
 
-    subscriptions = (
-        db.query(PushSubscription).filter(PushSubscription.user_id == workout.user_id).all()
-    )
-    if not subscriptions:
-        return
-
     url = "/"
     if workout.active_block_exercise_id is not None:
         block_exercise = db.get(BlockExercise, workout.active_block_exercise_id)
@@ -113,11 +107,26 @@ def send_push_for_workout(db: Session, workout: Workout) -> None:
                 params["next"] = f"/programs/{workout.program_id}/today"
             url = training_url(block_exercise.id, block_exercise.exercise_id, params)
 
-    payload = {
-        "title": "Descanso terminado",
-        "body": workout.rest_notify_text,
-        "url": url,
-    }
+    _send_push(db, workout.user_id, "Descanso terminado", workout.rest_notify_text, url)
+
+
+def send_inactivity_prompt_push(db: Session, workout: Workout) -> None:
+    url = f"/programs/{workout.program_id}/today" if workout.program_id is not None else "/"
+    _send_push(
+        db,
+        workout.user_id,
+        "¿Sigues entrenando?",
+        "Llevas media hora sin apuntar nada. Si no respondes, el entrenamiento se dará por finalizado en 5 minutos.",
+        url,
+    )
+
+
+def _send_push(db: Session, user_id: int, title: str, body: str, url: str) -> None:
+    subscriptions = db.query(PushSubscription).filter(PushSubscription.user_id == user_id).all()
+    if not subscriptions:
+        return
+
+    payload = {"title": title, "body": body, "url": url}
 
     for subscription in subscriptions:
         subscription_info = {

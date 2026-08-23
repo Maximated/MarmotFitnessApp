@@ -21,10 +21,10 @@ from app.exercises import router as exercises_router
 from app.history import router as history_router
 from app.models import DayTemplate, Program, User, Workout
 from app.program_import import router as program_import_router
-from app.program_sessions import build_calendar_weeks, get_next_sessions
+from app.program_sessions import build_calendar_weeks, finish_workout, get_next_sessions
 from app.program_sessions import router as program_sessions_router
 from app.programs import router as programs_router
-from app.push import router as push_router, send_push_for_workout
+from app.push import router as push_router, send_inactivity_prompt_push, send_push_for_workout
 from app.templates import templates
 from app.version import get_version_status
 from app.workouts import router as workouts_router
@@ -36,6 +36,9 @@ mimetypes.add_type("image/webp", ".webp")
 
 NEXT_SESSION_LOCK_HOURS = 24
 PUSH_POLL_INTERVAL_SECONDS = 5
+INACTIVITY_POLL_INTERVAL_SECONDS = 60
+INACTIVITY_PROMPT_MINUTES = 30
+INACTIVITY_AUTOFINISH_MINUTES = 5
 
 
 async def rest_push_poller() -> None:
@@ -67,11 +70,68 @@ async def rest_push_poller() -> None:
             db.close()
 
 
+async def inactivity_poller() -> None:
+    """The only way a workout is ever marked done is finish_workout -- see
+    its docstring. This polls for two things: (1) a workout that's gone
+    quiet for INACTIVITY_PROMPT_MINUTES with no finish yet gets a single
+    "still training?" push, and (2) one that got that push and then still
+    saw no activity (a new set, a dismissal, anything -- see
+    touch_workout_activity) for another INACTIVITY_AUTOFINISH_MINUTES gets
+    auto-finished, on the assumption the user walked away and forgot."""
+    while True:
+        await asyncio.sleep(INACTIVITY_POLL_INTERVAL_SECONDS)
+        db = SessionLocal()
+        try:
+            now = datetime.now(timezone.utc)
+
+            prompt_cutoff = now - timedelta(minutes=INACTIVITY_PROMPT_MINUTES)
+            due_for_prompt = (
+                db.query(Workout)
+                .filter(
+                    Workout.finished_at.is_(None),
+                    Workout.last_activity_at.isnot(None),
+                    Workout.last_activity_at <= prompt_cutoff,
+                    Workout.inactivity_prompt_sent_at.is_(None),
+                )
+                .all()
+            )
+            for workout in due_for_prompt:
+                send_inactivity_prompt_push(db, workout)
+                workout.inactivity_prompt_sent_at = now
+            if due_for_prompt:
+                db.commit()
+
+            finish_cutoff = now - timedelta(minutes=INACTIVITY_AUTOFINISH_MINUTES)
+            due_for_autofinish = (
+                db.query(Workout)
+                .filter(
+                    Workout.finished_at.is_(None),
+                    Workout.inactivity_prompt_sent_at.isnot(None),
+                    Workout.inactivity_prompt_sent_at <= finish_cutoff,
+                )
+                .all()
+            )
+            for workout in due_for_autofinish:
+                if workout.program_id is None:
+                    continue
+                program = db.get(Program, workout.program_id)
+                if program is not None:
+                    finish_workout(db, program, workout)
+            if due_for_autofinish:
+                db.commit()
+        except Exception:
+            logging.getLogger(__name__).exception("inactivity_poller iteration failed")
+        finally:
+            db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    task = asyncio.create_task(rest_push_poller())
+    rest_task = asyncio.create_task(rest_push_poller())
+    inactivity_task = asyncio.create_task(inactivity_poller())
     yield
-    task.cancel()
+    rest_task.cancel()
+    inactivity_task.cancel()
 
 
 app = FastAPI(title="Marmot Fitness App", lifespan=lifespan)

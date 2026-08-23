@@ -1,4 +1,21 @@
   {% from "exercises/_history_row.html" import history_row %}
+
+  {% macro progress_chart(points, line, extra_class="") %}
+    <svg class="chart {{ extra_class }}" width="600" height="200" viewBox="0 0 600 200">
+      {% for frac in [0.25, 0.5, 0.75] %}
+        <line x1="20" y1="{{ 20 + frac * 160 }}" x2="580" y2="{{ 20 + frac * 160 }}" class="chart-grid-line" />
+      {% endfor %}
+      <line x1="20" y1="20" x2="20" y2="180" class="chart-axis" />
+      <line x1="20" y1="180" x2="580" y2="180" class="chart-axis" />
+      {% for x, y in points %}
+        <line x1="{{ x }}" y1="{{ y }}" x2="{{ x }}" y2="180" class="chart-drop-line" />
+      {% endfor %}
+      <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ line }}" />
+      {% for x, y in points %}
+        <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
+      {% endfor %}
+    </svg>
+  {% endmacro %}
   <h2>Tus series de este ejercicio</h2>
   <div id="exercise-history-list">
     {% for group in day_groups %}
@@ -17,33 +34,18 @@
 
     {% if has_weight_progress %}
       <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
-      <svg class="chart chart-weight" width="600" height="200" viewBox="0 0 600 200">
-        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ weight_line }}" />
-        {% for x, y in weight_points %}
-          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
-        {% endfor %}
-      </svg>
+      {{ progress_chart(weight_points, weight_line, "chart-weight") }}
     {% else %}
       <p>Sin datos de peso para este ejercicio.</p>
     {% endif %}
 
     {% if has_reps_progress %}
       <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
-      <svg class="chart chart-reps" width="600" height="200" viewBox="0 0 600 200">
-        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ reps_line }}" />
-        {% for x, y in reps_points %}
-          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
-        {% endfor %}
-      </svg>
+      {{ progress_chart(reps_points, reps_line, "chart-reps") }}
     {% endif %}
 
     {% if has_duration_progress %}
       <p>Duración (s) — mín {{ duration_min }}, máx {{ duration_max }}</p>
-      <svg class="chart" width="600" height="200" viewBox="0 0 600 200">
-        <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ duration_line }}" />
-        {% for x, y in duration_points %}
-          <circle cx="{{ x }}" cy="{{ y }}" r="3" fill="currentColor" />
-        {% endfor %}
-      </svg>
+      {{ progress_chart(duration_points, duration_line) }}
     {% endif %}
   {% endif %}
