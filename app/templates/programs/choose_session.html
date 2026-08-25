@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Elegir sesión</h1>
+  <p>Para casos excepcionales: recupera una sesión que se te pasó o repite una que ya hiciste, de cualquiera de tus programas. No mueve el calendario de ningún programa.</p>
+
+  {% for program in programs %}
+    <h2>{{ program.name }}{% if program.is_active %} · Activo{% endif %}</h2>
+    <ul class="exercise-grid">
+      {% for day_template in day_templates_by_program[program.id] %}
+        <li>
+          <p>
+            Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
+            {% if day_template.id in done_before %}<span class="session-done-tag">Ya hecho antes</span>{% endif %}
+          </p>
+          <p class="day-summary">{{ day_summaries[day_template.id] }}</p>
+          <form
+            method="post"
+            action="/today/choose-session"
+            {% if day_template.id in done_before %}data-confirm="Esta sesión ya se hizo antes. Se añadirán nuevas series a esos ejercicios sin borrar las anteriores. ¿Continuar?"{% endif %}
+          >
+            <input type="hidden" name="day_template_id" value="{{ day_template.id }}" />
+            <button type="submit" class="btn-pill">Elegir</button>
+          </form>
+        </li>
+      {% else %}
+        <li>Este programa no tiene días todavía.</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Todavía no has creado ningún programa.</p>
+  {% endfor %}
+
+  <script>
+    document.querySelectorAll(".day-summary").forEach((el) => {
+      el.addEventListener("click", () => el.classList.toggle("expanded"));
+    });
+  </script>
+{% endblock %}

@@ -75,8 +75,9 @@ def set_day_template_substitution(
 def promote_day_template_substitutions_to_workout(
     db: Session, day_template_id: int, workout_id: int
 ) -> None:
-    """Called once, right when a day actually starts (begin_today_session):
-    turns whatever was prepared on the preview screen into real,
+    """Called once, right when a day actually starts (mark_today_started,
+    start_rest_timer, submit_workout_set, or /today/choose-session): turns
+    whatever was prepared on the preview screen into real,
     workout-scoped substitutions, then clears the day-template ones so they
     don't silently reapply the next time this same day comes around in the
     cycle."""

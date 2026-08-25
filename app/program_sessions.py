@@ -3,7 +3,7 @@ import math
 from urllib.parse import urlencode
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -378,6 +378,7 @@ async def program_today(
             "current_page_url": f"/programs/{program.id}/today",
             "finished": finished,
             "stats": stats,
+            "today": today.isoformat(),
         },
     )
 
@@ -465,8 +466,8 @@ async def preview_block_exercise(
     minimal: no sets, no timers, no weight targets, nothing that implies a
     session is in progress. Substitutions made here are day-template-scoped
     (see app/workout_substitutions.py) until the day is actually started,
-    at which point begin_today_session promotes them onto the real
-    Workout."""
+    at which point mark_today_started/start_rest_timer/submit_workout_set
+    promote them onto the real Workout."""
     day_template = get_own_day_template(db, day_template_id, user.id)
     block_exercise = (
         db.query(BlockExercise)
@@ -568,30 +569,6 @@ async def start_program(
     return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
 
 
-def begin_today_session(db: Session, program, user_id: int) -> None:
-    """Associates today's Workout row with the day that's due -- but does
-    NOT advance the schedule (current_day_number/next_due_date). That only
-    happens in finish_today_session: starting a session (even by accident,
-    e.g. tapping a home-page banner) must never make the calendar think a
-    day was completed. Only actually finishing one can."""
-    today = date.today()
-
-    day_template = (
-        db.query(DayTemplate)
-        .filter(
-            DayTemplate.program_id == program.id,
-            DayTemplate.day_number == program.current_day_number,
-        )
-        .first()
-    )
-
-    workout = get_or_create_workout(db, user_id, today)
-    workout.program_id = program.id
-    workout.day_template_id = day_template.id
-    touch_workout_activity(workout)
-    promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
-
-
 @router.post("/programs/{program_id}/today/mark-started")
 async def mark_today_started(
     program_id: int,
@@ -607,6 +584,20 @@ async def mark_today_started(
     today = date.today()
 
     workout = get_or_create_workout(db, user.id, today)
+    if workout.day_template_id is not None and workout.program_id != program.id:
+        if workout.started_at is not None:
+            # Today's slot is already really started under a different
+            # program's session -- silently starting this one too would mix
+            # its sets into that other Workout row.
+            raise HTTPException(
+                status_code=409,
+                detail="Ya has registrado otra sesión hoy. Termínala antes de entrenar esta.",
+            )
+        # An uncommitted pick (see /today/choose-session) for another
+        # program -- nothing was ever really started under it, so this
+        # program's own due day is free to take over the slot.
+        workout.day_template_id = None
+
     if workout.day_template_id is None:
         day_template = (
             db.query(DayTemplate)
@@ -619,6 +610,7 @@ async def mark_today_started(
         workout.program_id = program.id
         if day_template is not None:
             workout.day_template_id = day_template.id
+            workout.is_manual_session = False
             promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
     if workout.started_at is None:
         workout.started_at = datetime.now()
@@ -640,6 +632,14 @@ async def start_rest_timer(
     today = date.today()
 
     workout = get_or_create_workout(db, user.id, today)
+    if workout.day_template_id is not None and workout.program_id != program.id:
+        if workout.started_at is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="Ya has registrado otra sesión hoy. Termínala antes de entrenar esta.",
+            )
+        workout.day_template_id = None
+
     if workout.day_template_id is None:
         day_template = (
             db.query(DayTemplate)
@@ -652,6 +652,7 @@ async def start_rest_timer(
         workout.program_id = program.id
         if day_template is not None:
             workout.day_template_id = day_template.id
+            workout.is_manual_session = False
             promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
     touch_workout_activity(workout)
     workout.rest_until = datetime.now() + timedelta(seconds=seconds)
@@ -693,37 +694,26 @@ async def start_rest_timer(
     return Response(status_code=204)
 
 
-@router.post("/programs/{program_id}/begin")
-async def begin_program_now(
-    program_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user),
-):
-    program = get_own_program(db, program_id, user.id)
-    if program.current_day_number is None:
-        program.current_day_number = 1
-        program.next_due_date = date.today()
-        db.flush()
-
-    begin_today_session(db, program, user.id)
-    db.commit()
-
-    return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
-
-
 def finish_workout(db: Session, program: Program, workout: Workout) -> None:
     """The one and only place a workout is marked done and the schedule
     advances -- called from the explicit finish button/prompt AND from
     inactivity_poller's auto-finish (app/main.py). Never called just from
-    starting a session or from passive viewing/rating/recycling."""
+    starting a session or from passive viewing/rating/recycling.
+
+    A manually-picked session (see /today/choose-session) still gets its
+    weight progression applied -- the exercises were genuinely done -- but
+    never advances current_day_number/next_due_date: it was deliberately
+    picked outside the normal rotation, so it must not push it."""
     if workout.finished_at is not None:
         return
     if workout.day_template_id is not None:
         apply_weight_progression(db, workout, workout.day_template_id)
-        day_template = db.get(DayTemplate, workout.day_template_id)
-        if day_template is not None:
-            program.current_day_number = (day_template.day_number % program.cycle_days) + 1
-    program.next_due_date = date.today() + timedelta(days=SCHEDULE_INTERVAL_DAYS)
+        if not workout.is_manual_session:
+            day_template = db.get(DayTemplate, workout.day_template_id)
+            if day_template is not None:
+                program.current_day_number = (day_template.day_number % program.cycle_days) + 1
+    if not workout.is_manual_session:
+        program.next_due_date = date.today() + timedelta(days=SCHEDULE_INTERVAL_DAYS)
     workout.finished_at = datetime.now()
 
 
@@ -747,6 +737,120 @@ async def finish_today_session(
     )
     if todays_workout is not None:
         finish_workout(db, program, todays_workout)
+        db.commit()
+
+    return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
+
+
+@router.get("/today/choose-session")
+async def choose_session_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Exceptional path alongside the normal calendar: pick any day from
+    any of the user's programs to do today, without moving that (or any)
+    program's rotation -- see finish_workout/recompute_schedule's
+    is_manual_session handling. Lists every program, not just the active
+    one, since there's no "archived" state distinct from "not active" in
+    this model (archiving a program just sets is_active=False)."""
+    programs = (
+        db.query(Program)
+        .filter(Program.user_id == user.id)
+        .order_by(Program.is_active.desc(), Program.name)
+        .all()
+    )
+
+    day_templates_by_program: dict[int, list[DayTemplate]] = {}
+    day_summaries: dict[int, str] = {}
+    for program in programs:
+        day_templates = (
+            db.query(DayTemplate)
+            .filter(DayTemplate.program_id == program.id)
+            .order_by(DayTemplate.day_number)
+            .all()
+        )
+        day_templates_by_program[program.id] = day_templates
+
+        blocks = (
+            db.query(Block)
+            .join(DayTemplate, Block.day_template_id == DayTemplate.id)
+            .filter(DayTemplate.program_id == program.id)
+            .order_by(Block.day_template_id, Block.position)
+            .all()
+        )
+        blocks_by_day: dict[int, list[Block]] = {}
+        for block in blocks:
+            blocks_by_day.setdefault(block.day_template_id, []).append(block)
+        for day_template in day_templates:
+            parts = []
+            for block in blocks_by_day.get(day_template.id, []):
+                label = block.type
+                if block.muscle_group:
+                    label += f" · {block.muscle_group}"
+                label += f" ({block.num_exercises} ej.)"
+                parts.append(label)
+            day_summaries[day_template.id] = ", ".join(parts) if parts else "Sin bloques todavía"
+
+    done_before = {
+        row[0]
+        for row in db.query(DayTemplate.id)
+        .join(Workout, Workout.day_template_id == DayTemplate.id)
+        .join(Program, DayTemplate.program_id == Program.id)
+        .filter(Program.user_id == user.id, Workout.finished_at.isnot(None))
+        .distinct()
+        .all()
+    }
+
+    return templates.TemplateResponse(
+        request=request,
+        name="programs/choose_session.html",
+        context={
+            "programs": programs,
+            "day_templates_by_program": day_templates_by_program,
+            "day_summaries": day_summaries,
+            "done_before": done_before,
+        },
+    )
+
+
+@router.post("/today/choose-session")
+async def choose_session_submit(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+    day_template_id: int = Form(...),
+):
+    """Only attaches the chosen day to today's Workout row -- so /today
+    shows it right away instead of the program's normal due day -- but
+    never sets started_at. Picking a session is exactly like previewing a
+    future day: it must not itself count as starting it. That only
+    happens via mark_today_started (warmup timer) or submit_workout_set
+    (first logged set), same as every other day. Since nothing was really
+    started yet, the user is free to come back and pick a different day
+    again -- only a real start locks today's slot in."""
+    day_template = get_own_day_template(db, day_template_id, user.id)
+    program = db.get(Program, day_template.program_id)
+    today = date.today()
+
+    workout = get_or_create_workout(db, user.id, today)
+    if workout.day_template_id is not None and workout.day_template_id != day_template.id:
+        if workout.started_at is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="Ya has empezado otra sesión hoy. Termínala antes de elegir otra.",
+            )
+        workout.day_template_id = None
+
+    if workout.day_template_id is None:
+        workout.program_id = program.id
+        workout.day_template_id = day_template.id
+        # Picking exactly the day that was already due for this program is
+        # just the normal flow via the chooser -- finishing it should still
+        # advance the rotation like any other day. Only a day that isn't
+        # what this program's own cycle expects counts as a manual,
+        # off-cycle session.
+        workout.is_manual_session = day_template.day_number != program.current_day_number
+        promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
         db.commit()
 
     return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
@@ -784,8 +888,8 @@ def build_calendar_weeks(db: Session, program, year: int, month: int):
     # Los días "hechos" son del usuario, no del programa concreto que esté
     # activo ahora -- un entrenamiento no debe desaparecer del calendario
     # solo porque después se archivó el programa con el que se hizo.
-    # Se exige al menos una serie registrada: la fila Workout se crea ya al
-    # pulsar "Iniciar entrenamiento" (begin_today_session), antes de haber
+    # Se exige al menos una serie registrada: la fila Workout puede existir
+    # (calentamiento empezado, sesión elegida a mano...) sin que se haya
     # entrenado nada, así que su mera existencia no puede ser el criterio o
     # el día quedaría marcado como realizado sin haberlo hecho.
     completed_dates = {

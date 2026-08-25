@@ -6,14 +6,14 @@
 
   <h1>{{ program.name }}{% if program.is_active %} · Activo{% endif %}</h1>
   <p>{{ program.cycle_days }} días de ciclo · <a href="/programs/{{ program.id }}/edit">Editar</a></p>
-  <p><a href="/programs/{{ program.id }}/today" class="btn">Entrenar</a></p>
+  <p><a href="/programs/{{ program.id }}/today" class="btn-pill">Entrenar</a></p>
 
   {% if not program.is_active %}
     <form method="post" action="/programs/{{ program.id }}/activate">
       <label>Empezar desde la jornada
         <input type="number" name="starting_day_number" min="1" max="{{ program.cycle_days }}" value="1" required />
       </label>
-      <button type="submit">Marcar como activo</button>
+      <button type="submit" class="btn-pill">Marcar como activo</button>
     </form>
   {% endif %}
 

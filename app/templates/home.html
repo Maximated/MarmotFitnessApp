@@ -73,8 +73,9 @@
           {% endif %}
         {% endfor %}
       {% else %}
-        <form method="post" action="/programs/{{ active_program.id }}/begin">
-          <p>Todavía no has empezado este programa. <button type="submit">Empezar</button></p>
+        <p>Todavía no has empezado este programa.</p>
+        <form method="post" action="/programs/{{ active_program.id }}/start">
+          <button type="submit" class="btn-pill">Empezar</button>
         </form>
       {% endif %}
 

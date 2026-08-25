@@ -72,6 +72,7 @@ class Workout(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_activity_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     inactivity_prompt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    is_manual_session: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class WorkoutSet(Base):

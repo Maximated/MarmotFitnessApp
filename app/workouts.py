@@ -39,11 +39,18 @@ SCHEDULE_INTERVAL_DAYS = 2
 def recompute_schedule(db: Session, program: Program) -> None:
     """Re-anchors the schedule on the most recently FINISHED workout --
     never on one that's merely in progress or was left open. Same rule as
-    begin_today_session/finish_today_session: only a genuine finish can
-    move current_day_number/next_due_date forward."""
+    finish_today_session: only a genuine finish can move
+    current_day_number/next_due_date forward. Manually-picked sessions
+    (see /today/choose-session) are excluded too -- they never counted
+    toward the rotation when they finished, so they can't anchor it here
+    either."""
     last_workout = (
         db.query(Workout)
-        .filter(Workout.program_id == program.id, Workout.finished_at.isnot(None))
+        .filter(
+            Workout.program_id == program.id,
+            Workout.finished_at.isnot(None),
+            Workout.is_manual_session.is_(False),
+        )
         .order_by(Workout.date.desc())
         .first()
     )
@@ -699,17 +706,37 @@ def submit_workout_set(
                 is not None
             )
 
-    if workout.day_template_id is None and block is not None:
-        # Logging the very first set of the day is one of the two things
-        # that actually starts it (the other is the warmup timer, see
-        # mark_today_started) -- lazily associates the Workout with its day
-        # and promotes whatever was prepared on the /preview screen, same
-        # as begin_today_session does for the explicit-start path.
-        day_template = db.get(DayTemplate, block.day_template_id)
-        workout.day_template_id = block.day_template_id
-        if day_template is not None:
-            workout.program_id = day_template.program_id
-        promote_day_template_substitutions_to_workout(db, block.day_template_id, workout.id)
+    if block is not None:
+        if workout.day_template_id is not None and block.day_template_id != workout.day_template_id:
+            if workout.started_at is not None:
+                # That date's Workout already really started under a
+                # different day -- logging here too would silently mix this
+                # exercise's set into that other session.
+                raise HTTPException(
+                    status_code=409,
+                    detail="Ya hay otra sesión registrada ese día. Termínala antes de entrenar esta.",
+                )
+            # An uncommitted pick (see /today/choose-session) for a
+            # different day -- nothing was ever really started under it, so
+            # this exercise's own day is free to take over the slot.
+            workout.day_template_id = None
+
+        if workout.day_template_id is None:
+            # Logging the very first set of the day is one of the two
+            # things that actually starts it (the other is the warmup
+            # timer, see mark_today_started) -- lazily associates the
+            # Workout with its day and promotes whatever was prepared on
+            # the /preview screen.
+            day_template = db.get(DayTemplate, block.day_template_id)
+            workout.day_template_id = block.day_template_id
+            if day_template is not None:
+                workout.program_id = day_template.program_id
+                owning_program = db.get(Program, day_template.program_id)
+                workout.is_manual_session = (
+                    owning_program is None
+                    or day_template.day_number != owning_program.current_day_number
+                )
+            promote_day_template_substitutions_to_workout(db, block.day_template_id, workout.id)
 
     if workout.started_at is None:
         workout.started_at = now

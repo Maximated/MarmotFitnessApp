@@ -2,23 +2,30 @@
 
 {% block content %}
   <h1>Programas</h1>
-  <p><a href="/programs/new" class="btn">Nuevo programa</a></p>
+  <p><a href="/programs/new" class="btn-pill">Nuevo programa</a></p>
 
   <ul class="program-banner-list">
     {% for program in programs %}
-      <li class="program-banner-item {% if program.is_active %}program-banner-item-active{% else %}program-banner-item-inactive{% endif %} swipe-row swipe-row-single-action">
-        <div class="swipe-row-actions swipe-row-actions-single">
-          <form method="post" action="/programs/{{ program.id }}/archive" class="delete-form swipe-action-form" data-confirm="¿Archivar el programa &quot;{{ program.name }}&quot;? Dejará de estar activo, pero se queda guardado en tu historial. Podrás volver a activarlo cuando quieras.">
-            <button type="submit" class="swipe-action swipe-action-archive" aria-label="Archivar programa">
-              {% include "_icon_archive.html" %}
-            </button>
-          </form>
-        </div>
-        <div class="swipe-row-content">
-          <a href="/programs/{{ program.id }}" class="program-banner-link">
+      <li class="program-banner-item {% if program.is_active %}program-banner-item-active{% else %}program-banner-item-inactive{% endif %}">
+        <div class="program-banner-link">
+          <a href="/programs/{{ program.id }}" class="program-banner-link-text">
             <span class="program-banner-name">{{ program.name }}</span>
-            <span class="program-banner-meta">{{ program.cycle_days }} días de ciclo{% if program.is_active %} · Cargado{% endif %}</span>
+            <span class="program-banner-meta">{{ program.cycle_days }} días de ciclo</span>
           </a>
+          <form
+            method="post"
+            action="{% if program.is_active %}/programs/{{ program.id }}/archive{% else %}/programs/{{ program.id }}/activate{% endif %}"
+            class="program-active-toggle-form"
+          >
+            {% if not program.is_active %}
+              <input type="hidden" name="starting_day_number" value="1" />
+              <input type="hidden" name="next" value="/programs" />
+            {% endif %}
+            <label class="ios-switch" aria-label="{{ 'Activo' if program.is_active else 'Inactivo' }}">
+              <input type="checkbox" {% if program.is_active %}checked{% endif %} onchange="this.form.requestSubmit()" />
+              <span class="ios-switch-track"><span class="ios-switch-thumb"></span></span>
+            </label>
+          </form>
         </div>
       </li>
     {% else %}

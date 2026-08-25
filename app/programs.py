@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_user
+from app.http_utils import safe_next
 from app.models import Block, BlockExercise, DayTemplate, Program, User
 from app.templates import templates
 
@@ -184,6 +185,7 @@ async def activate_program(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     starting_day_number: int = Form(1),
+    next: str | None = Form(None),
 ):
     program = get_own_program(db, program_id, user.id)
     if not (1 <= starting_day_number <= program.cycle_days):
@@ -197,7 +199,7 @@ async def activate_program(
     program.next_due_date = date.today()
     db.commit()
 
-    return RedirectResponse(url=f"/programs/{program.id}", status_code=303)
+    return RedirectResponse(url=safe_next(next) or f"/programs/{program.id}", status_code=303)
 
 
 @router.post("/programs/{program_id}/archive")

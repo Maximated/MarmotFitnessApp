@@ -1,0 +1,3 @@
+{% macro pill_link(url, label, id=None, extra_class="") %}
+  <a href="{{ url }}" class="btn-pill{% if extra_class %} {{ extra_class }}{% endif %}"{% if id %} id="{{ id }}"{% endif %}>{{ label }}</a>
+{% endmacro %}

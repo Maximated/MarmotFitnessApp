@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% from "programs/_stat_ring.html" import stat_ring %}
 {% from "exercises/_star_rating_macro.html" import star_rating %}
+{% from "_pill_link.html" import pill_link %}
 
 {% block content %}
-  <div class="page-nav-row">
-    <a href="/programs/{{ program.id }}/calendar">Ver calendario</a>
+  <div class="today-nav-buttons">
+    {{ pill_link("/programs/" ~ program.id ~ "/calendar", "Ver calendario", extra_class="btn-pill-block") }}
+    {% if state == "started" and not workout_started %}
+      {{ pill_link("/today/choose-session", "Elegir sesión", extra_class="btn-pill-block") }}
+    {% endif %}
   </div>
 
   <h1>{{ program.name }}</h1>
@@ -12,7 +16,7 @@
   {% if state == "not_started" %}
     <p>Todavía no has empezado este programa.</p>
     <form method="post" action="/programs/{{ program.id }}/start">
-      <button type="submit">Empezar programa</button>
+      <button type="submit" class="btn-pill">Empezar programa</button>
     </form>
 
   {% elif state == "started" %}
@@ -115,9 +119,15 @@
 
     {% if finished %}
       <p>Entrenamiento finalizado. Puedes seguir revisando y editando tus series desde el histórico de cada ejercicio.</p>
+      <form method="post" action="/programs/{{ program.id }}/sessions/{{ today }}/delete" class="delete-form" data-confirm="¿Eliminar esta sesión? Se perderán todas las series registradas hoy y el día volverá a estar disponible.">
+        <button type="submit" class="btn-danger">Eliminar esta sesión</button>
+      </form>
     {% elif workout_started %}
       <form method="post" action="/programs/{{ program.id }}/today/finish" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
-        <button type="submit">Finalizar entrenamiento</button>
+        <button type="submit" class="btn-pill">Finalizar entrenamiento</button>
+      </form>
+      <form method="post" action="/programs/{{ program.id }}/sessions/{{ today }}/delete" class="delete-form" data-confirm="¿Eliminar esta sesión? Se perderán todas las series registradas hoy y el día volverá a estar disponible.">
+        <button type="submit" class="btn-danger">Eliminar esta sesión</button>
       </form>
     {% endif %}
   {% endif %}

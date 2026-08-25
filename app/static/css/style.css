@@ -490,15 +490,29 @@ button.home-banner {
 
 .program-banner-link {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.3rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   min-height: 6rem;
   padding: 1.25rem;
   border-radius: 0.75rem;
+}
+
+.program-banner-link-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 0;
   text-decoration: none;
   font-family: "Bebas Neue", system-ui, sans-serif;
   letter-spacing: 0.03em;
+  color: inherit;
+}
+
+.program-active-toggle-form {
+  flex-shrink: 0;
 }
 
 .program-banner-name {
@@ -848,6 +862,50 @@ input[type="submit"] {
 .superset-exercise .swipe-row-content {
   padding-bottom: 0.5rem;
   background: var(--card-bg);
+}
+
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary), #000 22%));
+  color: var(--primary-text);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary), transparent 65%);
+}
+
+.btn-pill-block {
+  display: flex;
+  width: 100%;
+}
+
+.today-nav-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.session-done-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
 }
 
 .day-summary {
