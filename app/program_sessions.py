@@ -227,6 +227,14 @@ async def program_today(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
+    """Always shows the full, clickable exercise list for today's due day
+    -- whether or not anyone has actually started it yet. There is
+    deliberately no separate "ready" gate/button here: viewing and editing
+    (rating, swapping exercises) a day must never itself count as starting
+    it, exactly like a future day's /preview. The only two things that
+    really start it are logging a set (submit_workout_set) or starting the
+    warmup timer (mark_today_started) -- both create the Workout lazily at
+    that point, not before."""
     program = get_own_program(db, program_id, user.id)
     today = date.today()
 
@@ -249,11 +257,24 @@ async def program_today(
 
     if todays_workout is not None:
         day_template = db.get(DayTemplate, todays_workout.day_template_id)
-        blocks, exercises_by_block = get_day_content(db, day_template.id)
-        exercises_by_block = apply_substitutions(
-            db, exercises_by_block, get_substitution_map(db, todays_workout.id)
+        substitution_map = get_substitution_map(db, todays_workout.id)
+    else:
+        day_template = (
+            db.query(DayTemplate)
+            .filter(
+                DayTemplate.program_id == program.id,
+                DayTemplate.day_number == program.current_day_number,
+            )
+            .first()
         )
+        # Whatever was prepared from this day's /preview screen shows here
+        # too, before it's ever "really" started.
+        substitution_map = get_day_template_substitution_map(db, day_template.id)
 
+    blocks, exercises_by_block = get_day_content(db, day_template.id)
+    exercises_by_block = apply_substitutions(db, exercises_by_block, substitution_map)
+
+    if todays_workout is not None:
         sets_completed_by_exercise = {
             row[0]: row[1]
             for row in db.query(WorkoutSet.exercise_id, func.count(WorkoutSet.id))
@@ -314,62 +335,49 @@ async def program_today(
             .group_by(WorkoutSet.block_exercise_id)
             .all()
         }
+    else:
+        sets_completed_by_exercise = {}
+        sets_completed_by_block_exercise = {}
+        avg_weight_by_exercise = {}
+        avg_weight_by_block_exercise = {}
+        avg_duration_by_exercise = {}
+        avg_duration_by_block_exercise = {}
 
-        exercise_groups_by_block = {
-            block_id: group_by_superset(attached)
-            for block_id, attached in exercises_by_block.items()
-        }
+    exercise_groups_by_block = {
+        block_id: group_by_superset(attached)
+        for block_id, attached in exercises_by_block.items()
+    }
 
-        exercise_ids = [
-            exercise.id
-            for attached in exercises_by_block.values()
-            for _, exercise in attached
-            if exercise is not None
-        ]
+    exercise_ids = [
+        exercise.id
+        for attached in exercises_by_block.values()
+        for _, exercise in attached
+        if exercise is not None
+    ]
 
-        finished = todays_workout.finished_at is not None
-        stats = compute_session_stats(db, todays_workout, day_template.id) if finished else None
-
-        return templates.TemplateResponse(
-            request=request,
-            name="programs/today.html",
-            context={
-                "program": program,
-                "state": "started",
-                "day_template": day_template,
-                "blocks": blocks,
-                "exercise_groups_by_block": exercise_groups_by_block,
-                "sets_completed_by_exercise": sets_completed_by_exercise,
-                "sets_completed_by_block_exercise": sets_completed_by_block_exercise,
-                "avg_weight_by_exercise": avg_weight_by_exercise,
-                "avg_weight_by_block_exercise": avg_weight_by_block_exercise,
-                "avg_duration_by_exercise": avg_duration_by_exercise,
-                "avg_duration_by_block_exercise": avg_duration_by_block_exercise,
-                "ratings": get_user_ratings_map(db, user.id, exercise_ids),
-                "current_page_url": f"/programs/{program.id}/today",
-                "finished": finished,
-                "stats": stats,
-            },
-        )
-
-    day_template = (
-        db.query(DayTemplate)
-        .filter(
-            DayTemplate.program_id == program.id,
-            DayTemplate.day_number == program.current_day_number,
-        )
-        .first()
-    )
+    finished = todays_workout is not None and todays_workout.finished_at is not None
+    stats = compute_session_stats(db, todays_workout, day_template.id) if finished else None
 
     return templates.TemplateResponse(
         request=request,
         name="programs/today.html",
         context={
             "program": program,
-            "state": "ready",
+            "state": "started",
+            "workout_started": todays_workout is not None and todays_workout.started_at is not None,
             "day_template": day_template,
-            "is_due": program.next_due_date is not None and program.next_due_date <= today,
-            "next_due_date": program.next_due_date,
+            "blocks": blocks,
+            "exercise_groups_by_block": exercise_groups_by_block,
+            "sets_completed_by_exercise": sets_completed_by_exercise,
+            "sets_completed_by_block_exercise": sets_completed_by_block_exercise,
+            "avg_weight_by_exercise": avg_weight_by_exercise,
+            "avg_weight_by_block_exercise": avg_weight_by_block_exercise,
+            "avg_duration_by_exercise": avg_duration_by_exercise,
+            "avg_duration_by_block_exercise": avg_duration_by_block_exercise,
+            "ratings": get_user_ratings_map(db, user.id, exercise_ids),
+            "current_page_url": f"/programs/{program.id}/today",
+            "finished": finished,
+            "stats": stats,
         },
     )
 
@@ -584,37 +592,38 @@ def begin_today_session(db: Session, program, user_id: int) -> None:
     promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
 
 
-@router.post("/programs/{program_id}/today/start")
-async def start_today_session(
-    program_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user),
-):
-    program = get_own_program(db, program_id, user.id)
-    begin_today_session(db, program, user.id)
-    db.commit()
-
-    return RedirectResponse(url=f"/programs/{program.id}/today", status_code=303)
-
-
 @router.post("/programs/{program_id}/today/mark-started")
 async def mark_today_started(
     program_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
+    """The warmup timer's actual play button -- one of the only two things
+    that really start today's day (the other is logging a first set, see
+    submit_workout_set). Creates the Workout lazily right here if nothing
+    had touched it yet, instead of requiring a separate explicit "start"
+    step before this could ever fire."""
     program = get_own_program(db, program_id, user.id)
     today = date.today()
 
-    workout = (
-        db.query(Workout)
-        .filter(Workout.user_id == user.id, Workout.date == today, Workout.program_id == program.id)
-        .first()
-    )
-    if workout is not None and workout.started_at is None:
+    workout = get_or_create_workout(db, user.id, today)
+    if workout.day_template_id is None:
+        day_template = (
+            db.query(DayTemplate)
+            .filter(
+                DayTemplate.program_id == program.id,
+                DayTemplate.day_number == program.current_day_number,
+            )
+            .first()
+        )
+        workout.program_id = program.id
+        if day_template is not None:
+            workout.day_template_id = day_template.id
+            promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
+    if workout.started_at is None:
         workout.started_at = datetime.now()
-        touch_workout_activity(workout)
-        db.commit()
+    touch_workout_activity(workout)
+    db.commit()
 
     return Response(status_code=204)
 
@@ -630,48 +639,56 @@ async def start_rest_timer(
     program = get_own_program(db, program_id, user.id)
     today = date.today()
 
-    workout = (
-        db.query(Workout)
-        .filter(Workout.user_id == user.id, Workout.date == today, Workout.program_id == program.id)
-        .first()
+    workout = get_or_create_workout(db, user.id, today)
+    if workout.day_template_id is None:
+        day_template = (
+            db.query(DayTemplate)
+            .filter(
+                DayTemplate.program_id == program.id,
+                DayTemplate.day_number == program.current_day_number,
+            )
+            .first()
+        )
+        workout.program_id = program.id
+        if day_template is not None:
+            workout.day_template_id = day_template.id
+            promote_day_template_substitutions_to_workout(db, day_template.id, workout.id)
+    touch_workout_activity(workout)
+    workout.rest_until = datetime.now() + timedelta(seconds=seconds)
+    workout.rest_total_seconds = seconds
+    # Manually-started timer (e.g. calentamiento): points back at itself,
+    # not "the next exercise" -- nothing has been completed yet, unlike
+    # the post-log rest timer in submit_workout_set.
+    workout.active_block_exercise_id = block_exercise_id
+    # Fallback text for the (not reachable via the current UI, but
+    # possible via a direct call) case with no block_exercise_id --
+    # without this, send_push_for_workout's `not rest_notify_text`
+    # guard would silently skip the push with no error and no retry.
+    workout.rest_notify_text = "Descanso terminado."
+    workout.rest_push_sent_at = None
+
+    block_exercise = (
+        db.get(BlockExercise, block_exercise_id) if block_exercise_id is not None else None
     )
-    if workout is not None:
-        touch_workout_activity(workout)
-        workout.rest_until = datetime.now() + timedelta(seconds=seconds)
-        workout.rest_total_seconds = seconds
-        # Manually-started timer (e.g. calentamiento): points back at itself,
-        # not "the next exercise" -- nothing has been completed yet, unlike
-        # the post-log rest timer in submit_workout_set.
-        workout.active_block_exercise_id = block_exercise_id
-        # Fallback text for the (not reachable via the current UI, but
-        # possible via a direct call) case with no block_exercise_id --
-        # without this, send_push_for_workout's `not rest_notify_text`
-        # guard would silently skip the push with no error and no retry.
-        workout.rest_notify_text = "Descanso terminado."
+    if block_exercise is not None:
+        block = db.get(Block, block_exercise.block_id)
+        day_exercises = (
+            db.query(BlockExercise)
+            .join(Block, BlockExercise.block_id == Block.id)
+            .filter(Block.day_template_id == block.day_template_id)
+            .order_by(Block.position, BlockExercise.position)
+            .all()
+        )
+        substitution_map = get_substitution_map(db, workout.id)
+        effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
+        sets_completed_today = count_sets(db, workout.id, effective_exercise_id, block_exercise.id)
+        notify_text, _target_be, _prompt_finish = resolve_rest_step(
+            db, block_exercise, block, day_exercises, workout.id, sets_completed_today
+        )
+        workout.rest_notify_text = notify_text
         workout.rest_push_sent_at = None
 
-        block_exercise = (
-            db.get(BlockExercise, block_exercise_id) if block_exercise_id is not None else None
-        )
-        if block_exercise is not None:
-            block = db.get(Block, block_exercise.block_id)
-            day_exercises = (
-                db.query(BlockExercise)
-                .join(Block, BlockExercise.block_id == Block.id)
-                .filter(Block.day_template_id == block.day_template_id)
-                .order_by(Block.position, BlockExercise.position)
-                .all()
-            )
-            substitution_map = get_substitution_map(db, workout.id)
-            effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
-            sets_completed_today = count_sets(db, workout.id, effective_exercise_id, block_exercise.id)
-            notify_text, _target_be, _prompt_finish = resolve_rest_step(
-                db, block_exercise, block, day_exercises, workout.id, sets_completed_today
-            )
-            workout.rest_notify_text = notify_text
-            workout.rest_push_sent_at = None
-
-        db.commit()
+    db.commit()
 
     return Response(status_code=204)
 

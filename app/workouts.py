@@ -20,7 +20,13 @@ from app.exercise_ratings import (
     get_user_ban,
     get_user_rating,
 )
-from app.workout_substitutions import get_substitution_map, set_substitution
+from app.workout_substitutions import (
+    get_day_template_substitution_map,
+    get_substitution_map,
+    promote_day_template_substitutions_to_workout,
+    set_day_template_substitution,
+    set_substitution,
+)
 from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, Program, User, Workout, WorkoutSet
 from app.templates import templates
 from app.training_urls import training_url
@@ -360,8 +366,15 @@ async def render_training_log(
         .first()
     )
 
-    if substitute and todays_workout is not None and exercise_id is not None:
-        set_substitution(db, todays_workout.id, block_exercise.id, exercise_id)
+    if substitute and exercise_id is not None:
+        # No Workout yet means today's day hasn't really started (see
+        # program_today/submit_workout_set) -- the swap is prepared at the
+        # day-template level instead, exactly like a future day's
+        # /preview, and gets promoted the moment real activity starts.
+        if todays_workout is not None:
+            set_substitution(db, todays_workout.id, block_exercise.id, exercise_id)
+        else:
+            set_day_template_substitution(db, day_template.id, block_exercise.id, exercise_id)
         db.commit()
         redirect_params = {"block_exercise_id": block_exercise_id}
         if next is not None:
@@ -370,8 +383,10 @@ async def render_training_log(
             url=training_url(block_exercise_id, exercise_id, redirect_params), status_code=303
         )
 
-    substitution_map = get_substitution_map(
-        db, todays_workout.id if todays_workout is not None else None
+    substitution_map = (
+        get_substitution_map(db, todays_workout.id)
+        if todays_workout is not None
+        else get_day_template_substitution_map(db, day_template.id)
     )
     effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
     if effective_exercise_id != exercise_id:
@@ -662,23 +677,17 @@ def submit_workout_set(
 
     now = datetime.now()
     workout = get_or_create_workout(db, user.id, workout_date or now.date())
-    if workout.started_at is None:
-        workout.started_at = now
-    set_time = set_time or now.time().replace(microsecond=0)
-    touch_workout_activity(workout)
-
-    next_order = (
-        db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).count() + 1
-    )
 
     pending_name_snapshot = None
     is_superset = False
     block_exercise = None
+    block = None
     if block_exercise_id is not None:
         block_exercise = db.get(BlockExercise, block_exercise_id)
         if block_exercise is not None and exercise_id is None:
             pending_name_snapshot = block_exercise.pending_name
         if block_exercise is not None:
+            block = db.get(Block, block_exercise.block_id)
             is_superset = block_exercise.is_superset_with_next or (
                 db.query(BlockExercise)
                 .filter(
@@ -689,6 +698,27 @@ def submit_workout_set(
                 .first()
                 is not None
             )
+
+    if workout.day_template_id is None and block is not None:
+        # Logging the very first set of the day is one of the two things
+        # that actually starts it (the other is the warmup timer, see
+        # mark_today_started) -- lazily associates the Workout with its day
+        # and promotes whatever was prepared on the /preview screen, same
+        # as begin_today_session does for the explicit-start path.
+        day_template = db.get(DayTemplate, block.day_template_id)
+        workout.day_template_id = block.day_template_id
+        if day_template is not None:
+            workout.program_id = day_template.program_id
+        promote_day_template_substitutions_to_workout(db, block.day_template_id, workout.id)
+
+    if workout.started_at is None:
+        workout.started_at = now
+    set_time = set_time or now.time().replace(microsecond=0)
+    touch_workout_activity(workout)
+
+    next_order = (
+        db.query(WorkoutSet).filter(WorkoutSet.workout_id == workout.id).count() + 1
+    )
 
     workout_set = WorkoutSet(
         workout_id=workout.id,
@@ -710,7 +740,6 @@ def submit_workout_set(
     prompt_finish = False
     sets_completed_today = 0
     if block_exercise is not None:
-        block = db.get(Block, block_exercise.block_id)
         day_exercises = (
             db.query(BlockExercise)
             .join(Block, BlockExercise.block_id == Block.id)

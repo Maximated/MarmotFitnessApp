@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% from "programs/_stat_ring.html" import stat_ring %}
 {% from "exercises/_star_rating_macro.html" import star_rating %}
-{% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
   <div class="page-nav-row">
-    {{ nav_arrow("/", "back", "Volver a inicio", double=True) }}
     <a href="/programs/{{ program.id }}/calendar">Ver calendario</a>
   </div>
 
@@ -17,21 +15,14 @@
       <button type="submit">Empezar programa</button>
     </form>
 
-  {% elif state == "ready" %}
-    <p>
-      {% if is_due %}Hoy toca{% else %}Sugerido a partir del {{ next_due_date }}{% endif %}:
-      Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
-    </p>
-    <p>Puedes empezar cuando quieras — la fecha es solo una sugerencia.</p>
-    <form method="post" action="/programs/{{ program.id }}/today/start">
-      <button type="submit">Iniciar entrenamiento</button>
-    </form>
-
   {% elif state == "started" %}
     <p>
-      Entrenamiento de hoy — Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %} (ya iniciado)
-      {% if finished %} · Finalizado{% endif %}
+      Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
+      {% if finished %} · Finalizado{% elif workout_started %} · En curso{% endif %}
     </p>
+    {% if not workout_started %}
+      <p>Puedes mirar y preparar el día -- valorar o cambiar ejercicios -- sin que cuente como empezado. Se empieza de verdad al iniciar el calentamiento o al añadir tu primera serie.</p>
+    {% endif %}
 
     {% if finished and stats %}
       <h2>Resumen del entrenamiento</h2>
@@ -124,7 +115,7 @@
 
     {% if finished %}
       <p>Entrenamiento finalizado. Puedes seguir revisando y editando tus series desde el histórico de cada ejercicio.</p>
-    {% else %}
+    {% elif workout_started %}
       <form method="post" action="/programs/{{ program.id }}/today/finish" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
         <button type="submit">Finalizar entrenamiento</button>
       </form>
