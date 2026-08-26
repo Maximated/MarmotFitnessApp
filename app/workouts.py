@@ -353,10 +353,22 @@ async def render_training_log(
     logged: bool,
     substitute: bool,
     pin: str | None = None,
+    session_date: date_type | None = None,
 ):
     """Shared training-screen logic for both /exercises/{id}/log?block_exercise_id=
     (has a catalog Exercise) and /block-exercises/{id}/log (no catálogo,
-    pending_name only)."""
+    pending_name only).
+
+    `session_date` is what makes this page reusable for browsing a PAST
+    day's session (see programs/session.html) instead of only ever "today"
+    -- it defaults to real today (unchanged live-training behavior) but,
+    when given, every "today" concept below (which substitution is active
+    for this slot, sets completed, rest step, superset partner progress)
+    resolves against that date's Workout instead. Without this, following
+    a link from a past day's exercise list would silently redirect to
+    whatever TODAY's (unrelated) substitution happens to be for that same
+    block_exercise slot -- landing on a completely different exercise than
+    the one actually logged that day."""
     block_exercise = (
         db.query(BlockExercise)
         .join(Block, BlockExercise.block_id == Block.id)
@@ -370,7 +382,7 @@ async def render_training_log(
 
     block = db.get(Block, block_exercise.block_id)
     day_template = db.get(DayTemplate, block.day_template_id)
-    today = date_type.today()
+    today = session_date or date_type.today()
     todays_workout = (
         db.query(Workout)
         .filter(Workout.user_id == user.id, Workout.date == today)
@@ -392,6 +404,8 @@ async def render_training_log(
             redirect_params["next"] = next
         if pin is not None:
             redirect_params["pin"] = pin
+        if session_date is not None:
+            redirect_params["session_date"] = session_date.isoformat()
         return RedirectResponse(
             url=training_url(block_exercise_id, exercise_id, redirect_params), status_code=303
         )
@@ -408,6 +422,8 @@ async def render_training_log(
             redirect_params["next"] = next
         if pin is not None:
             redirect_params["pin"] = pin
+        if session_date is not None:
+            redirect_params["session_date"] = session_date.isoformat()
         if logged:
             redirect_params["logged"] = "1"
         return RedirectResponse(
@@ -436,6 +452,8 @@ async def render_training_log(
             nav_params["next"] = next
         if effective_pin is not None:
             nav_params["pin"] = effective_pin
+        if session_date is not None:
+            nav_params["session_date"] = session_date.isoformat()
         neighbor_exercise_id = substitution_map.get(neighbor.id, neighbor.exercise_id)
         return training_url(neighbor.id, neighbor_exercise_id, nav_params)
 
@@ -445,6 +463,8 @@ async def render_training_log(
             nav_params["next"] = next
         if effective_pin is not None:
             nav_params["pin"] = effective_pin
+        if session_date is not None:
+            nav_params["session_date"] = session_date.isoformat()
         return training_url(block_exercise.id, candidate_exercise_id, nav_params)
 
     day_exercises = (
@@ -511,6 +531,8 @@ async def render_training_log(
         pin_toggle_params["next"] = next
     if not pin_active:
         pin_toggle_params["pin"] = f"{block_exercise_id}:{exercise_id}"
+    if session_date is not None:
+        pin_toggle_params["session_date"] = session_date.isoformat()
     pin_toggle_url = training_url(block_exercise_id, exercise_id, pin_toggle_params)
 
     recycle_url = None
@@ -533,6 +555,8 @@ async def render_training_log(
                     revert_nav_params["next"] = next
                 if effective_pin is not None:
                     revert_nav_params["pin"] = effective_pin
+                if session_date is not None:
+                    revert_nav_params["session_date"] = session_date.isoformat()
                 revert_url = training_url(
                     pin_target_block_exercise.id, pin_target_exercise_id, revert_nav_params
                 )
@@ -649,6 +673,8 @@ async def render_training_log(
         self_params["next"] = next
     if effective_pin is not None:
         self_params["pin"] = effective_pin
+    if session_date is not None:
+        self_params["session_date"] = session_date.isoformat()
     self_url = training_url(block_exercise_id, exercise_id, self_params)
 
     history = build_exercise_history(db, user.id, exercise_id, block_exercise_id)
@@ -663,6 +689,7 @@ async def render_training_log(
         "training": training,
         "next": next,
         "pin": effective_pin,
+        "session_date": session_date.isoformat() if session_date is not None else None,
         "block_exercise_id": block_exercise_id,
         "prev_url": prev_url,
         "next_exercise_url": next_exercise_url,
@@ -686,6 +713,7 @@ async def log_exercise_form(
     logged: bool = False,
     substitute: bool = False,
     pin: str | None = None,
+    session_date: date_type | None = None,
 ):
     next = safe_next(next)
     if block_exercise_id is None:
@@ -719,7 +747,7 @@ async def log_exercise_form(
         return templates.TemplateResponse(request=request, name="exercises/log.html", context=context)
 
     return await render_training_log(
-        request, db, user, exercise_id, block_exercise_id, next, logged, substitute, pin
+        request, db, user, exercise_id, block_exercise_id, next, logged, substitute, pin, session_date
     )
 
 
@@ -732,10 +760,11 @@ async def log_block_exercise_form(
     next: str | None = None,
     logged: bool = False,
     pin: str | None = None,
+    session_date: date_type | None = None,
 ):
     next = safe_next(next)
     return await render_training_log(
-        request, db, user, None, block_exercise_id, next, logged, False, pin
+        request, db, user, None, block_exercise_id, next, logged, False, pin, session_date
     )
 
 
@@ -886,6 +915,7 @@ def build_optimistic_log_response(
     prompt_finish: bool,
     sets_completed_today: int,
     pin: str | None = None,
+    session_date: date_type | None = None,
 ) -> dict:
     """The JSON payload the optimistic-UI fetch() needs to update the whole
     training screen (row, ring, rest timer, next-step prompts) without a
@@ -922,6 +952,8 @@ def build_optimistic_log_response(
             nav_params["next"] = next
         if pin is not None:
             nav_params["pin"] = pin
+        if session_date is not None:
+            nav_params["session_date"] = session_date.isoformat()
         auto_advance_url = training_url(target_be.id, target_exercise_id, nav_params)
 
     ask_weight_progress, suggested_weight = (
@@ -971,6 +1003,7 @@ async def log_exercise_submit(
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
     pin: str | None = Form(None),
+    session_date: date_type | None = Form(None),
 ):
     next = safe_next(next)
     workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
@@ -981,7 +1014,7 @@ async def log_exercise_submit(
         return JSONResponse(
             build_optimistic_log_response(
                 db, user, exercise_id, block_exercise_id, next,
-                workout, workout_set, target_be, prompt_finish, sets_completed_today, pin,
+                workout, workout_set, target_be, prompt_finish, sets_completed_today, pin, session_date,
             )
         )
 
@@ -993,6 +1026,8 @@ async def log_exercise_submit(
         params["next"] = next
     if pin is not None:
         params["pin"] = pin
+    if session_date is not None:
+        params["session_date"] = session_date.isoformat()
     redirect_url += f"?{urlencode(params)}"
 
     return RedirectResponse(url=redirect_url, status_code=303)
@@ -1012,6 +1047,7 @@ async def log_block_exercise_submit(
     comment: str | None = Form(None),
     next: str | None = Form(None),
     pin: str | None = Form(None),
+    session_date: date_type | None = Form(None),
 ):
     next = safe_next(next)
     workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
@@ -1022,7 +1058,7 @@ async def log_block_exercise_submit(
         return JSONResponse(
             build_optimistic_log_response(
                 db, user, None, block_exercise_id, next,
-                workout, workout_set, target_be, prompt_finish, sets_completed_today, pin,
+                workout, workout_set, target_be, prompt_finish, sets_completed_today, pin, session_date,
             )
         )
 
@@ -1032,6 +1068,8 @@ async def log_block_exercise_submit(
         params["next"] = next
     if pin is not None:
         params["pin"] = pin
+    if session_date is not None:
+        params["session_date"] = session_date.isoformat()
     redirect_url += f"?{urlencode(params)}"
 
     return RedirectResponse(url=redirect_url, status_code=303)
@@ -1046,6 +1084,7 @@ async def set_target_weight(
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
     pin: str | None = Form(None),
+    session_date: date_type | None = Form(None),
 ):
     next = safe_next(next)
     existing = (
@@ -1069,6 +1108,8 @@ async def set_target_weight(
         redirect_params["next"] = next
     if pin is not None:
         redirect_params["pin"] = pin
+    if session_date is not None:
+        redirect_params["session_date"] = session_date.isoformat()
     return RedirectResponse(
         url=training_url(block_exercise_id, exercise_id, redirect_params), status_code=303
     )

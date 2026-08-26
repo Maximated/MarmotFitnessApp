@@ -228,6 +228,7 @@
       <input type="hidden" name="block_exercise_id" value="{{ block_exercise_id }}" />
       {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
       {% if pin %}<input type="hidden" name="pin" value="{{ pin }}" />{% endif %}
+      {% if session_date %}<input type="hidden" name="session_date" value="{{ session_date }}" />{% endif %}
     </form>
 
     <script>
@@ -595,6 +596,7 @@
             const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
             {% if next %}params.set("next", {{ next | tojson }});{% endif %}
             {% if pin %}params.set("pin", {{ pin | tojson }});{% endif %}
+            {% if session_date %}params.set("session_date", {{ session_date | tojson }});{% endif %}
             fetch("/exercises/{{ exercise.id }}/set-target-weight", { method: "POST", body: params })
               .then((r) => { window.location = r.url; })
               .catch(() => {});
