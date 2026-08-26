@@ -220,6 +220,83 @@ def get_day_content(db: Session, day_template_id: int):
     return blocks, exercises_by_block
 
 
+def compute_exercise_progress_maps(db: Session, workout_id: int | None):
+    """The per-exercise "X/Y sets", weight%, and time% badges shown next to
+    each row -- shared between /today (the live workout) and the session
+    detail page (a past one), so they can never silently drift apart the
+    way today.html and session.html once did. workout_id is whichever
+    Workout the badges should be computed against, not necessarily today's."""
+    if workout_id is None:
+        return {}, {}, {}, {}, {}, {}
+
+    sets_completed_by_exercise = {
+        row[0]: row[1]
+        for row in db.query(WorkoutSet.exercise_id, func.count(WorkoutSet.id))
+        .filter(WorkoutSet.workout_id == workout_id, WorkoutSet.exercise_id.isnot(None))
+        .group_by(WorkoutSet.exercise_id)
+        .all()
+    }
+    sets_completed_by_block_exercise = {
+        row[0]: row[1]
+        for row in db.query(WorkoutSet.block_exercise_id, func.count(WorkoutSet.id))
+        .filter(WorkoutSet.workout_id == workout_id, WorkoutSet.block_exercise_id.isnot(None))
+        .group_by(WorkoutSet.block_exercise_id)
+        .all()
+    }
+    avg_weight_by_exercise = {
+        row[0]: row[1]
+        for row in db.query(WorkoutSet.exercise_id, func.avg(WorkoutSet.weight))
+        .filter(
+            WorkoutSet.workout_id == workout_id,
+            WorkoutSet.weight.isnot(None),
+            WorkoutSet.exercise_id.isnot(None),
+        )
+        .group_by(WorkoutSet.exercise_id)
+        .all()
+    }
+    avg_weight_by_block_exercise = {
+        row[0]: row[1]
+        for row in db.query(WorkoutSet.block_exercise_id, func.avg(WorkoutSet.weight))
+        .filter(
+            WorkoutSet.workout_id == workout_id,
+            WorkoutSet.weight.isnot(None),
+            WorkoutSet.block_exercise_id.isnot(None),
+        )
+        .group_by(WorkoutSet.block_exercise_id)
+        .all()
+    }
+    avg_duration_by_exercise = {
+        row[0]: row[1]
+        for row in db.query(WorkoutSet.exercise_id, func.avg(WorkoutSet.duration_seconds))
+        .filter(
+            WorkoutSet.workout_id == workout_id,
+            WorkoutSet.duration_seconds.isnot(None),
+            WorkoutSet.exercise_id.isnot(None),
+        )
+        .group_by(WorkoutSet.exercise_id)
+        .all()
+    }
+    avg_duration_by_block_exercise = {
+        row[0]: row[1]
+        for row in db.query(WorkoutSet.block_exercise_id, func.avg(WorkoutSet.duration_seconds))
+        .filter(
+            WorkoutSet.workout_id == workout_id,
+            WorkoutSet.duration_seconds.isnot(None),
+            WorkoutSet.block_exercise_id.isnot(None),
+        )
+        .group_by(WorkoutSet.block_exercise_id)
+        .all()
+    }
+    return (
+        sets_completed_by_exercise,
+        sets_completed_by_block_exercise,
+        avg_weight_by_exercise,
+        avg_weight_by_block_exercise,
+        avg_duration_by_exercise,
+        avg_duration_by_block_exercise,
+    )
+
+
 @router.get("/programs/{program_id}/today")
 async def program_today(
     program_id: int,
@@ -274,74 +351,14 @@ async def program_today(
     blocks, exercises_by_block = get_day_content(db, day_template.id)
     exercises_by_block = apply_substitutions(db, exercises_by_block, substitution_map)
 
-    if todays_workout is not None:
-        sets_completed_by_exercise = {
-            row[0]: row[1]
-            for row in db.query(WorkoutSet.exercise_id, func.count(WorkoutSet.id))
-            .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.exercise_id.isnot(None))
-            .group_by(WorkoutSet.exercise_id)
-            .all()
-        }
-        sets_completed_by_block_exercise = {
-            row[0]: row[1]
-            for row in db.query(WorkoutSet.block_exercise_id, func.count(WorkoutSet.id))
-            .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.block_exercise_id.isnot(None))
-            .group_by(WorkoutSet.block_exercise_id)
-            .all()
-        }
-
-        avg_weight_by_exercise = {
-            row[0]: row[1]
-            for row in db.query(WorkoutSet.exercise_id, func.avg(WorkoutSet.weight))
-            .filter(
-                WorkoutSet.workout_id == todays_workout.id,
-                WorkoutSet.weight.isnot(None),
-                WorkoutSet.exercise_id.isnot(None),
-            )
-            .group_by(WorkoutSet.exercise_id)
-            .all()
-        }
-        avg_weight_by_block_exercise = {
-            row[0]: row[1]
-            for row in db.query(WorkoutSet.block_exercise_id, func.avg(WorkoutSet.weight))
-            .filter(
-                WorkoutSet.workout_id == todays_workout.id,
-                WorkoutSet.weight.isnot(None),
-                WorkoutSet.block_exercise_id.isnot(None),
-            )
-            .group_by(WorkoutSet.block_exercise_id)
-            .all()
-        }
-
-        avg_duration_by_exercise = {
-            row[0]: row[1]
-            for row in db.query(WorkoutSet.exercise_id, func.avg(WorkoutSet.duration_seconds))
-            .filter(
-                WorkoutSet.workout_id == todays_workout.id,
-                WorkoutSet.duration_seconds.isnot(None),
-                WorkoutSet.exercise_id.isnot(None),
-            )
-            .group_by(WorkoutSet.exercise_id)
-            .all()
-        }
-        avg_duration_by_block_exercise = {
-            row[0]: row[1]
-            for row in db.query(WorkoutSet.block_exercise_id, func.avg(WorkoutSet.duration_seconds))
-            .filter(
-                WorkoutSet.workout_id == todays_workout.id,
-                WorkoutSet.duration_seconds.isnot(None),
-                WorkoutSet.block_exercise_id.isnot(None),
-            )
-            .group_by(WorkoutSet.block_exercise_id)
-            .all()
-        }
-    else:
-        sets_completed_by_exercise = {}
-        sets_completed_by_block_exercise = {}
-        avg_weight_by_exercise = {}
-        avg_weight_by_block_exercise = {}
-        avg_duration_by_exercise = {}
-        avg_duration_by_block_exercise = {}
+    (
+        sets_completed_by_exercise,
+        sets_completed_by_block_exercise,
+        avg_weight_by_exercise,
+        avg_weight_by_block_exercise,
+        avg_duration_by_exercise,
+        avg_duration_by_block_exercise,
+    ) = compute_exercise_progress_maps(db, todays_workout.id if todays_workout is not None else None)
 
     exercise_groups_by_block = {
         block_id: group_by_superset(attached)
@@ -1044,6 +1061,19 @@ async def view_session(
         if exercise is None
     }
 
+    exercise_groups_by_block = {
+        block_id: group_by_superset(attached)
+        for block_id, attached in exercises_by_block.items()
+    }
+    (
+        sets_completed_by_exercise,
+        sets_completed_by_block_exercise,
+        avg_weight_by_exercise,
+        avg_weight_by_block_exercise,
+        avg_duration_by_exercise,
+        avg_duration_by_block_exercise,
+    ) = compute_exercise_progress_maps(db, workout.id)
+
     logged_sets = (
         db.query(WorkoutSet)
         .filter(WorkoutSet.workout_id == workout.id)
@@ -1070,6 +1100,11 @@ async def view_session(
                 ),
                 "pending_name": workout_set.pending_name,
                 "set_count": 0,
+                "avg_weight": (
+                    avg_weight_by_exercise.get(workout_set.exercise_id)
+                    if workout_set.exercise_id is not None
+                    else avg_weight_by_block_exercise.get(workout_set.block_exercise_id)
+                ),
             }
             seen[key] = entry
         entry["set_count"] += 1
@@ -1094,7 +1129,13 @@ async def view_session(
             "session_date": session_date,
             "day_template": day_template,
             "blocks": blocks,
-            "exercises_by_block": exercises_by_block,
+            "exercise_groups_by_block": exercise_groups_by_block,
+            "sets_completed_by_exercise": sets_completed_by_exercise,
+            "sets_completed_by_block_exercise": sets_completed_by_block_exercise,
+            "avg_weight_by_exercise": avg_weight_by_exercise,
+            "avg_weight_by_block_exercise": avg_weight_by_block_exercise,
+            "avg_duration_by_exercise": avg_duration_by_exercise,
+            "avg_duration_by_block_exercise": avg_duration_by_block_exercise,
             "logged_exercises": logged_exercises,
             "ratings": get_user_ratings_map(db, user.id, exercise_ids),
             "current_page_url": f"/programs/{program.id}/sessions/{session_date.isoformat()}/detail",
