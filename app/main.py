@@ -25,6 +25,7 @@ from app.program_sessions import build_calendar_weeks, finish_workout, get_next_
 from app.program_sessions import router as program_sessions_router
 from app.programs import router as programs_router
 from app.push import router as push_router, send_inactivity_prompt_push, send_push_for_workout
+from app.sharing import router as sharing_router
 from app.templates import templates
 from app.version import get_version_status
 from app.workouts import router as workouts_router
@@ -151,6 +152,7 @@ app.include_router(blocks_router)
 app.include_router(block_exercises_router)
 app.include_router(program_sessions_router)
 app.include_router(push_router)
+app.include_router(sharing_router)
 app.mount("/media", StaticFiles(directory="media"), name="media")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
@@ -160,6 +162,8 @@ async def home(
     request: Request,
     db: Session = Depends(get_db),
     user: User | None = Depends(get_current_user),
+    year: int | None = None,
+    month: int | None = None,
 ):
     context = {"user": user, "version_status": get_version_status()}
     if user is None and request.query_params.get("login_error"):
@@ -229,9 +233,17 @@ async def home(
                 next_sessions.append({"date": due_date, "day_template": day_template})
             context["next_sessions"] = next_sessions
 
-            weeks, _, _ = build_calendar_weeks(db, active_program, today.year, today.month)
+            cal_year = year or today.year
+            cal_month = month or today.month
+            weeks, first_day, last_day = build_calendar_weeks(db, active_program, cal_year, cal_month)
+            prev_month_date = (first_day - timedelta(days=1)).replace(day=1)
+            next_month_date = last_day + timedelta(days=1)
             context["calendar_weeks"] = weeks
-            context["calendar_month_name"] = today.strftime("%B %Y")
+            context["calendar_month_name"] = first_day.strftime("%B %Y")
+            context["calendar_prev_year"] = prev_month_date.year
+            context["calendar_prev_month"] = prev_month_date.month
+            context["calendar_next_year"] = next_month_date.year
+            context["calendar_next_month"] = next_month_date.month
 
     return templates.TemplateResponse(request=request, name="home.html", context=context)
 

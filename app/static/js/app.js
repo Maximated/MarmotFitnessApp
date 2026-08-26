@@ -163,10 +163,62 @@ if ("Notification" in window && Notification.permission === "granted") {
 
 // Casillas de solo lectura que se editan con prompt() en vez de foco directo
 // -- un input/textarea normal hace que el móvil abra teclado y haga zoom a
-// la casilla, molesto para escribir algo puntual como el peso o una nota.
-// prompt() es un diálogo nativo, no forma parte del layout de la página, así
-// que no hay zoom ni scroll raro.
+// la casilla, molesto para escribir algo puntual como el peso. prompt() es
+// un diálogo nativo, no forma parte del layout de la página, así que no hay
+// zoom ni scroll raro.
+//
+// Las notas son la excepción: en algunos móviles el input de prompt() no
+// recibe el foco de teclado automáticamente, obligando a un toque extra
+// dentro del propio diálogo antes de poder escribir. Un modal propio (igual
+// que el de peso objetivo) sí puede forzar el foco con .focus(), así que las
+// notas usan ese camino en vez de prompt().
+let notesEditorOverlay = null;
+function openNotesEditor(field) {
+  field.blur();
+  if (!notesEditorOverlay) {
+    notesEditorOverlay = document.createElement("div");
+    notesEditorOverlay.className = "modal-overlay";
+    notesEditorOverlay.hidden = true;
+    notesEditorOverlay.innerHTML = `
+      <div class="modal-box">
+        <label for="notes-editor-textarea">Notas</label>
+        <textarea id="notes-editor-textarea" class="training-input" rows="4"></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn-modal btn-modal-primary" data-action="save">Guardar</button>
+          <button type="button" class="btn-modal btn-modal-cancel" data-action="cancel">Cancelar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(notesEditorOverlay);
+  }
+  const textarea = notesEditorOverlay.querySelector("#notes-editor-textarea");
+  const saveBtn = notesEditorOverlay.querySelector('[data-action="save"]');
+  const cancelBtn = notesEditorOverlay.querySelector('[data-action="cancel"]');
+
+  textarea.value = field.value;
+  notesEditorOverlay.hidden = false;
+  textarea.focus();
+
+  function close() {
+    notesEditorOverlay.hidden = true;
+    saveBtn.removeEventListener("click", onSave);
+    cancelBtn.removeEventListener("click", onCancel);
+  }
+  function onSave() {
+    field.value = textarea.value;
+    close();
+  }
+  function onCancel() {
+    close();
+  }
+  saveBtn.addEventListener("click", onSave);
+  cancelBtn.addEventListener("click", onCancel);
+}
+
 document.querySelectorAll(".prompt-input").forEach((field) => {
+  if (field.tagName === "TEXTAREA") {
+    field.addEventListener("click", () => openNotesEditor(field));
+    return;
+  }
   field.addEventListener("click", () => {
     field.blur();
     const label = field.dataset.promptLabel || "Valor";

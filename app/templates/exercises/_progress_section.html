@@ -1,0 +1,42 @@
+{% macro progress_chart(points, line, unit, min_val, max_val, date_from, date_to, extra_class="") %}
+  <svg class="chart {{ extra_class }}" width="600" height="200" viewBox="0 0 600 200">
+    {% for frac in [0.25, 0.5, 0.75] %}
+      <line x1="20" y1="{{ 20 + frac * 160 }}" x2="580" y2="{{ 20 + frac * 160 }}" class="chart-grid-line" />
+    {% endfor %}
+    <line x1="20" y1="20" x2="20" y2="180" class="chart-axis" />
+    <line x1="20" y1="180" x2="580" y2="180" class="chart-axis" />
+    <text x="2" y="24" class="chart-axis-label">{{ max_val }}{{ unit }}</text>
+    <text x="2" y="184" class="chart-axis-label">{{ min_val }}{{ unit }}</text>
+    {% if date_from %}<text x="20" y="196" class="chart-axis-label">{{ date_from }}</text>{% endif %}
+    {% if date_to %}<text x="580" y="196" text-anchor="end" class="chart-axis-label">{{ date_to }}</text>{% endif %}
+    {% for x, y, is_superset in points %}
+      <line x1="{{ x }}" y1="{{ y }}" x2="{{ x }}" y2="180" class="chart-drop-line{% if is_superset %} chart-drop-line-superset{% endif %}" />
+    {% endfor %}
+    <polyline fill="none" stroke="currentColor" stroke-width="2" points="{{ line }}" />
+    {% for x, y, is_superset in points %}
+      <circle cx="{{ x }}" cy="{{ y }}" r="3" class="chart-point{% if is_superset %} chart-point-superset{% endif %}" />
+    {% endfor %}
+  </svg>
+{% endmacro %}
+
+{% if has_progress %}
+  <h2>Progreso</h2>
+  <p>{{ progress_from }} → {{ progress_to }}</p>
+
+  {% if has_weight_progress %}
+    <p>Peso (kg) — mín {{ weight_min }}, máx {{ weight_max }}</p>
+    {{ progress_chart(weight_points, weight_line, " kg", weight_min, weight_max, progress_from_short, progress_to_short, "chart-weight") }}
+  {% else %}
+    <p>Sin datos de peso para este ejercicio.</p>
+  {% endif %}
+
+  {% if has_reps_progress %}
+    <p>Repeticiones — mín {{ reps_min }}, máx {{ reps_max }}</p>
+    {{ progress_chart(reps_points, reps_line, "", reps_min, reps_max, progress_from_short, progress_to_short, "chart-reps") }}
+  {% endif %}
+
+  {% if has_duration_progress %}
+    <p>Duración (s) — mín {{ duration_min }}, máx {{ duration_max }}</p>
+    {{ progress_chart(duration_points, duration_line, " s", duration_min, duration_max, progress_from_short, progress_to_short) }}
+  {% endif %}
+{% endif %}

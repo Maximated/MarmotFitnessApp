@@ -6,7 +6,12 @@
 
   <h1>{{ program.name }}{% if program.is_active %} · Activo{% endif %}</h1>
   <p>{{ program.cycle_days }} días de ciclo · <a href="/programs/{{ program.id }}/edit">Editar</a></p>
-  <p><a href="/programs/{{ program.id }}/today" class="btn-pill">Entrenar</a></p>
+  <div class="day-action-row" style="margin-bottom: 1rem;">
+    <a href="/programs/{{ program.id }}/today" class="btn-pill">Entrenar<span class="pill-icon">{% include "_icon_play.html" %}</span></a>
+    <form method="post" action="/programs/{{ program.id }}/share">
+      <button type="submit" class="icon-action-btn" aria-label="Compartir esta rutina">{% include "_icon_share.html" %}</button>
+    </form>
+  </div>
 
   {% if not program.is_active %}
     <form method="post" action="/programs/{{ program.id }}/activate">
@@ -24,23 +29,24 @@
   <ul class="exercise-grid">
     {% for day_template in day_templates %}
       <li>
-        <p>
-          Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}
-          · <a href="/days/{{ day_template.id }}">Editar</a>
-          · <a href="/days/{{ day_template.id }}/preview">Ver</a>
-        </p>
+        <p>Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}</p>
         <p class="day-summary">{{ day_summaries[day_template.id] }}</p>
-        <div class="actions">
+        <div class="day-action-row">
+          <a href="/days/{{ day_template.id }}" class="icon-action-btn" aria-label="Editar día">{% include "_icon_pencil.html" %}</a>
+          <a href="/days/{{ day_template.id }}/preview" class="icon-action-btn" aria-label="Ver día">{% include "_icon_eye.html" %}</a>
+          <form method="post" action="/days/{{ day_template.id }}/share">
+            <button type="submit" class="icon-action-btn" aria-label="Compartir día">{% include "_icon_share.html" %}</button>
+          </form>
           {% if copy_from and copy_from != day_template.id %}
             <form method="post" action="/days/{{ day_template.id }}/paste" data-confirm="¿Seguro que quieres sobrescribir el día {{ day_template.day_number }} con la copia? Perderá sus bloques actuales.">
               <input type="hidden" name="copy_from" value="{{ copy_from }}" />
-              <button type="submit">Pegar aquí</button>
+              <button type="submit" class="icon-action-btn" aria-label="Pegar aquí">{% include "_icon_copy.html" %}</button>
             </form>
           {% elif not copy_from %}
-            <a href="/programs/{{ program.id }}?copy_from={{ day_template.id }}">Copiar</a>
+            <a href="/programs/{{ program.id }}?copy_from={{ day_template.id }}" class="icon-action-btn" aria-label="Copiar día">{% include "_icon_copy.html" %}</a>
           {% endif %}
           <form method="post" action="/days/{{ day_template.id }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar el día {{ day_template.day_number }}? Se perderán también sus bloques, y el programa pasará a tener {{ program.cycle_days - 1 }} días de ciclo.">
-            <button type="submit" class="btn-danger">Eliminar</button>
+            <button type="submit" class="icon-action-btn icon-action-btn-danger" aria-label="Eliminar día">{% include "_icon_trash.html" %}</button>
           </form>
         </div>
       </li>

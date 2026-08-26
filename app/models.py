@@ -158,6 +158,34 @@ class BlockExercise(Base):
     is_superset_with_next: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
+class SharedLink(Base):
+    """A public, unguessable link to view (and, if the visitor is logged
+    in, copy into their own account) either a whole Program or a single
+    DayTemplate. Exactly one of program_id/day_template_id is set, same
+    dual-scope pattern as WorkoutSubstitution. The token, not the row id,
+    is what appears in the URL -- so sharing a program never exposes how
+    many programs exist or lets a link be guessed from a neighboring id."""
+
+    __tablename__ = "shared_links"
+    __table_args__ = (
+        CheckConstraint(
+            "(program_id is not null) != (day_template_id is not null)",
+            name="ck_shared_link_exactly_one_scope",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(String, unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    program_id: Mapped[int | None] = mapped_column(
+        ForeignKey("programs.id", ondelete="CASCADE"), index=True
+    )
+    day_template_id: Mapped[int | None] = mapped_column(
+        ForeignKey("day_templates.id", ondelete="CASCADE"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class WorkoutSubstitution(Base):
     """A swapped exercise for one slot -- either scoped to a real, dated
     Workout (the normal case, set while actually training) or to a

@@ -1,3 +1,6 @@
-{% macro pill_link(url, label, id=None, extra_class="") %}
-  <a href="{{ url }}" class="btn-pill{% if extra_class %} {{ extra_class }}{% endif %}"{% if id %} id="{{ id }}"{% endif %}>{{ label }}</a>
+{% macro pill_link(url, label, id=None, extra_class="", icon=None) %}
+  <a href="{{ url }}" class="btn-pill{% if extra_class %} {{ extra_class }}{% endif %}"{% if id %} id="{{ id }}"{% endif %}>
+    {{ label }}
+    {% if icon %}<span class="pill-icon">{% include "_icon_" ~ icon ~ ".html" %}</span>{% endif %}
+  </a>
 {% endmacro %}

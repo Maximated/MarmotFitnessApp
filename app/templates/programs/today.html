@@ -4,10 +4,12 @@
 {% from "_pill_link.html" import pill_link %}
 
 {% block content %}
-  <div class="today-nav-buttons">
-    {{ pill_link("/programs/" ~ program.id ~ "/calendar", "Ver calendario", extra_class="btn-pill-block") }}
-    {% if state == "started" and not workout_started %}
-      {{ pill_link("/today/choose-session", "Elegir sesión", extra_class="btn-pill-block") }}
+  <div class="pill-stack">
+    {{ pill_link("/programs/" ~ program.id ~ "/calendar", "Ver calendario", extra_class="btn-pill-block", icon="calendar") }}
+    {% if state == "started" %}
+      <form method="post" action="/days/{{ day_template.id }}/share">
+        <button type="submit" class="btn-pill btn-pill-block">Compartir este día<span class="pill-icon">{% include "_icon_share.html" %}</span></button>
+      </form>
     {% endif %}
   </div>
 
@@ -16,7 +18,7 @@
   {% if state == "not_started" %}
     <p>Todavía no has empezado este programa.</p>
     <form method="post" action="/programs/{{ program.id }}/start">
-      <button type="submit" class="btn-pill">Empezar programa</button>
+      <button type="submit" class="btn-pill">Empezar programa<span class="pill-icon">{% include "_icon_play.html" %}</span></button>
     </form>
 
   {% elif state == "started" %}
@@ -26,6 +28,7 @@
     </p>
     {% if not workout_started %}
       <p>Puedes mirar y preparar el día -- valorar o cambiar ejercicios -- sin que cuente como empezado. Se empieza de verdad al iniciar el calentamiento o al añadir tu primera serie.</p>
+      {{ pill_link("/today/choose-session", "Elegir sesión", extra_class="btn-pill-block ghost", icon="shuffle") }}
     {% endif %}
 
     {% if finished and stats %}
@@ -120,14 +123,14 @@
     {% if finished %}
       <p>Entrenamiento finalizado. Puedes seguir revisando y editando tus series desde el histórico de cada ejercicio.</p>
       <form method="post" action="/programs/{{ program.id }}/sessions/{{ today }}/delete" class="delete-form" data-confirm="¿Eliminar esta sesión? Se perderán todas las series registradas hoy y el día volverá a estar disponible.">
-        <button type="submit" class="btn-danger">Eliminar esta sesión</button>
+        <button type="submit" class="btn-pill btn-pill-block btn-pill-danger">Eliminar esta sesión<span class="pill-icon">{% include "_icon_trash.html" %}</span></button>
       </form>
     {% elif workout_started %}
       <form method="post" action="/programs/{{ program.id }}/today/finish" data-confirm="¿Dar por finalizado el entrenamiento de hoy? Podrás seguir viendo y editando tus series después.">
-        <button type="submit" class="btn-pill">Finalizar entrenamiento</button>
+        <button type="submit" class="btn-pill btn-pill-block">Finalizar entrenamiento<span class="pill-icon">{% include "_icon_check.html" %}</span></button>
       </form>
       <form method="post" action="/programs/{{ program.id }}/sessions/{{ today }}/delete" class="delete-form" data-confirm="¿Eliminar esta sesión? Se perderán todas las series registradas hoy y el día volverá a estar disponible.">
-        <button type="submit" class="btn-danger">Eliminar esta sesión</button>
+        <button type="submit" class="btn-pill btn-pill-block btn-pill-danger">Eliminar esta sesión<span class="pill-icon">{% include "_icon_trash.html" %}</span></button>
       </form>
     {% endif %}
   {% endif %}

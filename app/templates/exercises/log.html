@@ -32,14 +32,16 @@
 
     <div class="training-header{% if logged %} fade-in{% endif %}" id="training-swipe-area">
       {% if training.is_superset %}<p class="superset-badge">SUPERSET</p>{% endif %}
-      {% if training.recycle_url or training.revert_url %}
+      {% if training.recycle_url or training.revert_url or training.pin_toggle_url %}
         <div class="training-gif-toolbar{% if training.revert_url %} training-gif-toolbar-split{% endif %}">
           {% if training.revert_url %}
-            <a href="{{ training.revert_url }}" class="similar-toggle-btn similar-revert-btn" id="revert-btn" aria-label="Volver al ejercicio original del programa">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
-                <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
-              </svg>
-            </a>
+            <div class="similar-toggle-group">
+              <a href="{{ training.revert_url }}" class="similar-toggle-btn similar-revert-btn" id="revert-btn" aria-label="Volver al ejercicio fijado">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                  <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+                </svg>
+              </a>
+            </div>
           {% endif %}
           <div class="similar-toggle-group">
             {% if training.recycle_back_url %}
@@ -53,6 +55,13 @@
               <a href="{{ training.recycle_url }}" class="similar-toggle-btn" id="recycle-btn" aria-label="Cambiar por un ejercicio similar">
                 <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
                   <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                </svg>
+              </a>
+            {% endif %}
+            {% if training.pin_toggle_url %}
+              <a href="{{ training.pin_toggle_url }}" class="similar-toggle-btn{% if training.pin_active %} similar-toggle-btn-active{% endif %}" id="pin-toggle-btn" aria-label="{{ 'Quitar chincheta de este ejercicio' if training.pin_active else 'Fijar este ejercicio' }}">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                  <path d="M16,9V4h1V2H7v2h1v5c0,1.66-1.34,3-3,3v2h5.97v7l1,1l1-1v-7H18v-2C16.34,12,16,10.66,16,9z"/>
                 </svg>
               </a>
             {% endif %}
@@ -182,13 +191,14 @@
       </div>
     </div>
 
-    {% if training.recycle_url or training.recycle_back_url or training.revert_url %}
+    {% if training.recycle_url or training.recycle_back_url or training.revert_url or training.pin_toggle_url %}
       <script>
         (function () {
           [
             ["recycle-btn", "left"],
             ["recycle-back-btn", "right"],
             ["revert-btn", "right"],
+            ["pin-toggle-btn", "left"],
           ].forEach(([id, direction]) => {
             const btn = document.getElementById(id);
             if (!btn) return;
@@ -217,6 +227,7 @@
       <label>Notas <textarea name="comment" readonly class="prompt-input" data-prompt-label="Notas"></textarea></label>
       <input type="hidden" name="block_exercise_id" value="{{ block_exercise_id }}" />
       {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
+      {% if pin %}<input type="hidden" name="pin" value="{{ pin }}" />{% endif %}
     </form>
 
     <script>
@@ -357,6 +368,15 @@
           window.wireSwipeRow(realRow);
           wireHistoryRowCopy(realRow);
           hasTodayGroup = true;
+
+          // El gráfico no se puede parchear serie a serie (un punto nuevo
+          // puede hacer que aparezca por primera vez, o recalcular toda la
+          // escala) -- se sustituye entero con lo que acaba de renderizar
+          // el servidor, para que se vea sin salir y volver a entrar.
+          const progressSection = document.getElementById("exercise-progress-section");
+          if (progressSection && typeof data.progress_html === "string") {
+            progressSection.innerHTML = data.progress_html;
+          }
         }
 
         function resetInputs(defaultReps) {
@@ -574,6 +594,7 @@
             if (weight === null) return;
             const params = new URLSearchParams({ weight: String(weight), block_exercise_id: "{{ block_exercise_id }}" });
             {% if next %}params.set("next", {{ next | tojson }});{% endif %}
+            {% if pin %}params.set("pin", {{ pin | tojson }});{% endif %}
             fetch("/exercises/{{ exercise.id }}/set-target-weight", { method: "POST", body: params })
               .then((r) => { window.location = r.url; })
               .catch(() => {});

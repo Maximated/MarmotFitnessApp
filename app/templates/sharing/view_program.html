@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>{{ program.name }}</h1>
+  <p>{{ program.cycle_days }} días de ciclo</p>
+
+  {% if viewer_logged_in %}
+    <form method="post" action="/shared/{{ token }}/copy">
+      <button type="submit" class="btn-pill">Copiar a mi cuenta</button>
+    </form>
+  {% else %}
+    <p><a href="/login">Inicia sesión</a> para poder copiar esta rutina a tu cuenta.</p>
+  {% endif %}
+
+  <h2>Días</h2>
+  <ul class="exercise-grid">
+    {% for day_template in day_templates %}
+      <li>
+        <p>Día {{ day_template.day_number }}{% if day_template.subtitle %} — {{ day_template.subtitle }}{% endif %}</p>
+        <p class="day-summary">{{ day_summaries[day_template.id] }}</p>
+      </li>
+    {% else %}
+      <li>Este programa no tiene días todavía.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

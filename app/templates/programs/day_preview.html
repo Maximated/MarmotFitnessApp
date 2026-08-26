@@ -9,6 +9,10 @@
   </p>
   <p>Todavía no puedes empezar esta rutina, pero puedes prepararla: valora o cambia ejercicios por otros sin que cuente como realizado.</p>
 
+  <form method="post" action="/days/{{ day_template.id }}/share">
+    <button type="submit" class="btn-pill">Compartir este día</button>
+  </form>
+
   {% for block in blocks %}
     <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}{% if block.num_sets %} · {{ block.num_sets }} series{% endif %}</h2>
     <ul class="exercise-row-list{% if not loop.last %} exercise-row-list-block{% endif %}">

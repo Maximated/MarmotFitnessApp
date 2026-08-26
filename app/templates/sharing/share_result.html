@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Enlace para compartir</h1>
+  <p>{{ title }}</p>
+  <p>Cualquiera con este enlace puede verlo, tenga o no cuenta en la app.</p>
+
+  <div class="share-link-box">
+    <input type="text" id="share-link-input" value="{{ share_url }}" readonly />
+    <button type="button" class="btn-pill" id="share-link-copy">Copiar</button>
+  </div>
+
+  <p><a href="/programs">Volver a programas</a></p>
+
+  <script>
+    document.getElementById("share-link-copy").addEventListener("click", async () => {
+      const input = document.getElementById("share-link-input");
+      const btn = document.getElementById("share-link-copy");
+      try {
+        await navigator.clipboard.writeText(input.value);
+      } catch (err) {
+        input.select();
+        document.execCommand("copy");
+      }
+      const original = btn.textContent;
+      btn.textContent = "¡Copiado!";
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    });
+  </script>
+{% endblock %}

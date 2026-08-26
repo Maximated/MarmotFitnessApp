@@ -264,14 +264,26 @@ def resolve_weight_progress_prompt(
 ) -> tuple[bool, float | None]:
     """Whether to ask what weight to start tracking for this exercise --
     only right after the log action that completed all of today's sets for
-    it, and only if nothing is tracked yet (an existing row is only ever
-    incremented, in apply_weight_progression, not asked about again)."""
+    it. Asks the first time nothing is tracked yet, and again any time the
+    weight just logged has overtaken the tracked target -- e.g. the user
+    pushed past it on their own, ahead of apply_weight_progression's own
+    automatic bump. Never asks to go DOWN: a lighter set (a bad day, a
+    deload) shouldn't second-guess an already-tracked target."""
     if (
         exercise_id is None
         or block_exercise.modo_registro != "series"
         or sets_completed_today != block.num_sets
         or todays_workout is None
     ):
+        return False, None
+
+    last_set = (
+        db.query(WorkoutSet)
+        .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.exercise_id == exercise_id)
+        .order_by(WorkoutSet.order.desc())
+        .first()
+    )
+    if last_set is None or not last_set.weight:
         return False, None
 
     existing_progress = (
@@ -282,16 +294,7 @@ def resolve_weight_progress_prompt(
         )
         .first()
     )
-    if existing_progress is not None:
-        return False, None
-
-    last_set = (
-        db.query(WorkoutSet)
-        .filter(WorkoutSet.workout_id == todays_workout.id, WorkoutSet.exercise_id == exercise_id)
-        .order_by(WorkoutSet.order.desc())
-        .first()
-    )
-    if last_set is None or not last_set.weight:
+    if existing_progress is not None and last_set.weight <= existing_progress.current_weight:
         return False, None
 
     return True, last_set.weight
@@ -349,6 +352,7 @@ async def render_training_log(
     next: str | None,
     logged: bool,
     substitute: bool,
+    pin: str | None = None,
 ):
     """Shared training-screen logic for both /exercises/{id}/log?block_exercise_id=
     (has a catalog Exercise) and /block-exercises/{id}/log (no catálogo,
@@ -386,6 +390,8 @@ async def render_training_log(
         redirect_params = {"block_exercise_id": block_exercise_id}
         if next is not None:
             redirect_params["next"] = next
+        if pin is not None:
+            redirect_params["pin"] = pin
         return RedirectResponse(
             url=training_url(block_exercise_id, exercise_id, redirect_params), status_code=303
         )
@@ -400,6 +406,8 @@ async def render_training_log(
         redirect_params = {"block_exercise_id": block_exercise_id}
         if next is not None:
             redirect_params["next"] = next
+        if pin is not None:
+            redirect_params["pin"] = pin
         if logged:
             redirect_params["logged"] = "1"
         return RedirectResponse(
@@ -426,6 +434,8 @@ async def render_training_log(
         nav_params = {"block_exercise_id": neighbor.id}
         if next is not None:
             nav_params["next"] = next
+        if effective_pin is not None:
+            nav_params["pin"] = effective_pin
         neighbor_exercise_id = substitution_map.get(neighbor.id, neighbor.exercise_id)
         return training_url(neighbor.id, neighbor_exercise_id, nav_params)
 
@@ -433,6 +443,8 @@ async def render_training_log(
         nav_params = {"block_exercise_id": block_exercise.id, "substitute": "1"}
         if next is not None:
             nav_params["next"] = next
+        if effective_pin is not None:
+            nav_params["pin"] = effective_pin
         return training_url(block_exercise.id, candidate_exercise_id, nav_params)
 
     day_exercises = (
@@ -452,6 +464,55 @@ async def render_training_log(
         if be.id != block_exercise.id
     } - {None}
 
+    # Pin: bookmarks a specific (slot, exercise) pair -- not just the slot --
+    # as the "home" to return to after roaming (recycle, prev/next,
+    # auto-advance after logging). Encoded as "{block_exercise_id}:
+    # {exercise_id}" precisely so that recycling through several candidates
+    # in the SAME slot doesn't leave the toggle lit for every candidate that
+    # passes through it afterwards -- only the one actually pinned. Unless
+    # the user has explicitly pinned something, the slot's own routine
+    # exercise IS the pin target, so the single "go back" button built from
+    # this (see revert_url below) doubles as both "undo my recycling"
+    # (nothing pinned) and "take me to what I pinned" (something pinned) --
+    # deliberately one button, not two, since they're the same action once
+    # the default target is the original exercise. A stale/foreign/
+    # malformed pin value is silently dropped instead of erroring.
+    pinned_block_exercise = None
+    pin_exercise_id = None
+    if pin is not None:
+        pin_be_id = None
+        try:
+            pin_be_id_str, pin_ex_id_str = pin.split(":", 1)
+            pin_be_id, pin_exercise_id = int(pin_be_id_str), int(pin_ex_id_str)
+        except (ValueError, AttributeError):
+            pin_be_id = None
+        if pin_be_id is not None:
+            for candidate in day_exercises:
+                if candidate.id == pin_be_id:
+                    pinned_block_exercise = candidate
+                    break
+
+    if pinned_block_exercise is not None:
+        effective_pin = f"{pinned_block_exercise.id}:{pin_exercise_id}"
+        pin_target_block_exercise = pinned_block_exercise
+        pin_target_exercise_id = pin_exercise_id
+    else:
+        effective_pin = None
+        pin_target_block_exercise = block_exercise
+        pin_target_exercise_id = block_exercise.exercise_id
+
+    pin_active = (
+        pin_target_block_exercise.id == block_exercise.id
+        and pin_target_exercise_id == exercise_id
+    )
+
+    pin_toggle_params = {"block_exercise_id": block_exercise_id}
+    if next is not None:
+        pin_toggle_params["next"] = next
+    if not pin_active:
+        pin_toggle_params["pin"] = f"{block_exercise_id}:{exercise_id}"
+    pin_toggle_url = training_url(block_exercise_id, exercise_id, pin_toggle_params)
+
     recycle_url = None
     recycle_back_url = None
     revert_url = None
@@ -463,8 +524,18 @@ async def render_training_log(
         recycle_url = build_recycle_url(next_similar.id) if next_similar is not None else None
         prev_similar = get_previous_similar_exercise(db, user.id, exercise_id, exclude_ids=day_exercise_ids)
         recycle_back_url = build_recycle_url(prev_similar.id) if prev_similar is not None else None
-        if block_exercise.exercise_id is not None and exercise_id != block_exercise.exercise_id:
-            revert_url = build_recycle_url(block_exercise.exercise_id)
+        if not pin_active and pin_target_exercise_id is not None:
+            if pin_target_block_exercise.id == block_exercise.id:
+                revert_url = build_recycle_url(pin_target_exercise_id)
+            else:
+                revert_nav_params = {"block_exercise_id": pin_target_block_exercise.id, "substitute": "1"}
+                if next is not None:
+                    revert_nav_params["next"] = next
+                if effective_pin is not None:
+                    revert_nav_params["pin"] = effective_pin
+                revert_url = training_url(
+                    pin_target_block_exercise.id, pin_target_exercise_id, revert_nav_params
+                )
         user_rating = get_user_rating(db, user.id, exercise_id)
         user_banned = get_user_ban(db, user.id, exercise_id)
         similar_exercises = get_similar_exercises(db, user.id, exercise_id)
@@ -530,6 +601,8 @@ async def render_training_log(
         "recycle_url": recycle_url,
         "recycle_back_url": recycle_back_url,
         "revert_url": revert_url,
+        "pin_active": pin_active,
+        "pin_toggle_url": pin_toggle_url,
     }
 
     index = None
@@ -574,6 +647,8 @@ async def render_training_log(
     self_params = {"block_exercise_id": block_exercise_id}
     if next is not None:
         self_params["next"] = next
+    if effective_pin is not None:
+        self_params["pin"] = effective_pin
     self_url = training_url(block_exercise_id, exercise_id, self_params)
 
     history = build_exercise_history(db, user.id, exercise_id, block_exercise_id)
@@ -587,6 +662,7 @@ async def render_training_log(
         "now_time": now.time().isoformat(timespec="minutes"),
         "training": training,
         "next": next,
+        "pin": effective_pin,
         "block_exercise_id": block_exercise_id,
         "prev_url": prev_url,
         "next_exercise_url": next_exercise_url,
@@ -609,6 +685,7 @@ async def log_exercise_form(
     next: str | None = None,
     logged: bool = False,
     substitute: bool = False,
+    pin: str | None = None,
 ):
     next = safe_next(next)
     if block_exercise_id is None:
@@ -642,7 +719,7 @@ async def log_exercise_form(
         return templates.TemplateResponse(request=request, name="exercises/log.html", context=context)
 
     return await render_training_log(
-        request, db, user, exercise_id, block_exercise_id, next, logged, substitute
+        request, db, user, exercise_id, block_exercise_id, next, logged, substitute, pin
     )
 
 
@@ -654,10 +731,11 @@ async def log_block_exercise_form(
     user: User = Depends(require_user),
     next: str | None = None,
     logged: bool = False,
+    pin: str | None = None,
 ):
     next = safe_next(next)
     return await render_training_log(
-        request, db, user, None, block_exercise_id, next, logged, False
+        request, db, user, None, block_exercise_id, next, logged, False, pin
     )
 
 
@@ -807,6 +885,7 @@ def build_optimistic_log_response(
     target_be: BlockExercise | None,
     prompt_finish: bool,
     sets_completed_today: int,
+    pin: str | None = None,
 ) -> dict:
     """The JSON payload the optimistic-UI fetch() needs to update the whole
     training screen (row, ring, rest timer, next-step prompts) without a
@@ -826,6 +905,14 @@ def build_optimistic_log_response(
     row_template = templates.get_template("exercises/_history_row.html")
     row_html = row_template.module.history_row(sets_completed_today, workout_set, self_url)
 
+    # The chart/progress section can't be patched incrementally (a new
+    # point can flip has_progress from False to True, or shift the whole
+    # scale) -- re-render it wholesale with the set that was just
+    # committed, so it shows up immediately instead of only after leaving
+    # and re-entering the exercise.
+    history = build_exercise_history(db, user.id, exercise_id, block_exercise_id)
+    progress_html = templates.get_template("exercises/_progress_section.html").render(**history)
+
     auto_advance_url = None
     if target_be is not None:
         substitution_map = get_substitution_map(db, workout.id)
@@ -833,6 +920,8 @@ def build_optimistic_log_response(
         nav_params = {"block_exercise_id": target_be.id}
         if next is not None:
             nav_params["next"] = next
+        if pin is not None:
+            nav_params["pin"] = pin
         auto_advance_url = training_url(target_be.id, target_exercise_id, nav_params)
 
     ask_weight_progress, suggested_weight = (
@@ -851,6 +940,7 @@ def build_optimistic_log_response(
 
     return {
         "row_html": row_html,
+        "progress_html": progress_html,
         "is_first_set_of_day": is_first_set_of_day,
         "day_header": day_header,
         "sets_completed": sets_completed_today,
@@ -880,6 +970,7 @@ async def log_exercise_submit(
     comment: str | None = Form(None),
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
+    pin: str | None = Form(None),
 ):
     next = safe_next(next)
     workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
@@ -890,7 +981,7 @@ async def log_exercise_submit(
         return JSONResponse(
             build_optimistic_log_response(
                 db, user, exercise_id, block_exercise_id, next,
-                workout, workout_set, target_be, prompt_finish, sets_completed_today,
+                workout, workout_set, target_be, prompt_finish, sets_completed_today, pin,
             )
         )
 
@@ -900,6 +991,8 @@ async def log_exercise_submit(
         params["block_exercise_id"] = block_exercise_id
     if next is not None:
         params["next"] = next
+    if pin is not None:
+        params["pin"] = pin
     redirect_url += f"?{urlencode(params)}"
 
     return RedirectResponse(url=redirect_url, status_code=303)
@@ -918,6 +1011,7 @@ async def log_block_exercise_submit(
     set_time: time_type | None = Form(None, alias="time"),
     comment: str | None = Form(None),
     next: str | None = Form(None),
+    pin: str | None = Form(None),
 ):
     next = safe_next(next)
     workout, workout_set, target_be, prompt_finish, sets_completed_today = submit_workout_set(
@@ -928,7 +1022,7 @@ async def log_block_exercise_submit(
         return JSONResponse(
             build_optimistic_log_response(
                 db, user, None, block_exercise_id, next,
-                workout, workout_set, target_be, prompt_finish, sets_completed_today,
+                workout, workout_set, target_be, prompt_finish, sets_completed_today, pin,
             )
         )
 
@@ -936,6 +1030,8 @@ async def log_block_exercise_submit(
     params = {"logged": "1"}
     if next is not None:
         params["next"] = next
+    if pin is not None:
+        params["pin"] = pin
     redirect_url += f"?{urlencode(params)}"
 
     return RedirectResponse(url=redirect_url, status_code=303)
@@ -949,6 +1045,7 @@ async def set_target_weight(
     weight: float = Form(...),
     block_exercise_id: int | None = Form(None),
     next: str | None = Form(None),
+    pin: str | None = Form(None),
 ):
     next = safe_next(next)
     existing = (
@@ -961,13 +1058,17 @@ async def set_target_weight(
     )
     if existing is None:
         db.add(ExerciseUserProgress(user_id=user.id, exercise_id=exercise_id, current_weight=weight))
-        db.commit()
+    else:
+        existing.current_weight = weight
+    db.commit()
 
     redirect_params = {"logged": "1"}
     if block_exercise_id is not None:
         redirect_params["block_exercise_id"] = block_exercise_id
     if next is not None:
         redirect_params["next"] = next
+    if pin is not None:
+        redirect_params["pin"] = pin
     return RedirectResponse(
         url=training_url(block_exercise_id, exercise_id, redirect_params), status_code=303
     )

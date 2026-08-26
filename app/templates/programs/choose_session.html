@@ -20,7 +20,7 @@
             {% if day_template.id in done_before %}data-confirm="Esta sesión ya se hizo antes. Se añadirán nuevas series a esos ejercicios sin borrar las anteriores. ¿Continuar?"{% endif %}
           >
             <input type="hidden" name="day_template_id" value="{{ day_template.id }}" />
-            <button type="submit" class="btn-pill">Elegir</button>
+            <button type="submit" class="btn-pill btn-pill-block">Elegir<span class="pill-icon">{% include "_icon_arrow_right.html" %}</span></button>
           </form>
         </li>
       {% else %}

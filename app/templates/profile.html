@@ -22,7 +22,7 @@
         <span class="dropzone-filename" id="avatar-dropzone-filename"></span>
       </label>
       <input type="file" name="photo" id="avatar-input" accept="image/*" required class="hidden" />
-      <button type="submit">Cambiar foto</button>
+      <button type="submit" class="btn-pill">Cambiar foto</button>
     </form>
 
     <script>
@@ -62,7 +62,6 @@
     </script>
 
     <p>{{ user.name }} · {{ user.email }}</p>
-    <p><a href="/logout">Cerrar sesión</a></p>
 
     <h2>Ajustes</h2>
 
@@ -154,8 +153,10 @@
       {% endif %}
       <input type="password" name="new_password" placeholder="{{ 'Contraseña nueva' if user.password_hash else 'Crea una contraseña (mínimo 8 caracteres)' }}" required autocomplete="new-password" minlength="8" />
       <input type="password" name="new_password_confirm" placeholder="Repite la contraseña" required autocomplete="new-password" minlength="8" />
-      <button type="submit" class="btn-modal btn-modal-primary">{{ 'Cambiar contraseña' if user.password_hash else 'Crear contraseña' }}</button>
+      <button type="submit" class="btn-pill">{{ 'Cambiar contraseña' if user.password_hash else 'Crear contraseña' }}</button>
     </form>
+
+    <p class="profile-logout-row"><a href="/logout" class="btn-pill btn-pill-danger">Cerrar sesión</a></p>
   {% else %}
     <p><a href="/login">Login con Google</a></p>
   {% endif %}
