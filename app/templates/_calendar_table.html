@@ -21,11 +21,19 @@
           <tr>
             {% for day in week %}
               {% if day %}
-                <td class="{% if day.status == 'done' %}cal-done cal-day-btn{% elif day.status == 'due' %}cal-due{% endif %}"
-                  {% if day.status == 'done' %}data-date="{{ day.date.isoformat() }}" tabindex="0" role="button"{% endif %}>
-                  <span class="cal-day-num">{{ day.date.day }}</span>
-                  {% if day.status == 'done' or day.status == 'due' %}{{ dumbbell_icon() }}{% endif %}
-                </td>
+                {% if day.status == 'done' %}
+                  <td class="cal-done">
+                    <a class="cal-day-link" href="/programs/{{ program_id }}/sessions/{{ day.date.isoformat() }}/detail">
+                      <span class="cal-day-num">{{ day.date.day }}</span>
+                      {{ dumbbell_icon() }}
+                    </a>
+                  </td>
+                {% else %}
+                  <td class="{% if day.status == 'due' %}cal-due{% endif %}">
+                    <span class="cal-day-num">{{ day.date.day }}</span>
+                    {% if day.status == 'due' %}{{ dumbbell_icon() }}{% endif %}
+                  </td>
+                {% endif %}
               {% else %}
                 <td></td>
               {% endif %}
@@ -34,66 +42,5 @@
         {% endfor %}
       </tbody>
     </table>
-    <div class="cal-actions-popover" hidden>
-      <a class="cal-actions-edit cal-action-icon cal-action-icon-edit" href="#" aria-label="Editar">
-        {% include "_icon_pencil.html" %}
-      </a>
-      <form method="post" class="cal-actions-delete delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
-        <button type="submit" class="cal-action-icon cal-action-icon-delete" aria-label="Eliminar">
-          {% include "_icon_trash.html" %}
-        </button>
-      </form>
-    </div>
   </div>
-  <script>
-    (function () {
-      const wraps = document.querySelectorAll(".calendar-wrap");
-      const wrap = wraps[wraps.length - 1];
-      const popover = wrap.querySelector(".cal-actions-popover");
-      let currentBtn = null;
-
-      function position(btn) {
-        const rect = btn.getBoundingClientRect();
-        const wrapRect = wrap.getBoundingClientRect();
-        const popoverWidth = popover.offsetWidth;
-        let left = rect.left - wrapRect.left + rect.width / 2 - popoverWidth / 2;
-        left = Math.max(0, Math.min(left, wrapRect.width - popoverWidth));
-        popover.style.left = left + "px";
-        popover.style.top = (rect.bottom - wrapRect.top + 6) + "px";
-      }
-
-      function close() {
-        popover.hidden = true;
-        currentBtn = null;
-      }
-
-      document.querySelectorAll(".cal-day-btn").forEach((btn) => {
-        const toggle = () => {
-          if (currentBtn === btn && !popover.hidden) {
-            close();
-            return;
-          }
-          currentBtn = btn;
-          const dateStr = btn.dataset.date;
-          popover.querySelector(".cal-actions-edit").href = "/programs/{{ program_id }}/sessions/" + dateStr + "/detail";
-          popover.querySelector(".cal-actions-delete").action = "/programs/{{ program_id }}/sessions/" + dateStr + "/delete";
-          popover.hidden = false;
-          position(btn);
-        };
-        btn.addEventListener("click", toggle);
-        btn.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            toggle();
-          }
-        });
-      });
-
-      document.addEventListener("click", (event) => {
-        if (!popover.hidden && !popover.contains(event.target) && !event.target.closest(".cal-day-btn")) {
-          close();
-        }
-      });
-    })();
-  </script>
 {% endmacro %}

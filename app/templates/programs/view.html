@@ -5,12 +5,13 @@
   <div class="page-nav-row">{{ nav_arrow("/programs", "back", "Volver a programas") }}</div>
 
   <h1>{{ program.name }}{% if program.is_active %} · Activo{% endif %}</h1>
-  <p>{{ program.cycle_days }} días de ciclo · <a href="/programs/{{ program.id }}/edit">Editar</a></p>
-  <div class="day-action-row" style="margin-bottom: 1rem;">
-    <a href="/programs/{{ program.id }}/today" class="btn-pill">Entrenar<span class="pill-icon">{% include "_icon_play.html" %}</span></a>
+  <p>{{ program.cycle_days }} días de ciclo</p>
+  <div class="pill-stack">
+    <a href="/programs/{{ program.id }}/today" class="btn-pill btn-pill-block">Entrenar<span class="pill-icon">{% include "_icon_play.html" %}</span></a>
     <form method="post" action="/programs/{{ program.id }}/share">
-      <button type="submit" class="icon-action-btn" aria-label="Compartir esta rutina">{% include "_icon_share.html" %}</button>
+      <button type="submit" class="btn-pill btn-pill-block">Compartir esta rutina<span class="pill-icon">{% include "_icon_share.html" %}</span></button>
     </form>
+    <a href="/programs/{{ program.id }}/edit" class="btn-pill btn-pill-block">Editar rutina<span class="pill-icon">{% include "_icon_pencil.html" %}</span></a>
   </div>
 
   {% if not program.is_active %}

@@ -10,6 +10,9 @@
       <form method="post" action="/days/{{ day_template.id }}/share">
         <button type="submit" class="btn-pill btn-pill-block">Compartir este día<span class="pill-icon">{% include "_icon_share.html" %}</span></button>
       </form>
+      {% if not workout_started %}
+        {{ pill_link("/today/choose-session", "Elegir sesión", extra_class="btn-pill-block", icon="shuffle") }}
+      {% endif %}
     {% endif %}
   </div>
 
@@ -28,7 +31,6 @@
     </p>
     {% if not workout_started %}
       <p>Puedes mirar y preparar el día -- valorar o cambiar ejercicios -- sin que cuente como empezado. Se empieza de verdad al iniciar el calentamiento o al añadir tu primera serie.</p>
-      {{ pill_link("/today/choose-session", "Elegir sesión", extra_class="btn-pill-block ghost", icon="shuffle") }}
     {% endif %}
 
     {% if finished and stats %}

@@ -1014,11 +1014,50 @@ async def view_session(
     if owning_program is None:
         owning_program = program
 
-    day_template = db.get(DayTemplate, workout.day_template_id)
+    day_template = db.get(DayTemplate, workout.day_template_id) if workout.day_template_id is not None else None
     blocks, exercises_by_block = get_day_content(db, day_template.id) if day_template else ([], {})
     exercises_by_block = apply_substitutions(
         db, exercises_by_block, get_substitution_map(db, workout.id)
     )
+
+    # workouts.day_template_id is ON DELETE SET NULL -- editing or deleting
+    # the day template later (renaming a day, changing the program's
+    # structure, re-importing it) silently nulls it on every past workout
+    # that pointed at it, even though the actual WorkoutSets are untouched
+    # (that's why the per-exercise history still shows them fine). When
+    # that leaves nothing to resolve the original block layout from,
+    # rebuild the view directly from what was actually logged that day
+    # instead of showing a blank page for a session that really happened.
+    logged_exercises = None
+    if not any(exercises_by_block.get(block.id) for block in blocks):
+        logged_sets = (
+            db.query(WorkoutSet)
+            .filter(WorkoutSet.workout_id == workout.id)
+            .order_by(WorkoutSet.order)
+            .all()
+        )
+        seen: dict[int | str, dict] = {}
+        for workout_set in logged_sets:
+            key = (
+                workout_set.exercise_id
+                if workout_set.exercise_id is not None
+                else f"pending:{workout_set.block_exercise_id}"
+            )
+            entry = seen.get(key)
+            if entry is None:
+                entry = {
+                    "exercise": (
+                        db.get(Exercise, workout_set.exercise_id)
+                        if workout_set.exercise_id is not None
+                        else None
+                    ),
+                    "pending_name": workout_set.pending_name,
+                    "set_count": 0,
+                }
+                seen[key] = entry
+            entry["set_count"] += 1
+        if seen:
+            logged_exercises = list(seen.values())
 
     exercise_ids = [
         exercise.id
@@ -1026,6 +1065,10 @@ async def view_session(
         for _, exercise in attached
         if exercise is not None
     ]
+    if logged_exercises:
+        exercise_ids += [
+            item["exercise"].id for item in logged_exercises if item["exercise"] is not None
+        ]
 
     return templates.TemplateResponse(
         request=request,
@@ -1036,6 +1079,7 @@ async def view_session(
             "day_template": day_template,
             "blocks": blocks,
             "exercises_by_block": exercises_by_block,
+            "logged_exercises": logged_exercises,
             "ratings": get_user_ratings_map(db, user.id, exercise_ids),
             "current_page_url": f"/programs/{program.id}/sessions/{session_date.isoformat()}/detail",
             "finished": workout.finished_at is not None,

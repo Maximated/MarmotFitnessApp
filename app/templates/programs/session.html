@@ -11,29 +11,57 @@
     {% if finished %} · Finalizado{% endif %}
   </p>
 
-  {% for block in blocks %}
-    <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
-    <ul class="exercise-row-list{% if not loop.last %} exercise-row-list-block{% endif %}">
-      {% for block_exercise, exercise in exercises_by_block.get(block.id, []) %}
+  {% if logged_exercises %}
+    <p>La estructura original de este día ya no existe (se editó o se borró después), pero esto es lo que registraste.</p>
+    <ul class="exercise-row-list">
+      {% for item in logged_exercises %}
         <li>
-          {% if exercise %}
-            <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ current_page_url | urlencode }}" class="exercise-row">
-              <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
-              <span>{{ exercise.name }}</span>
+          {% if item.exercise %}
+            <a href="/exercises/{{ item.exercise.id }}/log?next={{ current_page_url | urlencode }}" class="exercise-row">
+              <img src="{{ item.exercise.gif_url }}" alt="{{ item.exercise.name }}" />
+              <span>{{ item.exercise.name }}</span>
+              <span class="exercise-row-progress-group"><span class="exercise-row-progress">{{ item.set_count }} serie{{ "s" if item.set_count != 1 }}</span></span>
             </a>
-            {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url, "sm") }}
+            {{ star_rating(item.exercise.id, ratings.get(item.exercise.id), current_page_url, "sm") }}
           {% else %}
-            <a href="/block-exercises/{{ block_exercise.id }}/log?next={{ current_page_url | urlencode }}" class="exercise-row">
+            <div class="exercise-row">
               <div class="exercise-row-placeholder"></div>
-              <span>{{ block_exercise.pending_name }}</span>
-            </a>
+              <span>{{ item.pending_name or "Ejercicio" }}</span>
+              <span class="exercise-row-progress-group"><span class="exercise-row-progress">{{ item.set_count }} serie{{ "s" if item.set_count != 1 }}</span></span>
+            </div>
           {% endif %}
         </li>
-      {% else %}
-        <li>Este bloque no tenía ejercicios.</li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>Este día no tiene bloques.</p>
-  {% endfor %}
+    {% for block in blocks %}
+      <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
+      <ul class="exercise-row-list{% if not loop.last %} exercise-row-list-block{% endif %}">
+        {% for block_exercise, exercise in exercises_by_block.get(block.id, []) %}
+          <li>
+            {% if exercise %}
+              <a href="/exercises/{{ exercise.id }}/log?block_exercise_id={{ block_exercise.id }}&next={{ current_page_url | urlencode }}" class="exercise-row">
+                <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" />
+                <span>{{ exercise.name }}</span>
+              </a>
+              {{ star_rating(exercise.id, ratings.get(exercise.id), current_page_url, "sm") }}
+            {% else %}
+              <a href="/block-exercises/{{ block_exercise.id }}/log?next={{ current_page_url | urlencode }}" class="exercise-row">
+                <div class="exercise-row-placeholder"></div>
+                <span>{{ block_exercise.pending_name }}</span>
+              </a>
+            {% endif %}
+          </li>
+        {% else %}
+          <li>Este bloque no tenía ejercicios.</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Este día no tiene bloques.</p>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" action="/programs/{{ program.id }}/sessions/{{ session_date }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">
+    <button type="submit" class="btn-pill btn-pill-block btn-pill-danger">Eliminar esta sesión<span class="pill-icon">{% include "_icon_trash.html" %}</span></button>
+  </form>
 {% endblock %}
