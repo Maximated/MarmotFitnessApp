@@ -11,29 +11,7 @@
     {% if finished %} · Finalizado{% endif %}
   </p>
 
-  {% if logged_exercises %}
-    <p>La estructura original de este día ya no existe (se editó o se borró después), pero esto es lo que registraste.</p>
-    <ul class="exercise-row-list">
-      {% for item in logged_exercises %}
-        <li>
-          {% if item.exercise %}
-            <a href="/exercises/{{ item.exercise.id }}/log?next={{ current_page_url | urlencode }}" class="exercise-row">
-              <img src="{{ item.exercise.gif_url }}" alt="{{ item.exercise.name }}" />
-              <span>{{ item.exercise.name }}</span>
-              <span class="exercise-row-progress-group"><span class="exercise-row-progress">{{ item.set_count }} serie{{ "s" if item.set_count != 1 }}</span></span>
-            </a>
-            {{ star_rating(item.exercise.id, ratings.get(item.exercise.id), current_page_url, "sm") }}
-          {% else %}
-            <div class="exercise-row">
-              <div class="exercise-row-placeholder"></div>
-              <span>{{ item.pending_name or "Ejercicio" }}</span>
-              <span class="exercise-row-progress-group"><span class="exercise-row-progress">{{ item.set_count }} serie{{ "s" if item.set_count != 1 }}</span></span>
-            </div>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
+  {% if blocks %}
     {% for block in blocks %}
       <h2>{{ block.type }}{% if block.muscle_group %} · {{ block.muscle_group }}{% endif %}</h2>
       <ul class="exercise-row-list{% if not loop.last %} exercise-row-list-block{% endif %}">
@@ -56,9 +34,38 @@
           <li>Este bloque no tenía ejercicios.</li>
         {% endfor %}
       </ul>
-    {% else %}
-      <p>Este día no tiene bloques.</p>
     {% endfor %}
+  {% elif not logged_exercises %}
+    <p>Este día no tiene bloques.</p>
+  {% endif %}
+
+  {% if logged_exercises %}
+    {% if blocks %}
+      <h2>Otros ejercicios registrados ese día</h2>
+      <p>Ya no forman parte de la estructura actual de este día (se editó o se borró después), pero se registraron series.</p>
+    {% else %}
+      <p>La estructura original de este día ya no existe (se editó o se borró después), pero esto es lo que registraste.</p>
+    {% endif %}
+    <ul class="exercise-row-list">
+      {% for item in logged_exercises %}
+        <li>
+          {% if item.exercise %}
+            <a href="/exercises/{{ item.exercise.id }}/log?next={{ current_page_url | urlencode }}" class="exercise-row">
+              <img src="{{ item.exercise.gif_url }}" alt="{{ item.exercise.name }}" />
+              <span>{{ item.exercise.name }}</span>
+              <span class="exercise-row-progress-group"><span class="exercise-row-progress">{{ item.set_count }} serie{{ "s" if item.set_count != 1 }}</span></span>
+            </a>
+            {{ star_rating(item.exercise.id, ratings.get(item.exercise.id), current_page_url, "sm") }}
+          {% else %}
+            <div class="exercise-row">
+              <div class="exercise-row-placeholder"></div>
+              <span>{{ item.pending_name or "Ejercicio" }}</span>
+              <span class="exercise-row-progress-group"><span class="exercise-row-progress">{{ item.set_count }} serie{{ "s" if item.set_count != 1 }}</span></span>
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
   {% endif %}
 
   <form method="post" action="/programs/{{ program.id }}/sessions/{{ session_date }}/delete" class="delete-form" data-confirm="¿Seguro que quieres eliminar este entrenamiento? Se perderán todas las series registradas ese día y dejará de aparecer en el calendario.">

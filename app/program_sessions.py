@@ -1020,44 +1020,60 @@ async def view_session(
         db, exercises_by_block, get_substitution_map(db, workout.id)
     )
 
-    # workouts.day_template_id is ON DELETE SET NULL -- editing or deleting
-    # the day template later (renaming a day, changing the program's
-    # structure, re-importing it) silently nulls it on every past workout
-    # that pointed at it, even though the actual WorkoutSets are untouched
-    # (that's why the per-exercise history still shows them fine). When
-    # that leaves nothing to resolve the original block layout from,
-    # rebuild the view directly from what was actually logged that day
-    # instead of showing a blank page for a session that really happened.
-    logged_exercises = None
-    if not any(exercises_by_block.get(block.id) for block in blocks):
-        logged_sets = (
-            db.query(WorkoutSet)
-            .filter(WorkoutSet.workout_id == workout.id)
-            .order_by(WorkoutSet.order)
-            .all()
-        )
-        seen: dict[int | str, dict] = {}
-        for workout_set in logged_sets:
-            key = (
-                workout_set.exercise_id
-                if workout_set.exercise_id is not None
-                else f"pending:{workout_set.block_exercise_id}"
-            )
-            entry = seen.get(key)
-            if entry is None:
-                entry = {
-                    "exercise": (
-                        db.get(Exercise, workout_set.exercise_id)
-                        if workout_set.exercise_id is not None
-                        else None
-                    ),
-                    "pending_name": workout_set.pending_name,
-                    "set_count": 0,
-                }
-                seen[key] = entry
-            entry["set_count"] += 1
-        if seen:
-            logged_exercises = list(seen.values())
+    # The block/day content above reflects the CURRENT state of the day
+    # template -- if it's been edited since (an exercise swapped out of a
+    # block, the whole day deleted and recreated, workouts.day_template_id
+    # nulled by ON DELETE SET NULL...), whatever was actually logged that
+    # day for the exercise(s) that no longer match the current structure
+    # would otherwise silently vanish from this page, even though the
+    # WorkoutSets themselves are untouched (that's why the per-exercise
+    # history still shows them fine). Cross-check against what was really
+    # logged and surface anything the block view above didn't already
+    # cover, instead of only catching the all-or-nothing "whole day gone"
+    # case.
+    covered_exercise_ids = {
+        exercise.id
+        for attached in exercises_by_block.values()
+        for _, exercise in attached
+        if exercise is not None
+    }
+    covered_block_exercise_ids = {
+        block_exercise.id
+        for attached in exercises_by_block.values()
+        for block_exercise, exercise in attached
+        if exercise is None
+    }
+
+    logged_sets = (
+        db.query(WorkoutSet)
+        .filter(WorkoutSet.workout_id == workout.id)
+        .order_by(WorkoutSet.order)
+        .all()
+    )
+    seen: dict[int | str, dict] = {}
+    for workout_set in logged_sets:
+        if workout_set.exercise_id is not None:
+            if workout_set.exercise_id in covered_exercise_ids:
+                continue
+            key = workout_set.exercise_id
+        else:
+            if workout_set.block_exercise_id in covered_block_exercise_ids:
+                continue
+            key = f"pending:{workout_set.block_exercise_id}"
+        entry = seen.get(key)
+        if entry is None:
+            entry = {
+                "exercise": (
+                    db.get(Exercise, workout_set.exercise_id)
+                    if workout_set.exercise_id is not None
+                    else None
+                ),
+                "pending_name": workout_set.pending_name,
+                "set_count": 0,
+            }
+            seen[key] = entry
+        entry["set_count"] += 1
+    logged_exercises = list(seen.values()) if seen else None
 
     exercise_ids = [
         exercise.id
