@@ -67,6 +67,19 @@
 
     <div class="settings-row">
       <div class="settings-row-text">
+        <span class="settings-row-label">Tema claro</span>
+        <span class="settings-row-note">{{ 'Activado' if user.theme == 'light' else 'Sigue el tema del sistema' }}</span>
+      </div>
+      <form method="post" action="/profile/theme">
+        <label class="ios-switch">
+          <input type="checkbox" name="light" value="1" {% if user.theme == 'light' %}checked{% endif %} onchange="this.form.requestSubmit()" />
+          <span class="ios-switch-track"><span class="ios-switch-thumb"></span></span>
+        </label>
+      </form>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-row-text">
         <span class="settings-row-label">Notificaciones</span>
         <span class="settings-row-note" id="push-toggle-note">Comprobando…</span>
       </div>

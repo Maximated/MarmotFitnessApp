@@ -28,6 +28,9 @@ class User(Base):
     name: Mapped[str] = mapped_column(String)
     password_hash: Mapped[str | None] = mapped_column(String)
     avatar_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # None follows the OS's prefers-color-scheme (the app's actual default);
+    # "light" is the only explicit override the profile toggle can set today.
+    theme: Mapped[str | None] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

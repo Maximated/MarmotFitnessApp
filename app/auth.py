@@ -240,6 +240,23 @@ async def update_password(
     return RedirectResponse(url="/profile?password_updated=1", status_code=303)
 
 
+@router.post("/profile/theme")
+async def update_theme(
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user),
+    light: bool = Form(False),
+):
+    if user is None:
+        raise HTTPException(status_code=401)
+    # `light` is the only explicit override the switch offers -- unchecking
+    # it clears the preference back to None (follow the OS), rather than
+    # writing an explicit "dark", so a user who never touches this keeps
+    # getting the system-driven behavior exactly as before.
+    user.theme = "light" if light else None
+    db.commit()
+    return RedirectResponse(url="/profile", status_code=303)
+
+
 @router.post("/profile/avatar")
 async def upload_avatar(
     photo: UploadFile,
