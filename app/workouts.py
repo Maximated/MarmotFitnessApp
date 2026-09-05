@@ -354,6 +354,7 @@ async def render_training_log(
     substitute: bool,
     pin: str | None = None,
     session_date: date_type | None = None,
+    unpin: bool = False,
 ):
     """Shared training-screen logic for both /exercises/{id}/log?block_exercise_id=
     (has a catalog Exercise) and /block-exercises/{id}/log (no catálogo,
@@ -497,6 +498,27 @@ async def render_training_log(
     # deliberately one button, not two, since they're the same action once
     # the default target is the original exercise. A stale/foreign/
     # malformed pin value is silently dropped instead of erroring.
+    #
+    # Also persisted onto the Workout row (not just carried in the URL) --
+    # otherwise any fresh navigation that doesn't happen to echo `pin`
+    # back (a tapped rest-timer push notification chief among them) reset
+    # it, which looked like the pin "randomly disappearing". `unpin` is a
+    # separate explicit flag rather than just omitting `pin`, precisely so
+    # that omission (arriving fresh, with no opinion either way) can fall
+    # back to whatever's stored instead of being indistinguishable from
+    # "the user just unpinned this".
+    if unpin and todays_workout is not None and todays_workout.pinned_block_exercise_id is not None:
+        todays_workout.pinned_block_exercise_id = None
+        todays_workout.pinned_exercise_id = None
+        db.commit()
+    elif (
+        pin is None
+        and not unpin
+        and todays_workout is not None
+        and todays_workout.pinned_block_exercise_id is not None
+    ):
+        pin = f"{todays_workout.pinned_block_exercise_id}:{todays_workout.pinned_exercise_id}"
+
     pinned_block_exercise = None
     pin_exercise_id = None
     if pin is not None:
@@ -511,6 +533,17 @@ async def render_training_log(
                 if candidate.id == pin_be_id:
                     pinned_block_exercise = candidate
                     break
+
+    if (
+        todays_workout is not None
+        and (pinned_block_exercise.id if pinned_block_exercise is not None else None)
+        != todays_workout.pinned_block_exercise_id
+    ):
+        todays_workout.pinned_block_exercise_id = (
+            pinned_block_exercise.id if pinned_block_exercise is not None else None
+        )
+        todays_workout.pinned_exercise_id = pin_exercise_id if pinned_block_exercise is not None else None
+        db.commit()
 
     if pinned_block_exercise is not None:
         effective_pin = f"{pinned_block_exercise.id}:{pin_exercise_id}"
@@ -531,6 +564,10 @@ async def render_training_log(
         pin_toggle_params["next"] = next
     if not pin_active:
         pin_toggle_params["pin"] = f"{block_exercise_id}:{exercise_id}"
+    else:
+        # Explicit, not just an absent `pin` -- see the write-through note
+        # above for why the two can't be treated the same.
+        pin_toggle_params["unpin"] = "1"
     if session_date is not None:
         pin_toggle_params["session_date"] = session_date.isoformat()
     pin_toggle_url = training_url(block_exercise_id, exercise_id, pin_toggle_params)
@@ -714,6 +751,7 @@ async def log_exercise_form(
     substitute: bool = False,
     pin: str | None = None,
     session_date: date_type | None = None,
+    unpin: bool = False,
 ):
     next = safe_next(next)
     if block_exercise_id is None:
@@ -747,7 +785,7 @@ async def log_exercise_form(
         return templates.TemplateResponse(request=request, name="exercises/log.html", context=context)
 
     return await render_training_log(
-        request, db, user, exercise_id, block_exercise_id, next, logged, substitute, pin, session_date
+        request, db, user, exercise_id, block_exercise_id, next, logged, substitute, pin, session_date, unpin
     )
 
 
@@ -761,10 +799,11 @@ async def log_block_exercise_form(
     logged: bool = False,
     pin: str | None = None,
     session_date: date_type | None = None,
+    unpin: bool = False,
 ):
     next = safe_next(next)
     return await render_training_log(
-        request, db, user, None, block_exercise_id, next, logged, False, pin, session_date
+        request, db, user, None, block_exercise_id, next, logged, False, pin, session_date, unpin
     )
 
 

@@ -492,6 +492,42 @@ button.home-banner {
   box-shadow: 0 4px 14px color-mix(in srgb, var(--primary), transparent 65%), inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
+/* Status aura on today's due-exercise banner -- border only, the orange
+   fill above always stays "this is what's next"; the border says where it
+   is in the waiting/doing/done lifecycle. */
+.home-banner-status-waiting {
+  border: 2px solid var(--success);
+}
+
+.home-banner-status-done {
+  border: 2px solid var(--danger);
+}
+
+.home-banner-status-active {
+  border: 2px solid var(--success);
+  animation: home-banner-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes home-banner-pulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary), transparent 65%), inset 0 1px 1px rgba(255, 255, 255, 0.2),
+      0 0 0 0 color-mix(in srgb, var(--success), transparent 45%);
+  }
+  50% {
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary), transparent 65%), inset 0 1px 1px rgba(255, 255, 255, 0.2),
+      0 0 16px 3px color-mix(in srgb, var(--success), transparent 15%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-banner-status-active {
+    animation: none;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary), transparent 65%), inset 0 1px 1px rgba(255, 255, 255, 0.2),
+      0 0 10px 2px color-mix(in srgb, var(--success), transparent 30%);
+  }
+}
+
 .home-banner-next {
   position: relative;
   padding: 1.15rem 1.35rem;

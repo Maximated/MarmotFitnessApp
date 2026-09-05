@@ -73,6 +73,16 @@ class Workout(Base):
     last_activity_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     inactivity_prompt_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_manual_session: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Which (slot, exercise) the pin button points at for this workout --
+    # stored here instead of only in the page URL so it survives fresh
+    # navigation (a tapped push notification, closing and reopening the
+    # app) instead of silently resetting.
+    pinned_block_exercise_id: Mapped[int | None] = mapped_column(
+        ForeignKey("block_exercises.id", ondelete="SET NULL")
+    )
+    pinned_exercise_id: Mapped[int | None] = mapped_column(
+        ForeignKey("exercises.id", ondelete="SET NULL")
+    )
 
 
 class WorkoutSet(Base):

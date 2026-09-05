@@ -12,6 +12,7 @@ from app.database import get_db
 from app.dependencies import require_user
 from app.models import BlockExercise, PushSubscription, User, Workout
 from app.training_urls import training_url
+from app.workout_substitutions import get_substitution_map
 
 router = APIRouter(prefix="/push")
 
@@ -117,17 +118,21 @@ def send_push_for_workout(db: Session, workout: Workout) -> None:
     if not workout.rest_notify_text:
         return
 
-    url = "/"
+    # `next` always gets a real destination (never left unset) -- omitting
+    # it is exactly what made the "<<" button on the screen this
+    # notification opens fall back to /exercises (the general catalog)
+    # instead of back to today's day. The pin, unlike `next`, doesn't need
+    # threading through here at all: it's persisted on the Workout itself
+    # (see render_training_log), so the page picks it up regardless of
+    # what URL brought the user there.
+    url = f"/programs/{workout.program_id}/today" if workout.program_id is not None else "/"
     if workout.active_block_exercise_id is not None:
         block_exercise = db.get(BlockExercise, workout.active_block_exercise_id)
         if block_exercise is not None:
-            params = {"block_exercise_id": block_exercise.id}
-            if workout.program_id is not None:
-                # Sin esto, el botón "<<" de la pantalla a la que lleva la
-                # notificación cae a /exercises (el listado general) en vez
-                # de volver al día de entrenamiento de hoy.
-                params["next"] = f"/programs/{workout.program_id}/today"
-            url = training_url(block_exercise.id, block_exercise.exercise_id, params)
+            substitution_map = get_substitution_map(db, workout.id)
+            effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
+            params = {"block_exercise_id": block_exercise.id, "next": url}
+            url = training_url(block_exercise.id, effective_exercise_id, params)
 
     _send_push(db, workout.user_id, "Descanso terminado", workout.rest_notify_text, url)
 
