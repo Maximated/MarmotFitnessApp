@@ -343,6 +343,36 @@ def build_training_state(
     }
 
 
+def find_active_block_exercise(
+    db: Session, user: User, exercise_id: int, session_date: date_type | None
+) -> int | None:
+    """A bare /exercises/{id}/log link (no block_exercise_id) normally means
+    a genuine catálogo lookup -- but if this exercise is actually part of
+    the day being trained/browsed (through any active substitution), route
+    it back into that day's context instead. Without this, any entry point
+    that drops block_exercise_id off the URL (a stale bookmark, an OS/
+    browser notification opened at its own idea of the URL, a link built
+    before this slot existed) strands the user on a page with no pin, no
+    superset bar, no day nav -- indistinguishable from having lost all of
+    it, even though it never actually left the Workout row."""
+    today = session_date or date_type.today()
+    workout = db.query(Workout).filter(Workout.user_id == user.id, Workout.date == today).first()
+    if workout is None or workout.day_template_id is None:
+        return None
+    day_exercises = (
+        db.query(BlockExercise)
+        .join(Block, BlockExercise.block_id == Block.id)
+        .filter(Block.day_template_id == workout.day_template_id)
+        .all()
+    )
+    substitution_map = get_substitution_map(db, workout.id)
+    for day_exercise in day_exercises:
+        effective_exercise_id = substitution_map.get(day_exercise.id, day_exercise.exercise_id)
+        if effective_exercise_id == exercise_id:
+            return day_exercise.id
+    return None
+
+
 async def render_training_log(
     request: Request,
     db: Session,
@@ -716,6 +746,19 @@ async def render_training_log(
 
     history = build_exercise_history(db, user.id, exercise_id, block_exercise_id)
 
+    # `next` is whatever the client happened to echo back -- fragile by
+    # nature (a stale bookmark, a notification the OS opened at its own
+    # idea of the URL, any link built before this exercise's slot
+    # existed). Unlike the catálogo-only branch below, here we always know
+    # which day this exercise belongs to, so the "<<" button never needs
+    # to fall back to the generic /exercises list: it can always derive
+    # today's (or the browsed day's) own list instead.
+    fallback_back_url = (
+        f"/programs/{day_template.program_id}/sessions/{session_date.isoformat()}/detail"
+        if session_date is not None
+        else f"/programs/{day_template.program_id}/today"
+    )
+
     now = datetime.now()
     context = {
         "exercise": exercise,
@@ -725,6 +768,7 @@ async def render_training_log(
         "now_time": now.time().isoformat(timespec="minutes"),
         "training": training,
         "next": next,
+        "back_url": next or fallback_back_url,
         "pin": effective_pin,
         "session_date": session_date.isoformat() if session_date is not None else None,
         "block_exercise_id": block_exercise_id,
@@ -754,6 +798,9 @@ async def log_exercise_form(
     unpin: bool = False,
 ):
     next = safe_next(next)
+    if block_exercise_id is None:
+        block_exercise_id = find_active_block_exercise(db, user, exercise_id, session_date)
+
     if block_exercise_id is None:
         # Ficha de catálogo, fuera de una jornada de entrenamiento.
         exercise = db.get(Exercise, exercise_id)

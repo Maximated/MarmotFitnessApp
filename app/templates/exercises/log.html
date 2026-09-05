@@ -13,7 +13,7 @@
   {% if training %}<meta name="view-transition" content="same-origin" />{% endif %}
 {% endblock %}
 
-{% block top_back_url %}{{ next or '/exercises' }}{% endblock %}
+{% block top_back_url %}{{ back_url or next or '/exercises' }}{% endblock %}
 
 {% block content %}
   {% if training %}
