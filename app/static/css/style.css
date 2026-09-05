@@ -2324,6 +2324,20 @@ td.numeric {
   box-sizing: border-box;
 }
 
+/* Inputs/textareas here live outside any <form>, so they miss the site-wide
+   `form input, form textarea, form select` dark styling entirely and fall
+   back to the browser's own white/centered rendering -- .training-input's
+   centering (meant for the big number field on the training page itself,
+   which IS inside a form) makes that especially visible here. */
+.modal-box input,
+.modal-box textarea {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  text-align: left;
+}
+
 .modal-actions {
   display: flex;
   flex-direction: column;
