@@ -385,6 +385,7 @@ async def render_training_log(
     pin: str | None = None,
     session_date: date_type | None = None,
     unpin: bool = False,
+    preview: bool = False,
 ):
     """Shared training-screen logic for both /exercises/{id}/log?block_exercise_id=
     (has a catalog Exercise) and /block-exercises/{id}/log (no catálogo,
@@ -399,7 +400,14 @@ async def render_training_log(
     a link from a past day's exercise list would silently redirect to
     whatever TODAY's (unrelated) substitution happens to be for that same
     block_exercise slot -- landing on a completely different exercise than
-    the one actually logged that day."""
+    the one actually logged that day.
+
+    `preview` is the same idea for a day that hasn't happened yet at all
+    (see /days/{id}/preview): there's no Workout to browse, only the
+    day-template itself, so the set-logging form is hidden (see
+    exercises/log.html) -- everything else (swipe between exercises,
+    superset partner, history, rating, recycling) stays identical to the
+    real training screen on purpose."""
     block_exercise = (
         db.query(BlockExercise)
         .join(Block, BlockExercise.block_id == Block.id)
@@ -419,6 +427,21 @@ async def render_training_log(
         .filter(Workout.user_id == user.id, Workout.date == today)
         .first()
     )
+    # A Workout that's still unattached (day_template_id is None -- the
+    # normal state before the day is really started, see
+    # mark_today_started/submit_workout_set) is still "the" workout for
+    # today's due day. But one that's DEFINITELY attached to some OTHER day
+    # must not leak in here -- without this, previewing a day that isn't
+    # today's due day (or a stray/aborted date-collision, see
+    # /today/choose-session) would show whatever workout happens to sit on
+    # today's calendar date instead: its sets, its pin, its rest timer, none
+    # of which belong to the day actually on screen.
+    if (
+        todays_workout is not None
+        and todays_workout.day_template_id is not None
+        and todays_workout.day_template_id != day_template.id
+    ):
+        todays_workout = None
 
     if substitute and exercise_id is not None:
         # No Workout yet means today's day hasn't really started (see
@@ -437,6 +460,8 @@ async def render_training_log(
             redirect_params["pin"] = pin
         if session_date is not None:
             redirect_params["session_date"] = session_date.isoformat()
+        if preview:
+            redirect_params["preview"] = "1"
         return RedirectResponse(
             url=training_url(block_exercise_id, exercise_id, redirect_params), status_code=303
         )
@@ -457,6 +482,8 @@ async def render_training_log(
             redirect_params["session_date"] = session_date.isoformat()
         if logged:
             redirect_params["logged"] = "1"
+        if preview:
+            redirect_params["preview"] = "1"
         return RedirectResponse(
             url=training_url(block_exercise_id, effective_exercise_id, redirect_params),
             status_code=303,
@@ -485,6 +512,8 @@ async def render_training_log(
             nav_params["pin"] = effective_pin
         if session_date is not None:
             nav_params["session_date"] = session_date.isoformat()
+        if preview:
+            nav_params["preview"] = "1"
         neighbor_exercise_id = substitution_map.get(neighbor.id, neighbor.exercise_id)
         return training_url(neighbor.id, neighbor_exercise_id, nav_params)
 
@@ -496,6 +525,8 @@ async def render_training_log(
             nav_params["pin"] = effective_pin
         if session_date is not None:
             nav_params["session_date"] = session_date.isoformat()
+        if preview:
+            nav_params["preview"] = "1"
         return training_url(block_exercise.id, candidate_exercise_id, nav_params)
 
     day_exercises = (
@@ -600,6 +631,8 @@ async def render_training_log(
         pin_toggle_params["unpin"] = "1"
     if session_date is not None:
         pin_toggle_params["session_date"] = session_date.isoformat()
+    if preview:
+        pin_toggle_params["preview"] = "1"
     pin_toggle_url = training_url(block_exercise_id, exercise_id, pin_toggle_params)
 
     recycle_url = None
@@ -624,6 +657,8 @@ async def render_training_log(
                     revert_nav_params["pin"] = effective_pin
                 if session_date is not None:
                     revert_nav_params["session_date"] = session_date.isoformat()
+                if preview:
+                    revert_nav_params["preview"] = "1"
                 revert_url = training_url(
                     pin_target_block_exercise.id, pin_target_exercise_id, revert_nav_params
                 )
@@ -742,6 +777,8 @@ async def render_training_log(
         self_params["pin"] = effective_pin
     if session_date is not None:
         self_params["session_date"] = session_date.isoformat()
+    if preview:
+        self_params["preview"] = "1"
     self_url = training_url(block_exercise_id, exercise_id, self_params)
 
     history = build_exercise_history(db, user.id, exercise_id, block_exercise_id)
@@ -752,12 +789,13 @@ async def render_training_log(
     # existed). Unlike the catálogo-only branch below, here we always know
     # which day this exercise belongs to, so the "<<" button never needs
     # to fall back to the generic /exercises list: it can always derive
-    # today's (or the browsed day's) own list instead.
-    fallback_back_url = (
-        f"/programs/{day_template.program_id}/sessions/{session_date.isoformat()}/detail"
-        if session_date is not None
-        else f"/programs/{day_template.program_id}/today"
-    )
+    # today's (or the browsed day's/previewed day's) own list instead.
+    if preview:
+        fallback_back_url = f"/days/{day_template.id}/preview"
+    elif session_date is not None:
+        fallback_back_url = f"/programs/{day_template.program_id}/sessions/{session_date.isoformat()}/detail"
+    else:
+        fallback_back_url = f"/programs/{day_template.program_id}/today"
 
     now = datetime.now()
     context = {
@@ -771,6 +809,8 @@ async def render_training_log(
         "back_url": next or fallback_back_url,
         "pin": effective_pin,
         "session_date": session_date.isoformat() if session_date is not None else None,
+        "preview": preview,
+        "day_template": day_template,
         "block_exercise_id": block_exercise_id,
         "prev_url": prev_url,
         "next_exercise_url": next_exercise_url,
@@ -796,6 +836,7 @@ async def log_exercise_form(
     pin: str | None = None,
     session_date: date_type | None = None,
     unpin: bool = False,
+    preview: bool = False,
 ):
     next = safe_next(next)
     if block_exercise_id is None:
@@ -832,7 +873,7 @@ async def log_exercise_form(
         return templates.TemplateResponse(request=request, name="exercises/log.html", context=context)
 
     return await render_training_log(
-        request, db, user, exercise_id, block_exercise_id, next, logged, substitute, pin, session_date, unpin
+        request, db, user, exercise_id, block_exercise_id, next, logged, substitute, pin, session_date, unpin, preview
     )
 
 
@@ -847,10 +888,11 @@ async def log_block_exercise_form(
     pin: str | None = None,
     session_date: date_type | None = None,
     unpin: bool = False,
+    preview: bool = False,
 ):
     next = safe_next(next)
     return await render_training_log(
-        request, db, user, None, block_exercise_id, next, logged, False, pin, session_date, unpin
+        request, db, user, None, block_exercise_id, next, logged, False, pin, session_date, unpin, preview
     )
 
 

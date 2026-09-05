@@ -1,6 +1,5 @@
 import calendar
 import math
-from urllib.parse import urlencode
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
@@ -11,19 +10,12 @@ from sqlalchemy.orm import Session
 from app.block_exercises import group_by_superset
 from app.database import get_db
 from app.dependencies import require_user
-from app.exercise_ratings import (
-    get_next_similar_exercise,
-    get_previous_similar_exercise,
-    get_user_ban,
-    get_user_rating,
-    get_user_ratings_map,
-)
+from app.exercise_ratings import get_user_ratings_map
 from app.workout_substitutions import (
     apply_substitutions,
     get_day_template_substitution_map,
     get_substitution_map,
     promote_day_template_substitutions_to_workout,
-    set_day_template_substitution,
 )
 from app.models import Block, BlockExercise, DayTemplate, Exercise, ExerciseUserProgress, Program, User, Workout, WorkoutSet
 from app.programs import get_own_day_template, get_own_program
@@ -407,14 +399,16 @@ async def preview_day_template(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
 ):
-    """Look at a not-yet-startable day: same exercise-in-order layout as
-    /today, but there's no start/finish form and nothing here ever creates
-    or touches a Workout -- see the 24h-lock/same-date-collision reasoning
-    in program_sessions history for why /today/start must stay the only
-    way to actually begin a day. Rows ARE links now, into
-    preview_block_exercise below: rating and swapping exercises ahead of
-    time is safe (it never counts the day as done), it just wasn't wired
-    up before."""
+    """Look at a not-yet-startable day: literally the same list layout as
+    /today (same macro, same stats/superset rendering -- there's just
+    nothing to show yet since no Workout exists for this day). No
+    start/finish form here, and nothing here ever creates or touches a
+    Workout -- see the 24h-lock/same-date-collision reasoning in
+    program_sessions history for why /today/start must stay the only way
+    to actually begin a day. Rows link into the same training screen as a
+    real day (render_training_log, preview=1): rating, recycling, and
+    swiping between exercises works identically, only the set-logging form
+    is hidden there."""
     day_template = get_own_day_template(db, day_template_id, user.id)
     program = db.get(Program, day_template.program_id)
     blocks, exercises_by_block = get_day_content(db, day_template.id)
@@ -431,15 +425,15 @@ async def preview_day_template(
         for _, exercise in attached
         if exercise is not None
     ]
-    weight_targets = {
-        row[0]: row[1]
-        for row in db.query(ExerciseUserProgress.exercise_id, ExerciseUserProgress.current_weight)
-        .filter(
-            ExerciseUserProgress.user_id == user.id,
-            ExerciseUserProgress.exercise_id.in_(exercise_ids),
-        )
-        .all()
-    }
+
+    (
+        sets_completed_by_exercise,
+        sets_completed_by_block_exercise,
+        avg_weight_by_exercise,
+        avg_weight_by_block_exercise,
+        avg_duration_by_exercise,
+        avg_duration_by_block_exercise,
+    ) = compute_exercise_progress_maps(db, None)
 
     return templates.TemplateResponse(
         request=request,
@@ -449,124 +443,14 @@ async def preview_day_template(
             "day_template": day_template,
             "blocks": blocks,
             "exercise_groups_by_block": exercise_groups_by_block,
-            "weight_targets": weight_targets,
+            "sets_completed_by_exercise": sets_completed_by_exercise,
+            "sets_completed_by_block_exercise": sets_completed_by_block_exercise,
+            "avg_weight_by_exercise": avg_weight_by_exercise,
+            "avg_weight_by_block_exercise": avg_weight_by_block_exercise,
+            "avg_duration_by_exercise": avg_duration_by_exercise,
+            "avg_duration_by_block_exercise": avg_duration_by_block_exercise,
             "ratings": get_user_ratings_map(db, user.id, exercise_ids),
-            "self_url": f"/days/{day_template_id}/preview",
-        },
-    )
-
-
-def _day_preview_exercise_url(
-    day_template_id: int, block_exercise_id: int, exercise_id: int | None = None, substitute: bool = False
-) -> str:
-    params = {}
-    if exercise_id is not None:
-        params["exercise_id"] = exercise_id
-    if substitute:
-        params["substitute"] = "1"
-    url = f"/days/{day_template_id}/preview/{block_exercise_id}"
-    return f"{url}?{urlencode(params)}" if params else url
-
-
-@router.get("/days/{day_template_id}/preview/{block_exercise_id}")
-async def preview_block_exercise(
-    day_template_id: int,
-    block_exercise_id: int,
-    request: Request,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user),
-    exercise_id: int | None = None,
-    substitute: bool = False,
-):
-    """Rate or swap a single exercise on a day that hasn't started yet --
-    the "prep" counterpart to the real training screen. Deliberately
-    minimal: no sets, no timers, no weight targets, nothing that implies a
-    session is in progress. Substitutions made here are day-template-scoped
-    (see app/workout_substitutions.py) until the day is actually started,
-    at which point mark_today_started/start_rest_timer/submit_workout_set
-    promote them onto the real Workout."""
-    day_template = get_own_day_template(db, day_template_id, user.id)
-    block_exercise = (
-        db.query(BlockExercise)
-        .join(Block, BlockExercise.block_id == Block.id)
-        .filter(BlockExercise.id == block_exercise_id, Block.day_template_id == day_template.id)
-        .first()
-    )
-    if block_exercise is None:
-        raise HTTPException(status_code=404)
-    block = db.get(Block, block_exercise.block_id)
-
-    if substitute and exercise_id is not None:
-        set_day_template_substitution(db, day_template.id, block_exercise.id, exercise_id)
-        db.commit()
-        return RedirectResponse(
-            url=_day_preview_exercise_url(day_template_id, block_exercise_id, exercise_id),
-            status_code=303,
-        )
-
-    substitution_map = get_day_template_substitution_map(db, day_template.id)
-    effective_exercise_id = substitution_map.get(block_exercise.id, block_exercise.exercise_id)
-    if exercise_id is None:
-        exercise_id = effective_exercise_id
-    elif exercise_id != effective_exercise_id:
-        return RedirectResponse(
-            url=_day_preview_exercise_url(day_template_id, block_exercise_id, effective_exercise_id),
-            status_code=303,
-        )
-
-    exercise = db.get(Exercise, exercise_id) if exercise_id is not None else None
-
-    day_exercises = (
-        db.query(BlockExercise)
-        .join(Block, BlockExercise.block_id == Block.id)
-        .filter(Block.day_template_id == day_template.id)
-        .order_by(Block.position, BlockExercise.position)
-        .all()
-    )
-    day_exercise_ids = {
-        substitution_map.get(be.id, be.exercise_id)
-        for be in day_exercises
-        if be.id != block_exercise.id
-    } - {None}
-
-    recycle_url = None
-    recycle_back_url = None
-    revert_url = None
-    user_rating = None
-    user_banned = False
-    if exercise_id is not None:
-        next_similar = get_next_similar_exercise(db, user.id, exercise_id, exclude_ids=day_exercise_ids)
-        if next_similar is not None:
-            recycle_url = _day_preview_exercise_url(
-                day_template_id, block_exercise_id, next_similar.id, substitute=True
-            )
-        prev_similar = get_previous_similar_exercise(db, user.id, exercise_id, exclude_ids=day_exercise_ids)
-        if prev_similar is not None:
-            recycle_back_url = _day_preview_exercise_url(
-                day_template_id, block_exercise_id, prev_similar.id, substitute=True
-            )
-        if block_exercise.exercise_id is not None and exercise_id != block_exercise.exercise_id:
-            revert_url = _day_preview_exercise_url(
-                day_template_id, block_exercise_id, block_exercise.exercise_id, substitute=True
-            )
-        user_rating = get_user_rating(db, user.id, exercise_id)
-        user_banned = get_user_ban(db, user.id, exercise_id)
-
-    return templates.TemplateResponse(
-        request=request,
-        name="programs/day_preview_exercise.html",
-        context={
-            "program": db.get(Program, day_template.program_id),
-            "day_template": day_template,
-            "block": block,
-            "block_exercise": block_exercise,
-            "exercise": exercise,
-            "self_url": _day_preview_exercise_url(day_template_id, block_exercise_id, exercise_id),
-            "recycle_url": recycle_url,
-            "recycle_back_url": recycle_back_url,
-            "revert_url": revert_url,
-            "user_rating": user_rating,
-            "user_banned": user_banned,
+            "current_page_url": f"/days/{day_template_id}/preview",
         },
     )
 

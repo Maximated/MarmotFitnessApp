@@ -10,13 +10,53 @@ from app.dependencies import require_user
 from app.exercise_history import build_exercise_history
 from app.exercise_ratings import get_similar_exercises, get_user_ban, get_user_rating, get_user_ratings_map
 from app.http_utils import safe_next
-from app.models import Exercise, User
+from app.models import Exercise, ExerciseRating, User, Workout, WorkoutSet
 from app.templates import templates
 
 router = APIRouter()
 
 PER_PAGE = 24
 PER_PAGE_LARGE = 10
+
+SEARCH_FILTERS = {
+    "rated": "Puntuados",
+    "top_rated": "Mejor valorados (4-5 ★)",
+    "unrated": "Sin puntuar",
+    "banned": "Rechazados",
+    "done": "Hechos alguna vez",
+    "never_done": "Nunca hechos",
+}
+
+
+def apply_search_filter(db: Session, query, user_id: int, filter: str | None):
+    if filter == "rated":
+        return query.join(
+            ExerciseRating,
+            (ExerciseRating.exercise_id == Exercise.id) & (ExerciseRating.user_id == user_id),
+        ).filter(ExerciseRating.rating.isnot(None))
+    if filter == "top_rated":
+        return query.join(
+            ExerciseRating,
+            (ExerciseRating.exercise_id == Exercise.id) & (ExerciseRating.user_id == user_id),
+        ).filter(ExerciseRating.rating >= 4)
+    if filter == "banned":
+        return query.join(
+            ExerciseRating,
+            (ExerciseRating.exercise_id == Exercise.id) & (ExerciseRating.user_id == user_id),
+        ).filter(ExerciseRating.banned.is_(True))
+    if filter == "unrated":
+        rated_ids = db.query(ExerciseRating.exercise_id).filter(
+            ExerciseRating.user_id == user_id, ExerciseRating.rating.isnot(None)
+        )
+        return query.filter(~Exercise.id.in_(rated_ids))
+    if filter in ("done", "never_done"):
+        done_ids = (
+            db.query(WorkoutSet.exercise_id)
+            .join(Workout, WorkoutSet.workout_id == Workout.id)
+            .filter(Workout.user_id == user_id, WorkoutSet.exercise_id.isnot(None))
+        )
+        return query.filter(Exercise.id.in_(done_ids) if filter == "done" else ~Exercise.id.in_(done_ids))
+    return query
 
 
 @router.get("/exercises")
@@ -45,12 +85,18 @@ async def exercise_search(
     db: Session = Depends(get_db),
     user: User = Depends(require_user),
     q: str | None = None,
+    filter: str | None = None,
     page: int = 1,
 ):
     exercises = []
     total_pages = 1
-    if q:
-        query = db.query(Exercise).filter(Exercise.name.ilike(f"%{q}%"))
+    if filter not in SEARCH_FILTERS:
+        filter = None
+    if q or filter:
+        query = db.query(Exercise)
+        if q:
+            query = query.filter(Exercise.name.ilike(f"%{q}%"))
+        query = apply_search_filter(db, query, user.id, filter)
         total = query.count()
         total_pages = max(1, ceil(total / PER_PAGE_LARGE))
         page = max(1, min(page, total_pages))
@@ -61,7 +107,7 @@ async def exercise_search(
             .all()
         )
 
-    current_url = f"/exercises/search?{urlencode({'q': q or ''})}&page={page}"
+    current_url = f"/exercises/search?{urlencode({'q': q or '', 'filter': filter or ''})}&page={page}"
 
     return templates.TemplateResponse(
         request=request,
@@ -71,8 +117,11 @@ async def exercise_search(
             "ratings": get_user_ratings_map(db, user.id, [e.id for e in exercises]),
             "current_url": current_url,
             "q": q or "",
+            "filter": filter or "",
+            "filters": SEARCH_FILTERS,
             "page": page,
             "total_pages": total_pages,
+            "searched": bool(q or filter),
         },
     )
 

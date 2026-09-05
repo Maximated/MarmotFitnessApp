@@ -1,8 +1,12 @@
 {% extends "base.html" %}
+{% from "_pill_link.html" import pill_link %}
 
 {% block content %}
   <h1>Programas</h1>
-  <p><a href="/programs/new" class="btn-pill">Nuevo programa</a></p>
+  <div class="pill-stack">
+    {{ pill_link("/programs/new", "Nuevo programa", extra_class="btn-pill-block") }}
+    {{ pill_link("/programs/starter", "Elegir rutina predefinida", extra_class="btn-pill-block", icon="shuffle") }}
+  </div>
 
   <ul class="program-banner-list">
     {% for program in programs %}

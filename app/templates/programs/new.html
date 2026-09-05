@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% from "_nav_arrows.html" import nav_arrow %}
-{% from "_pill_link.html" import pill_link %}
 
 {% block content %}
   <div class="page-nav-row">{{ nav_arrow("/programs", "back", "Volver a programas") }}</div>
@@ -29,10 +28,6 @@
     <input type="file" name="file" id="import-file-input" accept=".json,application/json" required class="hidden" />
     <button type="submit">Importar</button>
   </form>
-
-  <h2>O empieza con una rutina predefinida</h2>
-  <p>Rutinas ya hechas, en 3 niveles cada una. Se añaden a tus programas sin activarse -- las activas cuando quieras.</p>
-  {{ pill_link("/programs/starter", "Elegir rutina predefinida", extra_class="btn-pill-block", icon="shuffle") }}
 
   <script>
     (function () {

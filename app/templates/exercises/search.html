@@ -7,10 +7,16 @@
 
   <form method="get" action="/exercises/search">
     <input type="text" name="q" placeholder="Nombre del ejercicio" value="{{ q }}" autofocus />
+    <select name="filter" onchange="this.form.submit()">
+      <option value="">Todos</option>
+      {% for value, label in filters.items() %}
+        <option value="{{ value }}" {% if value == filter %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
     <button type="submit">Buscar</button>
   </form>
 
-  {% if q %}
+  {% if searched %}
     <ul class="exercise-row-large-list">
       {% for exercise in exercises %}
         {{ exercise_row_large(exercise, ratings.get(exercise.id), current_url) }}
@@ -21,11 +27,11 @@
 
     <div class="pagination">
       {% if page > 1 %}
-        {{ nav_arrow("/exercises/search?q=" ~ (q | urlencode) ~ "&page=" ~ (page - 1), "back", "Página anterior") }}
+        {{ nav_arrow("/exercises/search?q=" ~ (q | urlencode) ~ "&filter=" ~ (filter | urlencode) ~ "&page=" ~ (page - 1), "back", "Página anterior") }}
       {% endif %}
       <span>Página {{ page }} de {{ total_pages }}</span>
       {% if page < total_pages %}
-        {{ nav_arrow("/exercises/search?q=" ~ (q | urlencode) ~ "&page=" ~ (page + 1), "next", "Página siguiente") }}
+        {{ nav_arrow("/exercises/search?q=" ~ (q | urlencode) ~ "&filter=" ~ (filter | urlencode) ~ "&page=" ~ (page + 1), "next", "Página siguiente") }}
       {% endif %}
     </div>
   {% endif %}

@@ -211,7 +211,11 @@
       </script>
     {% endif %}
 
+    {% if preview %}
+      <p class="preview-edit-badge">Preparando día {{ day_template.day_number }}{% if day_template.subtitle %} · {{ day_template.subtitle }}{% endif %} -- todavía no cuenta como realizado</p>
+    {% endif %}
     <form method="post" action="{% if exercise %}/exercises/{{ exercise.id }}/log{% else %}/block-exercises/{{ block_exercise_id }}/log{% endif %}" class="training-log-form" id="training-log-form"
+      {% if preview %}hidden{% endif %}
       {% if training.is_superset %}
       data-superset-warn="1" data-sets-completed="{{ training.sets_completed }}" data-partner-sets-completed="{{ training.superset_partner_sets_completed }}"
       {% endif %}>
@@ -306,7 +310,14 @@
             }
           }, 30 * 60 * 1000);
         }
-        resetInactivityTimer();
+        {% if not preview %}
+          {# Solo arranca el aviso de inactividad/auto-finalizar cuando esta pantalla
+             es realmente el entrenamiento en curso -- en preview training.program_id
+             es el programa del día que se está mirando, no necesariamente el que el
+             usuario tiene realmente activo ahora mismo, así que dispararlo aquí
+             podría acabar finalizando una sesión real sin que el usuario lo pidiera. #}
+          resetInactivityTimer();
+        {% endif %}
 
         function escapeHtml(str) {
           const div = document.createElement("div");
