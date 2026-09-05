@@ -2009,6 +2009,14 @@ td.numeric {
   gap: 0.4rem;
 }
 
+/* .exercise-row-list también enmarca listas de <form> sueltos (rutinas
+   predefinidas por nivel) en vez de solo filas de ejercicio -- sin esto,
+   el margin-bottom de "form" de por sí duplicaría el gap ya puesto por el
+   flex del propio marco. */
+.exercise-row-list form {
+  margin-bottom: 0;
+}
+
 .exercise-row-list::before {
   content: "";
   position: absolute;

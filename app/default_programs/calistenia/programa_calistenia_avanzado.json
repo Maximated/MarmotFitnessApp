@@ -1,0 +1,2005 @@
+{
+  "programa": "Calistenia - Avanzado",
+  "ciclo_dias": 30,
+  "notas": "Split Empuje/Tracción/Pierna, variantes de habilidad exigentes (archer, muscle-up, back lever, pistol squat, handstand). El catálogo tiene pocas variantes de este nivel, así que se repiten a propósito entre ciclos (normal en trabajo de habilidad).",
+  "jornadas": [
+    {
+      "numero_jornada": 1,
+      "nombre": "Empuje avanzado (ciclo 1)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "saltos con piernas separadas (hombre)",
+              "id_dataset": "3220",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de cadera colgado",
+              "id_dataset": "1764",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión arquero",
+              "id_dataset": "3294",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "pike colgado",
+              "id_dataset": "0473",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 2,
+      "nombre": "Tracción avanzado (ciclo 1)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "burpee",
+              "id_dataset": "1160",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "dominada arquero",
+              "id_dataset": "3293",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 3,
+      "nombre": "Pierna avanzado (ciclo 1)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "rodilla alta contra la pared",
+              "id_dataset": "3636",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "bajada de cajón con estabilización a una pierna",
+              "id_dataset": "1374",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla a una pierna",
+              "id_dataset": "1476",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 4,
+      "nombre": "Empuje avanzado (ciclo 2)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "burpee con salto de tijera",
+              "id_dataset": "0501",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de piernas colgado",
+              "id_dataset": "0472",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión con palmada",
+              "id_dataset": "1273",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "flexión de pike a cobra",
+              "id_dataset": "3662",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 5,
+      "nombre": "Tracción avanzado (ciclo 2)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de tijera (hombre)",
+              "id_dataset": "3224",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "back lever",
+              "id_dataset": "3297",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 6,
+      "nombre": "Pierna avanzado (ciclo 2)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "escalador (mountain climber)",
+              "id_dataset": "0630",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones burro (donkey calf raise)",
+              "id_dataset": "0284",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "deslizamiento en plataforma a una pierna",
+              "id_dataset": "0730",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 7,
+      "nombre": "Empuje avanzado (ciclo 3)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "saltos de tijera (hombre)",
+              "id_dataset": "3219",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "l-sit en el suelo",
+              "id_dataset": "3419",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión arquero",
+              "id_dataset": "3294",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "parada de manos",
+              "id_dataset": "3302",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 8,
+      "nombre": "Tracción avanzado (ciclo 3)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de media sentadilla (hombre)",
+              "id_dataset": "3222",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "remo a un brazo agarre cerrado de pie con peso corporal",
+              "id_dataset": "3156",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 9,
+      "nombre": "Pierna avanzado (ciclo 3)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de estrella (hombre)",
+              "id_dataset": "3223",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones estilo burro a una pierna",
+              "id_dataset": "1386",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla a una pierna (pistol) hombre",
+              "id_dataset": "1759",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 10,
+      "nombre": "Empuje avanzado (ciclo 4)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "zancada caminando con rodillas altas",
+              "id_dataset": "3655",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de cadera colgado",
+              "id_dataset": "1764",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión con palmada",
+              "id_dataset": "1273",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "flexión en parada de manos",
+              "id_dataset": "0471",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 11,
+      "nombre": "Tracción avanzado (ciclo 4)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "saltos con piernas separadas (hombre)",
+              "id_dataset": "3220",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "remo a un brazo de pie con peso corporal",
+              "id_dataset": "3162",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 12,
+      "nombre": "Pierna avanzado (ciclo 4)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "burpee",
+              "id_dataset": "1160",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones en el suelo a una pierna",
+              "id_dataset": "1387",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "curl femoral a una pierna de pie",
+              "id_dataset": "0795",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 13,
+      "nombre": "Empuje avanzado (ciclo 5)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "rodilla alta contra la pared",
+              "id_dataset": "3636",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de piernas colgado",
+              "id_dataset": "0472",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión arquero",
+              "id_dataset": "3294",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "pike colgado",
+              "id_dataset": "0473",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 14,
+      "nombre": "Tracción avanzado (ciclo 5)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "burpee con salto de tijera",
+              "id_dataset": "0501",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "remo a un brazo de pie con toalla (peso corporal)",
+              "id_dataset": "3161",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 15,
+      "nombre": "Pierna avanzado (ciclo 5)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de tijera (hombre)",
+              "id_dataset": "3224",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de gemelos de pie (en escalón)",
+              "id_dataset": "1490",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla a una pierna",
+              "id_dataset": "1476",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 16,
+      "nombre": "Empuje avanzado (ciclo 6)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "escalador (mountain climber)",
+              "id_dataset": "0630",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "l-sit en el suelo",
+              "id_dataset": "3419",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión con palmada",
+              "id_dataset": "1273",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "flexión de pike a cobra",
+              "id_dataset": "3662",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 17,
+      "nombre": "Tracción avanzado (ciclo 6)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "saltos de tijera (hombre)",
+              "id_dataset": "3219",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "repeticiones de front lever",
+              "id_dataset": "3295",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 18,
+      "nombre": "Pierna avanzado (ciclo 6)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de media sentadilla (hombre)",
+              "id_dataset": "3222",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de gemelos de pie",
+              "id_dataset": "1397",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "deslizamiento en plataforma a una pierna",
+              "id_dataset": "0730",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 19,
+      "nombre": "Empuje avanzado (ciclo 7)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de estrella (hombre)",
+              "id_dataset": "3223",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de cadera colgado",
+              "id_dataset": "1764",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión arquero",
+              "id_dataset": "3294",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "parada de manos",
+              "id_dataset": "3302",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 20,
+      "nombre": "Tracción avanzado (ciclo 7)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "zancada caminando con rodillas altas",
+              "id_dataset": "3655",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "muscle up con kipping",
+              "id_dataset": "0558",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 21,
+      "nombre": "Pierna avanzado (ciclo 7)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "saltos con piernas separadas (hombre)",
+              "id_dataset": "3220",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "círculos de tobillo",
+              "id_dataset": "1368",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla a una pierna (pistol) hombre",
+              "id_dataset": "1759",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 22,
+      "nombre": "Empuje avanzado (ciclo 8)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "burpee",
+              "id_dataset": "1160",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de piernas colgado",
+              "id_dataset": "0472",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión con palmada",
+              "id_dataset": "1273",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "flexión en parada de manos",
+              "id_dataset": "0471",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 23,
+      "nombre": "Tracción avanzado (ciclo 8)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "rodilla alta contra la pared",
+              "id_dataset": "3636",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "muscle up (dominada con fondo)",
+              "id_dataset": "0631",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 24,
+      "nombre": "Pierna avanzado (ciclo 8)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "burpee con salto de tijera",
+              "id_dataset": "0501",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones de pie con peso corporal",
+              "id_dataset": "1373",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "curl femoral a una pierna de pie",
+              "id_dataset": "0795",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 25,
+      "nombre": "Empuje avanzado (ciclo 9)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de tijera (hombre)",
+              "id_dataset": "3224",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "l-sit en el suelo",
+              "id_dataset": "3419",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión arquero",
+              "id_dataset": "3294",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "pike colgado",
+              "id_dataset": "0473",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 26,
+      "nombre": "Tracción avanzado (ciclo 9)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "escalador (mountain climber)",
+              "id_dataset": "0630",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "muscle up en barra vertical",
+              "id_dataset": "1401",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 27,
+      "nombre": "Pierna avanzado (ciclo 9)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "saltos de tijera (hombre)",
+              "id_dataset": "3219",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "bajada de cajón con estabilización a una pierna",
+              "id_dataset": "1374",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla a una pierna",
+              "id_dataset": "1476",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 28,
+      "nombre": "Empuje avanzado (ciclo 10)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de media sentadilla (hombre)",
+              "id_dataset": "3222",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de cadera colgado",
+              "id_dataset": "1764",
+              "modo": "tiempo",
+              "duracion_segundos": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Empuje",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "flexión con palmada",
+              "id_dataset": "1273",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            },
+            {
+              "nombre": "flexión de pike a cobra",
+              "id_dataset": "3662",
+              "modo": "tiempo",
+              "duracion_segundos": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho, tríceps y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 29,
+      "nombre": "Tracción avanzado (ciclo 10)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "salto de estrella (hombre)",
+              "id_dataset": "3223",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tracción",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "estiramiento de pecho con un brazo contra la pared",
+              "id_dataset": "1355",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 30,
+      "nombre": "Pierna avanzado (ciclo 10)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "zancada caminando con rodillas altas",
+              "id_dataset": "3655",
+              "modo": "tiempo",
+              "duracion_segundos": 180,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 45,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones burro (donkey calf raise)",
+              "id_dataset": "0284",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pierna",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "deslizamiento en plataforma a una pierna",
+              "id_dataset": "0730",
+              "modo": "series",
+              "reps_min": 5,
+              "reps_max": 8,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

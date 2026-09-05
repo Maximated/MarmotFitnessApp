@@ -1,0 +1,4877 @@
+{
+  "programa": "Brazos - Intermedio",
+  "ciclo_dias": 40,
+  "notas": "Rutina centrada en brazos (bíceps/tríceps con mayor frecuencia). Nivel intermedio: series estándar, reps en rango, superseries activas.",
+  "jornadas": [
+    {
+      "numero_jornada": 1,
+      "nombre": "Pecho y Bíceps (ciclo 1) — pecho alto",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "inclinación lateral con mancuerna",
+              "id_dataset": "0407",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "alto",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press de banca inclinado en polea",
+              "id_dataset": "0169",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "flexión profunda",
+              "id_dataset": "1274",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "variante de cruce en polea",
+              "id_dataset": "0155",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas en el suelo (con barra)",
+              "id_dataset": "0458",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de bíceps en máquina (lever)",
+              "id_dataset": "0575",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl agarre cerrado en polea",
+              "id_dataset": "1630",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de bíceps alterno con banda",
+              "id_dataset": "0968",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 2,
+      "nombre": "Espalda y Tríceps (ciclo 1) — dominante vertical",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "giro de rodillas en máquina (lever)",
+              "id_dataset": "0583",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "vertical",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "jalón lateral alterno",
+              "id_dataset": "0007",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "remo sentado declinado agarre ancho en polea",
+              "id_dataset": "0159",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo inclinado con mancuernas",
+              "id_dataset": "0293",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón al frente en máquina (lever)",
+              "id_dataset": "0579",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps alterna en polea",
+              "id_dataset": "0149",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "flexión agarre cerrado con banda",
+              "id_dataset": "0975",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de concentración en polea (apoyado en la rodilla)",
+              "id_dataset": "0152",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 3,
+      "nombre": "Brazos y Hombro (ciclo 1)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "voltereta de judo en polea",
+              "id_dataset": "0174",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de bíceps alterno con barra",
+              "id_dataset": "0023",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "press agarre cerrado con mancuernas",
+              "id_dataset": "1731",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl predicador agarre martillo en máquina (lever)",
+              "id_dataset": "1615",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "extensión de tríceps por encima de la cabeza en polea alta",
+              "id_dataset": "1722",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press de hombros con banda",
+              "id_dataset": "0997",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación frontal en polea",
+              "id_dataset": "0161",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación frontal con mancuernas",
+              "id_dataset": "0310",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 4,
+      "nombre": "Pierna (ciclo 1) — énfasis cuadriceps",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "círculos de tobillo",
+              "id_dataset": "1368",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "variante": "cuadriceps",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla frontal en banco con barra",
+              "id_dataset": "0024",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "sentadilla en banco con mancuernas",
+              "id_dataset": "0291",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "peso muerto en máquina (lever)",
+              "id_dataset": "0578",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "peso muerto con mancuernas",
+              "id_dataset": "0300",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 5,
+      "nombre": "Pecho y Bíceps (ciclo 2) — pecho bajo",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch de rodillas en polea",
+              "id_dataset": "0175",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "bajo",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press declinado a un brazo en polea",
+              "id_dataset": "1260",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "press de banca con barra",
+              "id_dataset": "0025",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas declinadas con mancuernas",
+              "id_dataset": "0302",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas sentado en máquina (lever)",
+              "id_dataset": "0596",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl concentrado con banda",
+              "id_dataset": "0976",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de concentración en polea",
+              "id_dataset": "1631",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de bíceps alterno con mancuernas",
+              "id_dataset": "0285",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 6,
+      "nombre": "Espalda y Tríceps (ciclo 2) — dominante horizontal",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "abdominal 3/4",
+              "id_dataset": "0001",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "horizontal",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "remo inclinado con barra",
+              "id_dataset": "0027",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "jalón lateral amplio a un brazo en máquina (lever)",
+              "id_dataset": "1347",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo sentado en el suelo agarre ancho en polea",
+              "id_dataset": "0160",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón lateral agarre invertido en máquina (lever)",
+              "id_dataset": "2736",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps inclinado en polea",
+              "id_dataset": "0173",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "press agarre cerrado con mancuernas",
+              "id_dataset": "0296",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "patada de tríceps en polea",
+              "id_dataset": "0860",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 7,
+      "nombre": "Brazos y Hombro (ciclo 2)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "spell caster (rotación de torso con peso)",
+              "id_dataset": "0777",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl predicador en máquina (lever)",
+              "id_dataset": "0592",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "extensión de tríceps de rodillas en polea",
+              "id_dataset": "0176",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl de bíceps a un brazo por encima de la cabeza con banda",
+              "id_dataset": "0986",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "extensión de tríceps tumbado en polea v. 2",
+              "id_dataset": "0186",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press lateral alterno con mancuernas",
+              "id_dataset": "0286",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación frontal en polea",
+              "id_dataset": "0162",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación frontal con barra",
+              "id_dataset": "0041",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 8,
+      "nombre": "Pierna (ciclo 2) — énfasis gluteo_isquios",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones sentado con mancuerna",
+              "id_dataset": "1379",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "variante": "gluteo_isquios",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "curl femoral de rodillas en máquina (lever)",
+              "id_dataset": "0582",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "sentadilla búlgara a una pierna y un brazo con banda",
+              "id_dataset": "0987",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "zancada frontal contralateral con mancuernas",
+              "id_dataset": "3635",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "peso muerto con barra",
+              "id_dataset": "0032",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 9,
+      "nombre": "Pecho y Bíceps (ciclo 3) — pecho medio",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch inverso en polea",
+              "id_dataset": "0873",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "medio",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "pullover circular con mancuerna",
+              "id_dataset": "0288",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "press de pecho en máquina (lever)",
+              "id_dataset": "0577",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas declinadas en polea",
+              "id_dataset": "0158",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas inclinadas en polea",
+              "id_dataset": "0171",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de bíceps alterno con mancuernas (con arm blaster)",
+              "id_dataset": "2403",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl en polea",
+              "id_dataset": "0868",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de bíceps con barra (con arm blaster)",
+              "id_dataset": "2407",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 10,
+      "nombre": "Espalda y Tríceps (ciclo 3) — dominante vertical",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "inclinación lateral con mancuerna",
+              "id_dataset": "0407",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "vertical",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "jalón al pecho en máquina con agarre invertido",
+              "id_dataset": "0673",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "remo alto en polea (de rodillas)",
+              "id_dataset": "0167",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo en banco inclinado en polea",
+              "id_dataset": "1318",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón agarre cerrado con banda",
+              "id_dataset": "0974",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps en polea a un brazo",
+              "id_dataset": "1723",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "press de banca agarre cerrado con barra",
+              "id_dataset": "0030",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "press martillo a una mano en banco declinado con mancuerna",
+              "id_dataset": "1617",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 11,
+      "nombre": "Brazos y Hombro (ciclo 3)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch sentado en polea",
+              "id_dataset": "0212",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de concentración de bíceps con pierna",
+              "id_dataset": "1770",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "extensión de tríceps overhead en polea (cuerda)",
+              "id_dataset": "0194",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl martillo predicador alterno con mancuernas",
+              "id_dataset": "1646",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "extensión de tríceps en polea",
+              "id_dataset": "0201",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press militar sentado tras nuca con barra",
+              "id_dataset": "0086",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación frontal con mancuernas v. 2",
+              "id_dataset": "0309",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación lateral en máquina (lever)",
+              "id_dataset": "0584",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 12,
+      "nombre": "Pierna (ciclo 3) — énfasis cuadriceps",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones en el suelo con barra",
+              "id_dataset": "1370",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "variante": "cuadriceps",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla búlgara a una pierna con banda",
+              "id_dataset": "1001",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "sentadilla goblet con mancuerna",
+              "id_dataset": "1760",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "peso muerto rumano con mancuernas",
+              "id_dataset": "1459",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "curl femoral acostado en máquina (lever)",
+              "id_dataset": "0586",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 13,
+      "nombre": "Pecho y Bíceps (ciclo 4) — pecho alto",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "giro de torso sentado en polea",
+              "id_dataset": "2399",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "alto",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press inclinado a un brazo en polea",
+              "id_dataset": "1265",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "flexión arquero",
+              "id_dataset": "3294",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas bajas en polea",
+              "id_dataset": "0179",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "apertura a una mano en banco declinado con mancuerna",
+              "id_dataset": "1276",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl con barra",
+              "id_dataset": "0031",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl predicador alterno con mancuernas",
+              "id_dataset": "1647",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl predicador en máquina v. 2 (lever)",
+              "id_dataset": "1614",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 14,
+      "nombre": "Espalda y Tríceps (ciclo 4) — dominante horizontal",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "abdominal con press con barra",
+              "id_dataset": "0071",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "horizontal",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "remo bajo de pie a un brazo con banda",
+              "id_dataset": "0988",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "jalón lateral con barra en polea",
+              "id_dataset": "0150",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo sentado bajo en polea",
+              "id_dataset": "0180",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón lateral cruzado en polea",
+              "id_dataset": "0153",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps en banco declinado con mancuernas",
+              "id_dataset": "0306",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "fondos de tríceps agarre prono en máquina (lever)",
+              "id_dataset": "0591",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps en polea (con cuerda)",
+              "id_dataset": "0200",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 15,
+      "nombre": "Brazos y Hombro (ciclo 4)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "flexión lateral de tronco en polea",
+              "id_dataset": "0222",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl martillo sentado alterno con mancuernas",
+              "id_dataset": "1648",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "empuje posterior en polea",
+              "id_dataset": "0204",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl arrastrado con barra",
+              "id_dataset": "0038",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "zancada al frente con extensión de tríceps con mancuernas",
+              "id_dataset": "1732",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press militar en máquina (lever)",
+              "id_dataset": "0587",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación frontal de hombro en polea",
+              "id_dataset": "0164",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación frontal lateral con banda",
+              "id_dataset": "0977",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 16,
+      "nombre": "Pierna (ciclo 4) — énfasis gluteo_isquios",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "prensa de pantorrilla en máquina (lever)",
+              "id_dataset": "2289",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "variante": "gluteo_isquios",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto a una pierna con mancuerna",
+              "id_dataset": "1757",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "sentadilla en banco con barra",
+              "id_dataset": "0026",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "zancada con mancuernas",
+              "id_dataset": "0336",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "peso muerto piernas rígidas con banda",
+              "id_dataset": "1009",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 17,
+      "nombre": "Pecho y Bíceps (ciclo 5) — pecho bajo",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "spell caster (rotación de torso con peso)",
+              "id_dataset": "0777",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "bajo",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press declinado en polea",
+              "id_dataset": "1261",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "press de banca con mancuernas",
+              "id_dataset": "0289",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas tumbado en polea",
+              "id_dataset": "0185",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas en el suelo (con barra)",
+              "id_dataset": "0458",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl predicador agarre invertido en máquina (lever)",
+              "id_dataset": "1616",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl drag en polea",
+              "id_dataset": "1632",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "dominadas agarre cerrado para bíceps",
+              "id_dataset": "0139",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 18,
+      "nombre": "Espalda y Tríceps (ciclo 5) — dominante vertical",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch sentado en máquina (lever)",
+              "id_dataset": "1452",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "vertical",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "jalón al pecho en polea con rango completo de movimiento",
+              "id_dataset": "2330",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "remo inclinado a un brazo en polea",
+              "id_dataset": "0189",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo en banco inclinado con mancuernas",
+              "id_dataset": "0327",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón al frente en máquina (lever)",
+              "id_dataset": "0579",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps en polea agarre inverso (barra sz) (con arm blaster)",
+              "id_dataset": "2406",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps lateral con banda",
+              "id_dataset": "0998",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps en polea agarre inverso",
+              "id_dataset": "0207",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 19,
+      "nombre": "Brazos y Hombro (ciclo 5)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch con flexión lateral en polea (bosu)",
+              "id_dataset": "0221",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl predicador tumbado con barra",
+              "id_dataset": "0059",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "press martillo a una mano en banco inclinado con mancuerna",
+              "id_dataset": "1619",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl de bíceps en máquina smith",
+              "id_dataset": "1683",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "extensión de tríceps overhead en polea alta con cuerda",
+              "id_dataset": "1724",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press por encima de la cabeza con giro con banda",
+              "id_dataset": "1012",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación lateral en polea",
+              "id_dataset": "0178",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación lateral con mancuernas (agarre full can)",
+              "id_dataset": "0311",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 20,
+      "nombre": "Pierna (ciclo 5) — énfasis cuadriceps",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones a una pierna con banda",
+              "id_dataset": "0999",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "variante": "cuadriceps",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla frontal con agarre de cargada con barra",
+              "id_dataset": "0029",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "sentadilla pliométrica con mancuernas",
+              "id_dataset": "0371",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "curl femoral acostado a dos-una pierna en máquina (lever)",
+              "id_dataset": "3195",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "peso muerto a una pierna con mancuerna y apoyo en step",
+              "id_dataset": "2805",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 21,
+      "nombre": "Pecho y Bíceps (ciclo 6) — pecho medio",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch lateral en polea",
+              "id_dataset": "0223",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "medio",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press de banca en polea",
+              "id_dataset": "0151",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación frontal y pullover con barra",
+              "id_dataset": "0040",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "apertura con giro en banco declinado con mancuernas",
+              "id_dataset": "0307",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas sentado en máquina (lever)",
+              "id_dataset": "0596",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "dominada para bíceps",
+              "id_dataset": "0140",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl martillo en polea (con cuerda)",
+              "id_dataset": "0165",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de bíceps con zancada y movimiento de boliche con mancuernas",
+              "id_dataset": "1651",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 22,
+      "nombre": "Espalda y Tríceps (ciclo 6) — dominante horizontal",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "flexión lateral de tronco a 45°",
+              "id_dataset": "0002",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "horizontal",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "remo en banco inclinado con barra",
+              "id_dataset": "0049",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "jalón lateral amplio a un brazo en máquina (lever)",
+              "id_dataset": "1347",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo alto a un brazo espalda recta en polea (de rodillas)",
+              "id_dataset": "0193",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón lateral agarre invertido en máquina (lever)",
+              "id_dataset": "2736",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps en banco inclinado con cuerda en polea",
+              "id_dataset": "1725",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps en banco inclinado con mancuernas",
+              "id_dataset": "0330",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps acostado en el suelo con cuerda en polea",
+              "id_dataset": "1726",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 23,
+      "nombre": "Brazos y Hombro (ciclo 6)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "inclinación lateral con mancuerna",
+              "id_dataset": "0407",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de bíceps en máquina (lever)",
+              "id_dataset": "0575",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "extensión de tríceps a un brazo de pie en polea",
+              "id_dataset": "0231",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl de bíceps tumbado de lado con peso corporal",
+              "id_dataset": "1769",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "extensión de tríceps overhead a un brazo agarre inverso de pie en polea",
+              "id_dataset": "1727",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press arnold con mancuernas",
+              "id_dataset": "2137",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación lateral a un brazo en polea",
+              "id_dataset": "0192",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación posterior de hombro con barra",
+              "id_dataset": "0075",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 24,
+      "nombre": "Pierna (ciclo 6) — énfasis gluteo_isquios",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talón a una pierna sentado con mancuerna",
+              "id_dataset": "0400",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "variante": "gluteo_isquios",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "buenos días sentado en máquina (lever)",
+              "id_dataset": "3759",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "sentadilla con banda",
+              "id_dataset": "1004",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "zancada posterior con mancuernas",
+              "id_dataset": "0381",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "puente de glúteos con barra",
+              "id_dataset": "1409",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 25,
+      "nombre": "Pecho y Bíceps (ciclo 7) — pecho alto",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch de pie en polea",
+              "id_dataset": "0226",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "alto",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press alterno en banco inclinado con mancuernas",
+              "id_dataset": "3545",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "press de pecho en máquina (lever)",
+              "id_dataset": "0576",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas a media altura en polea",
+              "id_dataset": "0188",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas declinadas a un brazo en polea",
+              "id_dataset": "1262",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de bíceps con mancuernas en posición de cigüeña",
+              "id_dataset": "1653",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de bíceps tumbado en polea",
+              "id_dataset": "1634",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl predicador con barra",
+              "id_dataset": "0070",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 26,
+      "nombre": "Espalda y Tríceps (ciclo 7) — dominante vertical",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "spell caster (rotación de torso con peso)",
+              "id_dataset": "0777",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "vertical",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "jalón al pecho en máquina con agarre invertido",
+              "id_dataset": "0673",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "remo en polea con rotación de palma",
+              "id_dataset": "1319",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo alto sentado espalda recta agarre inverso en polea",
+              "id_dataset": "0208",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón agarre cerrado con espalda fija con banda",
+              "id_dataset": "3117",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps en polea (barra v)",
+              "id_dataset": "0241",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "press rompecráneos declinado agarre cerrado con barra",
+              "id_dataset": "0035",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión a dos brazos en banco inclinado con mancuernas",
+              "id_dataset": "1733",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 27,
+      "nombre": "Brazos y Hombro (ciclo 7)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch de pie en polea (con cuerda)",
+              "id_dataset": "0874",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "cargada bottoms up desde posición colgante con kettlebell",
+              "id_dataset": "0525",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "extensión de tríceps en polea (barra v) (con arm blaster)",
+              "id_dataset": "2405",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl de bíceps con mancuernas",
+              "id_dataset": "0294",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "patada de tríceps a dos brazos en polea",
+              "id_dataset": "1728",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press Bradford sentado con barra",
+              "id_dataset": "0087",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación lateral a una mano en banco inclinado con mancuerna",
+              "id_dataset": "0323",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación lateral en máquina (lever)",
+              "id_dataset": "0584",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 28,
+      "nombre": "Pierna (ciclo 7) — énfasis cuadriceps",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones sentado con barra",
+              "id_dataset": "0088",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "variante": "cuadriceps",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla con remo con banda",
+              "id_dataset": "1003",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "sentadilla búlgara con mancuerna",
+              "id_dataset": "0410",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "peso muerto piernas rígidas con mancuerna",
+              "id_dataset": "0432",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "curl femoral sentado en máquina (lever)",
+              "id_dataset": "0599",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 29,
+      "nombre": "Pecho y Bíceps (ciclo 8) — pecho bajo",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de pie en polea",
+              "id_dataset": "0230",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "bajo",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press declinado a un brazo en polea",
+              "id_dataset": "1260",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "press de banca con banda",
+              "id_dataset": "1254",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas de pie en polea",
+              "id_dataset": "0227",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "apertura con mancuernas",
+              "id_dataset": "0308",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl inclinado boca abajo con barra",
+              "id_dataset": "0072",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de bíceps con mancuernas (con arm blaster)",
+              "id_dataset": "2401",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl predicador agarre martillo en máquina (lever)",
+              "id_dataset": "1615",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 30,
+      "nombre": "Espalda y Tríceps (ciclo 8) — dominante horizontal",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "rueda abdominal con barra",
+              "id_dataset": "0084",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "horizontal",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "remo sentado con giro a un brazo con banda",
+              "id_dataset": "0990",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "jalón lateral en polea (con cuerda)",
+              "id_dataset": "0177",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo sentado cruzado con cuerda en polea",
+              "id_dataset": "1320",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón lateral en polea con barra en V",
+              "id_dataset": "2616",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "patada de tríceps con mancuerna",
+              "id_dataset": "0333",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "fondos sentado en máquina (lever)",
+              "id_dataset": "1451",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps alterna en polea",
+              "id_dataset": "0149",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 31,
+      "nombre": "Brazos y Hombro (ciclo 8)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch inverso encogido en polea",
+              "id_dataset": "0242",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de bíceps inverso con mancuernas",
+              "id_dataset": "1654",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "extensión de concentración en polea (apoyado en la rodilla)",
+              "id_dataset": "0152",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl invertido con barra",
+              "id_dataset": "0080",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "extensión tumbado con mancuerna (cruzando la cara)",
+              "id_dataset": "0337",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press de hombro a un brazo en máquina (lever)",
+              "id_dataset": "0590",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación lateral posterior sentado en polea",
+              "id_dataset": "0215",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación frontal con banda",
+              "id_dataset": "0978",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 32,
+      "nombre": "Pierna (ciclo 8) — énfasis gluteo_isquios",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en elíptica",
+              "id_dataset": "2141",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones burro en máquina (lever)",
+              "id_dataset": "1253",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "variante": "gluteo_isquios",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto piernas rectas con mancuerna",
+              "id_dataset": "0434",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "sentadilla frontal con barra al pecho",
+              "id_dataset": "0039",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla a una pierna con mancuerna",
+              "id_dataset": "0411",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "peso muerto piernas rígidas espalda recta con banda",
+              "id_dataset": "1023",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 33,
+      "nombre": "Pecho y Bíceps (ciclo 9) — pecho medio",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "inclinación lateral con mancuerna",
+              "id_dataset": "0407",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "medio",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación lateral inclinada a un brazo en polea",
+              "id_dataset": "0191",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "press martillo tumbado con mancuernas",
+              "id_dataset": "0340",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "cruces de poleas de pie erguido",
+              "id_dataset": "1269",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas en el suelo (con barra)",
+              "id_dataset": "0458",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl predicador en máquina (lever)",
+              "id_dataset": "0592",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl agarre cerrado tumbado en polea",
+              "id_dataset": "0182",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "cargada colgante doble alterna con kettlebell",
+              "id_dataset": "0526",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 34,
+      "nombre": "Espalda y Tríceps (ciclo 9) — dominante vertical",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "crunch sentado en máquina (almohadilla de pecho) (lever)",
+              "id_dataset": "0595",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "vertical",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "jalón a un brazo en polea",
+              "id_dataset": "3563",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "remo sentado elevado con cuerda en polea",
+              "id_dataset": "1321",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo para deltoide posterior tumbado con mancuernas",
+              "id_dataset": "1328",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón al frente en máquina (lever)",
+              "id_dataset": "0579",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps por encima de la cabeza en polea alta",
+              "id_dataset": "1722",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "fondos en banco (rodillas flexionadas)",
+              "id_dataset": "0129",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps inclinado en polea",
+              "id_dataset": "0173",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 35,
+      "nombre": "Brazos y Hombro (ciclo 9)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "giro de torso en polea",
+              "id_dataset": "0243",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl predicador invertido con barra",
+              "id_dataset": "0081",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "extensión alterna tumbado con mancuernas",
+              "id_dataset": "1729",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl predicador en máquina v. 2 (lever)",
+              "id_dataset": "1614",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "patada de tríceps en polea",
+              "id_dataset": "0860",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press alterno con kettlebell",
+              "id_dataset": "0520",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación frontal en polea",
+              "id_dataset": "0161",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación en banco inclinado con mancuernas",
+              "id_dataset": "0325",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 36,
+      "nombre": "Pierna (ciclo 9) — énfasis cuadriceps",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talones inversa a una pierna con banda",
+              "id_dataset": "1000",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "variante": "cuadriceps",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "sentadilla frontal con barra",
+              "id_dataset": "0042",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "sentadilla con mancuerna",
+              "id_dataset": "0413",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "buenos días (good morning) con rodillas flexionadas en máquina smith",
+              "id_dataset": "0749",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "peso muerto con mancuernas",
+              "id_dataset": "0300",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 37,
+      "nombre": "Pecho y Bíceps (ciclo 10) — pecho alto",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "giro de torso en polea (arriba-abajo)",
+              "id_dataset": "0862",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Pecho",
+          "variante": "alto",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press de banca inclinado en polea",
+              "id_dataset": "0169",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "press de banca guillotina con barra",
+              "id_dataset": "0045",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "apertura en banco inclinado con mancuernas",
+              "id_dataset": "0319",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "aperturas sentado en máquina (lever)",
+              "id_dataset": "0596",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl de bíceps sentado con banda de resistencia",
+              "id_dataset": "3123",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl a un brazo en polea",
+              "id_dataset": "0190",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "B"
+            },
+            {
+              "nombre": "curl de bíceps en sentadilla con mancuernas",
+              "id_dataset": "1655",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de pecho y bíceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 38,
+      "nombre": "Espalda y Tríceps (ciclo 10) — dominante horizontal",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "caminata en cinta inclinada",
+              "id_dataset": "3666",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta en el aire",
+              "id_dataset": "0003",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Espalda",
+          "variante": "horizontal",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "remo inclinado a un brazo con barra",
+              "id_dataset": "0064",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": null
+            },
+            {
+              "nombre": "jalón lateral amplio a un brazo en máquina (lever)",
+              "id_dataset": "1347",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 10,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "remo en banco inclinado con cuerda en polea",
+              "id_dataset": "1322",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "A"
+            },
+            {
+              "nombre": "jalón lateral agarre invertido en máquina (lever)",
+              "id_dataset": "2736",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Tríceps",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "extensión de tríceps de rodillas en polea",
+              "id_dataset": "0176",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "press de codo tumbado con mancuernas",
+              "id_dataset": "0338",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "C"
+            },
+            {
+              "nombre": "extensión de tríceps tumbado en polea v. 2",
+              "id_dataset": "0186",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de espalda y tríceps",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 39,
+      "nombre": "Brazos y Hombro (ciclo 10)",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "elíptica (cross trainer)",
+              "id_dataset": "2331",
+              "modo": "tiempo",
+              "duracion_segundos": 300,
+              "superset_con": null
+            },
+            {
+              "nombre": "Giros de brazo hacia delante y hacia detrás",
+              "id_dataset": null,
+              "modo": "series",
+              "reps_min": 20,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "abdomen",
+          "muscle_group": "Abdomen",
+          "descanso_segundos": 60,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "spell caster (rotación de torso con peso)",
+              "id_dataset": "0777",
+              "modo": "series",
+              "reps_min": 15,
+              "reps_max": 20,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Bíceps/Tríceps (biserie)",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "curl predicador agarre invertido en máquina (lever)",
+              "id_dataset": "1616",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "extensión de tríceps en polea a un brazo",
+              "id_dataset": "1723",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "F"
+            },
+            {
+              "nombre": "curl de pie con peso",
+              "id_dataset": "0853",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            },
+            {
+              "nombre": "extensión de tríceps overhead en polea (cuerda)",
+              "id_dataset": "0194",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "G"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Hombro",
+          "descanso_segundos": 90,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "press arnold con mancuernas v. 2",
+              "id_dataset": "0287",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "elevación frontal en polea",
+              "id_dataset": "0162",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            },
+            {
+              "nombre": "elevación frontal por encima de la cabeza de pie con barra",
+              "id_dataset": "0107",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": "H"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de brazos y hombro",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "numero_jornada": 40,
+      "nombre": "Pierna (ciclo 10) — énfasis gluteo_isquios",
+      "bloques": [
+        {
+          "tipo": "calentamiento",
+          "muscle_group": null,
+          "ejercicios": [
+            {
+              "nombre": "bicicleta estática - caminata",
+              "id_dataset": "0798",
+              "modo": "tiempo",
+              "duracion_segundos": 480,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "pantorrilla",
+          "muscle_group": "Pantorrilla",
+          "descanso_segundos": 75,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "elevación de talón a una pierna sentado con mancuerna - agarre martillo",
+              "id_dataset": "1380",
+              "modo": "series",
+              "reps_min": 12,
+              "reps_max": 15,
+              "superset_con": null
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Glúteo/Isquios",
+          "variante": "gluteo_isquios",
+          "descanso_segundos": 120,
+          "num_sets": 4,
+          "ejercicios": [
+            {
+              "nombre": "peso muerto en máquina smith",
+              "id_dataset": "0752",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": null
+            },
+            {
+              "nombre": "peso muerto en polea",
+              "id_dataset": "0157",
+              "modo": "series",
+              "reps_min": 8,
+              "reps_max": 12,
+              "superset_con": "D"
+            },
+            {
+              "nombre": "sentadilla con salto en caída con peso corporal",
+              "id_dataset": "3543",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "D"
+            }
+          ]
+        },
+        {
+          "tipo": "grupo_muscular",
+          "muscle_group": "Cuádriceps",
+          "descanso_segundos": 120,
+          "num_sets": 3,
+          "ejercicios": [
+            {
+              "nombre": "zancada con subida a step con mancuerna",
+              "id_dataset": "2796",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            },
+            {
+              "nombre": "puente de glúteos con barra y piernas en banco (hombre)",
+              "id_dataset": "3562",
+              "modo": "series",
+              "reps_min": 10,
+              "reps_max": 12,
+              "superset_con": "E"
+            }
+          ]
+        },
+        {
+          "tipo": "estiramiento",
+          "ejercicios": [
+            {
+              "nombre": "Estiramiento de piernas y pantorrilla",
+              "id_dataset": null,
+              "modo": "tiempo",
+              "duracion_segundos": 30,
+              "superset_con": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

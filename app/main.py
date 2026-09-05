@@ -23,6 +23,7 @@ from app.models import DayTemplate, Program, User, Workout
 from app.program_import import router as program_import_router
 from app.program_sessions import build_calendar_weeks, finish_workout, get_next_sessions
 from app.program_sessions import router as program_sessions_router
+from app.program_starters import router as program_starters_router
 from app.programs import router as programs_router
 from app.push import router as push_router, send_inactivity_prompt_push, send_push_for_workout
 from app.sharing import router as sharing_router
@@ -147,6 +148,7 @@ app.include_router(exercise_ratings_router)
 app.include_router(workouts_router)
 app.include_router(history_router)
 app.include_router(program_import_router)
+app.include_router(program_starters_router)
 app.include_router(programs_router)
 app.include_router(blocks_router)
 app.include_router(block_exercises_router)

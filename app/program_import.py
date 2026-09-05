@@ -38,6 +38,100 @@ def compute_superset_flags(ejercicios: list[dict]) -> list[bool]:
     return flags
 
 
+def import_program_data(
+    db: Session, user: User, data: dict
+) -> tuple[Program, dict, list[dict], list[dict]]:
+    """Construye Program/DayTemplate/Block/BlockExercise a partir de un dict
+    con el formato compartido por el importador manual y las rutinas
+    predefinidas ("programa"/"ciclo_dias"/"jornadas"). No hace commit --
+    eso es responsabilidad de quien llama, igual que antes de extraer esto
+    de import_program_submit. Lanza ValueError si el dict no trae
+    "programa" o "jornadas"."""
+    jornadas = data.get("jornadas") or []
+    if not data.get("programa") or not jornadas:
+        raise ValueError("El JSON debe traer \"programa\" y al menos una jornada en \"jornadas\".")
+
+    matcher = ExerciseMatcher(db, user.id)
+    counts = {"id": 0, "alias": 0, "name": 0, "fuzzy": 0, "pending": 0, "sin_catalogo": 0}
+    detail_rows = []
+    pending_refs = []
+
+    program = Program(
+        user_id=user.id, name=data["programa"], cycle_days=len(jornadas), is_active=False
+    )
+    db.add(program)
+    db.flush()
+
+    for day_number, jornada in enumerate(jornadas, start=1):
+        day_template = DayTemplate(
+            program_id=program.id, day_number=day_number, subtitle=jornada.get("nombre")
+        )
+        db.add(day_template)
+        db.flush()
+
+        for block_pos, bloque in enumerate(jornada.get("bloques", []), start=1):
+            ejercicios = bloque.get("ejercicios")
+            block = Block(
+                day_template_id=day_template.id,
+                type=map_block_type(bloque.get("tipo", "")),
+                muscle_group=bloque.get("muscle_group") or None,
+                variant=bloque.get("variante") or None,
+                position=block_pos,
+                num_exercises=len(ejercicios) if ejercicios else 0,
+                num_sets=bloque.get("num_sets"),
+                rest_seconds=bloque.get("descanso_segundos") or 0,
+            )
+            db.add(block)
+            db.flush()
+
+            if not ejercicios:
+                continue
+
+            superset_flags = compute_superset_flags(ejercicios)
+            for ex_pos, (item, is_superset) in enumerate(zip(ejercicios, superset_flags), start=1):
+                modo = item.get("modo", "series")
+                # "id_dataset" presente con valor null (no ausente) significa
+                # que a propósito no hay equivalente en el catálogo (ej.
+                # "Giros de brazo"): salta el emparejador por completo y no
+                # cuenta como pendiente de resolver. Si la clave falta, sí se
+                # intenta emparejar por nombre como siempre.
+                explicit_no_catalog = "id_dataset" in item and item["id_dataset"] is None
+
+                if explicit_no_catalog:
+                    exercise_id, method, score = None, "sin_catalogo", None
+                else:
+                    exercise_id, method, score = matcher.resolve(
+                        item.get("id_dataset"), item["nombre"]
+                    )
+                counts[method] += 1
+                detail_rows.append(
+                    {
+                        "jornada": day_number,
+                        "nombre": item["nombre"],
+                        "method": method,
+                        "score": round(score) if score is not None else None,
+                    }
+                )
+                block_exercise = BlockExercise(
+                    block_id=block.id,
+                    exercise_id=exercise_id,
+                    pending_name=item["nombre"] if exercise_id is None else None,
+                    position=ex_pos,
+                    modo_registro=modo,
+                    reps_min=item.get("reps_min") if modo != "tiempo" else None,
+                    reps_max=item.get("reps_max") if modo != "tiempo" else None,
+                    duracion_segundos=item.get("duracion_segundos") if modo == "tiempo" else None,
+                    is_superset_with_next=is_superset,
+                )
+                db.add(block_exercise)
+                if exercise_id is None and not explicit_no_catalog:
+                    pending_refs.append(block_exercise)
+
+    db.flush()
+    pending_list = [{"id": be.id, "name": be.pending_name} for be in pending_refs]
+    return program, counts, detail_rows, pending_list
+
+
 @router.post("/programs/import")
 async def import_program_submit(
     request: Request,
@@ -55,93 +149,8 @@ async def import_program_submit(
             context={"error": f"El archivo no es un JSON válido: {exc}"},
         )
 
-    jornadas = data.get("jornadas") or []
-    if not data.get("programa") or not jornadas:
-        return templates.TemplateResponse(
-            request=request,
-            name="programs/new.html",
-            context={"error": "El JSON debe traer \"programa\" y al menos una jornada en \"jornadas\"."},
-        )
-
     try:
-        matcher = ExerciseMatcher(db, user.id)
-        counts = {"id": 0, "alias": 0, "name": 0, "fuzzy": 0, "pending": 0, "sin_catalogo": 0}
-        detail_rows = []
-        pending_refs = []
-
-        program = Program(
-            user_id=user.id, name=data["programa"], cycle_days=len(jornadas), is_active=False
-        )
-        db.add(program)
-        db.flush()
-
-        for day_number, jornada in enumerate(jornadas, start=1):
-            day_template = DayTemplate(
-                program_id=program.id, day_number=day_number, subtitle=jornada.get("nombre")
-            )
-            db.add(day_template)
-            db.flush()
-
-            for block_pos, bloque in enumerate(jornada.get("bloques", []), start=1):
-                ejercicios = bloque.get("ejercicios")
-                block = Block(
-                    day_template_id=day_template.id,
-                    type=map_block_type(bloque.get("tipo", "")),
-                    muscle_group=bloque.get("muscle_group") or None,
-                    variant=bloque.get("variante") or None,
-                    position=block_pos,
-                    num_exercises=len(ejercicios) if ejercicios else 0,
-                    num_sets=bloque.get("num_sets"),
-                    rest_seconds=bloque.get("descanso_segundos") or 0,
-                )
-                db.add(block)
-                db.flush()
-
-                if not ejercicios:
-                    continue
-
-                superset_flags = compute_superset_flags(ejercicios)
-                for ex_pos, (item, is_superset) in enumerate(zip(ejercicios, superset_flags), start=1):
-                    modo = item.get("modo", "series")
-                    # "id_dataset" presente con valor null (no ausente) significa
-                    # que a propósito no hay equivalente en el catálogo (ej.
-                    # "Giros de brazo"): salta el emparejador por completo y no
-                    # cuenta como pendiente de resolver. Si la clave falta, sí se
-                    # intenta emparejar por nombre como siempre.
-                    explicit_no_catalog = "id_dataset" in item and item["id_dataset"] is None
-
-                    if explicit_no_catalog:
-                        exercise_id, method, score = None, "sin_catalogo", None
-                    else:
-                        exercise_id, method, score = matcher.resolve(
-                            item.get("id_dataset"), item["nombre"]
-                        )
-                    counts[method] += 1
-                    detail_rows.append(
-                        {
-                            "jornada": day_number,
-                            "nombre": item["nombre"],
-                            "method": method,
-                            "score": round(score) if score is not None else None,
-                        }
-                    )
-                    block_exercise = BlockExercise(
-                        block_id=block.id,
-                        exercise_id=exercise_id,
-                        pending_name=item["nombre"] if exercise_id is None else None,
-                        position=ex_pos,
-                        modo_registro=modo,
-                        reps_min=item.get("reps_min") if modo != "tiempo" else None,
-                        reps_max=item.get("reps_max") if modo != "tiempo" else None,
-                        duracion_segundos=item.get("duracion_segundos") if modo == "tiempo" else None,
-                        is_superset_with_next=is_superset,
-                    )
-                    db.add(block_exercise)
-                    if exercise_id is None and not explicit_no_catalog:
-                        pending_refs.append(block_exercise)
-
-        db.flush()
-        pending_list = [{"id": be.id, "name": be.pending_name} for be in pending_refs]
+        program, counts, detail_rows, pending_list = import_program_data(db, user, data)
         db.commit()
     except Exception as exc:
         db.rollback()
