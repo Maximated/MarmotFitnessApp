@@ -2,21 +2,17 @@
 {% from "_nav_arrows.html" import nav_arrow %}
 
 {% block content %}
-  <div class="page-nav-row">{{ nav_arrow("/programs/new", "back", "Volver") }}</div>
+  <div class="page-nav-row">{{ nav_arrow("/programs", "back", "Volver") }}</div>
 
   <h1>Rutinas predefinidas</h1>
-  <p>Elige un grupo y un nivel. Se añade a tus programas sin activarse -- la activas cuando quieras desde "Mis programas".</p>
+  <p>Elige un grupo y un nivel para ver qué incluye -- cargarla en tus programas es un paso aparte, no se añade nada todavía.</p>
 
   {% for group in groups %}
     <h2>{{ group.name }}</h2>
     <ul class="exercise-row-list">
       {% for lvl in group.levels %}
         <li>
-          <form method="post" action="/programs/starter/import">
-            <input type="hidden" name="group" value="{{ group.slug }}" />
-            <input type="hidden" name="level" value="{{ lvl.level }}" />
-            <button type="submit" class="btn-pill btn-pill-block" title="{{ lvl.notes }}">{{ lvl.label }}</button>
-          </form>
+          <a href="/programs/starter/{{ group.slug }}/{{ lvl.level }}" class="btn-pill btn-pill-block" title="{{ lvl.notes }}">{{ lvl.label }}</a>
         </li>
       {% endfor %}
     </ul>

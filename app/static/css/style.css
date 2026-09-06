@@ -621,6 +621,13 @@ button.home-banner {
   flex-shrink: 0;
 }
 
+.program-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
 .program-banner-name {
   font-size: 1.7rem;
 }

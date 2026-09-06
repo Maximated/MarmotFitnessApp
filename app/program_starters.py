@@ -25,6 +25,29 @@ async def starter_programs(
     )
 
 
+@router.get("/programs/starter/{group}/{level}")
+async def starter_program_preview(
+    group: str,
+    level: str,
+    request: Request,
+    user: User = Depends(require_user),
+):
+    """Read-only look at what a starter routine actually contains, straight
+    from its JSON file -- no DB write at all, so just browsing several
+    levels to compare them can never create a Program. Only the "Cargar
+    esta rutina" button at the bottom (starter_program_import below) does
+    that, and only once per tap."""
+    path = resolve_starter_file(group, level)
+    if path is None:
+        raise HTTPException(status_code=404)
+    data = json.loads(path.read_text())
+    return templates.TemplateResponse(
+        request=request,
+        name="programs/starter_preview.html",
+        context={"group": group, "level": level, "data": data},
+    )
+
+
 @router.post("/programs/starter/import")
 async def starter_program_import(
     request: Request,

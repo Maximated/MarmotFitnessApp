@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_nav_arrows.html" import nav_arrow %}
+
+{% block content %}
+  <div class="page-nav-row">{{ nav_arrow("/programs/starter", "back", "Volver") }}</div>
+
+  <h1>{{ data.programa }}</h1>
+  {% if data.notas %}<p>{{ data.notas }}</p>{% endif %}
+  <p>{{ data.jornadas | length }} días de ciclo</p>
+
+  {% for jornada in data.jornadas %}
+    <h2>Día {{ jornada.numero_jornada }}{% if jornada.nombre %} — {{ jornada.nombre }}{% endif %}</h2>
+    <ul class="exercise-row-list exercise-row-list-block">
+      {% for bloque in jornada.bloques %}
+        <li>
+          <strong>{{ bloque.tipo | replace("_", " ") | capitalize }}{% if bloque.muscle_group %} · {{ bloque.muscle_group }}{% endif %}{% if bloque.variante %} ({{ bloque.variante }}){% endif %}</strong>
+          <ul>
+            {% for ejercicio in bloque.ejercicios %}
+              <li>
+                {{ ejercicio.nombre }} —
+                {% if ejercicio.modo == "tiempo" %}
+                  {{ ejercicio.duracion_segundos }}s
+                {% elif ejercicio.reps_max and ejercicio.reps_max != ejercicio.reps_min %}
+                  {{ ejercicio.reps_min }}-{{ ejercicio.reps_max }} reps
+                {% else %}
+                  {{ ejercicio.reps_max or ejercicio.reps_min }} reps
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+
+  <form method="post" action="/programs/starter/import">
+    <input type="hidden" name="group" value="{{ group }}" />
+    <input type="hidden" name="level" value="{{ level }}" />
+    <button type="submit" class="btn-pill btn-pill-block">Cargar esta rutina</button>
+  </form>
+{% endblock %}

@@ -215,6 +215,26 @@ async def archive_program(
     return RedirectResponse(url="/programs", status_code=303)
 
 
+@router.post("/programs/{program_id}/delete")
+async def delete_program(
+    program_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user),
+):
+    """Unlike archive (just is_active=False), this actually removes the
+    program's plan -- DayTemplate/Block/BlockExercise all cascade at the DB
+    level (ON DELETE CASCADE). Workout/WorkoutSet don't: Workout.program_id
+    and .day_template_id are ON DELETE SET NULL, so real training history
+    already logged under this program survives as an orphaned-but-intact
+    session (see the session-detail page's own handling of that) instead of
+    disappearing along with the plan that produced it."""
+    program = get_own_program(db, program_id, user.id)
+    db.delete(program)
+    db.commit()
+
+    return RedirectResponse(url="/programs", status_code=303)
+
+
 @router.post("/days/{day_template_id}/delete")
 async def delete_day_template(
     day_template_id: int,

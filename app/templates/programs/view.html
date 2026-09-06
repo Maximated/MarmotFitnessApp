@@ -54,9 +54,14 @@
     {% endfor %}
   </ul>
 
-  <form method="post" action="/programs/{{ program.id }}/archive" class="delete-form" data-confirm="¿Archivar el programa &quot;{{ program.name }}&quot;? Dejará de estar activo, pero se queda guardado en tu historial. Podrás volver a activarlo cuando quieras.">
-    <button type="submit">Archivar programa</button>
-  </form>
+  <div class="pill-stack">
+    <form method="post" action="/programs/{{ program.id }}/archive" class="delete-form" data-confirm="¿Archivar el programa &quot;{{ program.name }}&quot;? Dejará de estar activo, pero se queda guardado en tu historial. Podrás volver a activarlo cuando quieras.">
+      <button type="submit" class="btn-pill btn-pill-block">Archivar programa<span class="pill-icon">{% include "_icon_archive.html" %}</span></button>
+    </form>
+    <form method="post" action="/programs/{{ program.id }}/delete" class="delete-form" data-confirm="¿Eliminar el programa &quot;{{ program.name }}&quot; por completo? Se perderán todos sus días y ejercicios. El histórico de series que ya registraste con él se conserva, pero dejará de estar asociado a este programa.">
+      <button type="submit" class="btn-pill btn-pill-block btn-pill-danger">Eliminar programa<span class="pill-icon">{% include "_icon_trash.html" %}</span></button>
+    </form>
+  </div>
 
   <script>
     document.querySelectorAll(".day-summary").forEach((el) => {
